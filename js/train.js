@@ -27,7 +27,7 @@ const LIBRARY = [
   ['Leg Extension', 'Quads', ['legext']], ['Smith Squat', 'Quads', ['smith']], ['Bulgarian Split Squat', 'Quads', ['db', 'bench']], ['Goblet Squat', 'Quads', ['db']], ['Walking Lunge', 'Quads', ['db']],
   ['Romanian Deadlift', 'Hamstrings', ['barbell']], ['Dumbbell RDL', 'Hamstrings', ['db']], ['Lying Leg Curl', 'Hamstrings', ['legcurl']], ['Seated Leg Curl', 'Hamstrings', ['legcurl']], ['Kettlebell Swing', 'Hamstrings', ['kb']],
   ['Hip Thrust', 'Glutes', ['barbell', 'bench']], ['Machine Hip Thrust', 'Glutes', ['hipthrust']], ['Cable Kickback', 'Glutes', ['cable']], ['Hip Abduction', 'Glutes', ['abductor']],
-  ['Standing Calf Raise', 'Calves', ['calf']], ['Seated Calf Raise', 'Calves', ['calf']], ['Leg Press Calf Raise', 'Calves', ['legpress']], ['Smith Calf Raise', 'Calves', ['smith']],
+  ['Standing Calf Raise', 'Calves', ['calf']], ['Calf Extension', 'Calves', ['calf']], ['Seated Calf Raise', 'Calves', ['calf']], ['Leg Press Calf Raise', 'Calves', ['legpress']], ['Smith Calf Raise', 'Calves', ['smith']],
   ['Hanging Leg Raise', 'Core', ['pullup']], ['Cable Crunch', 'Core', ['cable']], ['Plank', 'Core', []], ['Decline Sit-up', 'Core', ['bench']],
 ].map(([name, group, equip]) => ({ name, group, equip }));
 const TEMPLATES = {

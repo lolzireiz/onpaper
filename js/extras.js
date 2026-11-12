@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, Apple Watch reminder, muscle diagrams. */
 
-const APP_VERSION = '2.3';
+const APP_VERSION = '2.3.1';
 const CHANGELOG = [
+  ['2.3.1', ['Added Calf Extension to the exercise list.']],
   ['2.3', ['3 sets is now the default for every exercise. Tap an exercise\'s target during a workout to change it, and it\'s remembered everywhere.', 'Rest alerts now arrive even if you jump to another app right after logging a set.', 'If iPhone closes the app in the background, it reopens right back into your workout with the rest timer still counting.']],
   ['2.2', ['Rest alerts on your lock screen and Apple Watch, even with the app closed. Set it up once in Settings (uses the free ntfy app).', 'The alert tells you which exercise is next.']],
   ['2.1', ['Watch stats on workouts: after you finish, scan your Apple Watch or Fitness summary screenshot (or type it in) to save workout type, time, active and total calories, heart rate and effort.']],
@@ -57,7 +58,7 @@ const EX_MUSCLES = {
   'leg extension': ['quads'], 'smith squat': ['quads glutes', 'adductors hamstrings'], 'bulgarian split squat': ['quads glutes', 'adductors hamstrings abductors'], 'goblet squat': ['quads glutes', 'adductors abs'], 'walking lunge': ['quads glutes', 'hamstrings adductors calves'],
   'romanian deadlift': ['hamstrings glutes', 'lower_back forearms'], 'dumbbell rdl': ['hamstrings glutes', 'lower_back forearms'], 'lying leg curl': ['hamstrings', 'calves'], 'seated leg curl': ['hamstrings', 'calves'], 'kettlebell swing': ['glutes hamstrings', 'lower_back delts abs'],
   'hip thrust': ['glutes', 'hamstrings'], 'machine hip thrust': ['glutes', 'hamstrings'], 'cable kickback': ['glutes', 'hamstrings'], 'hip abduction': ['abductors glutes'],
-  'standing calf raise': ['calves'], 'seated calf raise': ['calves'], 'leg press calf raise': ['calves'], 'smith calf raise': ['calves'],
+  'standing calf raise': ['calves'], 'calf extension': ['calves'], 'seated calf raise': ['calves'], 'leg press calf raise': ['calves'], 'smith calf raise': ['calves'],
   'hanging leg raise': ['abs', 'obliques forearms'], 'cable crunch': ['abs', 'obliques'], 'plank': ['abs', 'obliques delts'], 'decline sit-up': ['abs', 'obliques'],
 };
 const GROUP_MUSCLES = { Chest: ['chest', 'delts triceps'], Back: ['lats upper_back', 'biceps rear_delts'], Shoulders: ['delts side_delts', 'triceps'], Biceps: ['biceps', 'forearms'], Triceps: ['triceps'], Quads: ['quads', 'glutes'], Hamstrings: ['hamstrings', 'glutes'], Glutes: ['glutes', 'hamstrings'], Calves: ['calves'], Core: ['abs', 'obliques'] };
