@@ -217,7 +217,9 @@ A.logSet = d => {
   put('workouts', w.id, { ...clone(w), sets: [...(w.sets || []), set] });
   if (isPR) toast(`PR! ${d.ex}: ${r === 1 ? 'new 1-rep max' : `new ${r}-rep max`}, ${fwu(lb)}`, { pr: true, ms: 3600 });
   const base = S().restSec || 120, rest = warm ? 60 : isCompound(d.ex) ? (r <= 6 ? Math.max(base, 180) : base) : Math.max(60, Math.min(base, 90));
-  startRest(rest);
+  const names = sessionNames(activeWorkout() || w), doneSets = n => [...(w.sets || []), set].filter(s => keyOf(s.ex) === keyOf(n) && !s.warm && s.hit !== false).length;
+  const nextEx = doneSets(d.ex) >= exTarget(w, d.ex).sets ? (names.find(n => doneSets(n) < exTarget(w, n).sets) || d.ex) : d.ex;
+  startRest(rest, nextEx);
   const t = exTarget(w, d.ex), doneNow = (w.sets || []).filter(s => keyOf(s.ex) === keyOf(d.ex) && !s.warm && s.hit !== false).length + (hit && !warm ? 1 : 0);
   if (!isPR && doneNow === t.sets) toast(`${d.ex} done: ${t.sets} working sets ✓`);
 };
@@ -402,8 +404,9 @@ function scheduleBeeps() {
     osc.connect(g); g.connect(ctx.destination); osc.start(at + o); osc.stop(at + o + 0.26); Rest.nodes.push(osc);
   });
 }
-function startRest(sec) {
-  audioCtx(); Rest.total = sec || S().restSec || 120; Rest.end = Date.now() + Rest.total * 1000; scheduleBeeps();
+function startRest(sec, next) {
+  audioCtx(); Rest.total = sec || S().restSec || 120; Rest.end = Date.now() + Rest.total * 1000; Rest.next = next || ''; scheduleBeeps(); pushScheduleRest(Rest.total, Rest.next);
+  if (!pushOn() && !lsGet('onpaper.pushHint')) { lsSet('onpaper.pushHint', '1'); setTimeout(() => toast('Want rest alerts on your lock screen & Watch? Turn them on in Settings ⚙️', { ms: 5200 }), 900); }
   const el = $('#rest');
   el.innerHTML = `<svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15" style="stroke:var(--s3)"/><circle id="rest-arc" cx="18" cy="18" r="15" style="stroke:var(--accent)" stroke-dasharray="94.2" stroke-dashoffset="0" stroke-linecap="round"/></svg><span class="rt" id="rest-t" aria-live="off">0:00</span><button class="rb" data-act="restAdd" data-s="-15" aria-label="15 seconds less">−15</button><button class="rb" data-act="restAdd" data-s="15" aria-label="15 seconds more">+15</button><button class="rb" data-act="restSkip">Skip</button>`;
   el.hidden = false; clearInterval(Rest.t); Rest.t = setInterval(tickRest, 250); tickRest();
@@ -421,8 +424,8 @@ function finishRest() {
   try { navigator.vibrate && navigator.vibrate([250, 120, 250]); } catch (e) {}
   toast('Rest is up. Next set!');
 }
-A.restAdd = d => { if (!Rest.end) return; Rest.end = Math.max(Date.now() + 1000, Rest.end + (+d.s) * 1000); Rest.total = Math.max(Rest.total, (Rest.end - Date.now()) / 1000); scheduleBeeps(); tickRest(); };
-A.restSkip = () => { clearBeeps(); clearInterval(Rest.t); Rest.end = 0; const el = $('#rest'); if (el) el.hidden = true; };
+A.restAdd = d => { if (!Rest.end) return; Rest.end = Math.max(Date.now() + 1000, Rest.end + (+d.s) * 1000); Rest.total = Math.max(Rest.total, (Rest.end - Date.now()) / 1000); scheduleBeeps(); tickRest(); clearTimeout(Rest.pushT); Rest.pushT = setTimeout(() => Rest.end && pushScheduleRest((Rest.end - Date.now()) / 1000, Rest.next), 700); };
+A.restSkip = () => { clearTimeout(Rest.pushT); if (Rest.end) pushCancel(); clearBeeps(); clearInterval(Rest.t); Rest.end = 0; const el = $('#rest'); if (el) el.hidden = true; };
 let wakeSentinel = null;
 async function wakeLock() { try { if (navigator.wakeLock && !wakeSentinel) { wakeSentinel = await navigator.wakeLock.request('screen'); wakeSentinel.addEventListener('release', () => { wakeSentinel = null; }); } } catch (e) { wakeSentinel = null; } }
 function releaseWake() { try { wakeSentinel && wakeSentinel.release(); } catch (e) {} wakeSentinel = null; }

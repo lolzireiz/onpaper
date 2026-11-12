@@ -68,14 +68,15 @@ A.openSettings = () => {
     <div class="field"><span class="lbl">Your goal</span><div class="seg">${chipSeg('goal2', [['bulk', 'Lean bulk'], ['maintain', 'Maintain'], ['cut', 'Cut']], s.goal || 'bulk')}</div></div>
     <div class="field"><label class="lbl" for="st-gw">Goal bodyweight (${U.wu}, optional)</label><input id="st-gw" name="gweight" inputmode="decimal" value="${s.goalWeight ? plain(U.w(s.goalWeight)) : ''}" placeholder="e.g. 180"></div>
     <div class="fields"><div class="field"><label class="lbl" for="st-cal">Daily calories</label><input id="st-cal" name="cal" inputmode="numeric" value="${s.calTarget}"></div><div class="field"><label class="lbl" for="st-p">Daily protein (g)</label><input id="st-p" name="prot" inputmode="numeric" value="${s.proteinTarget}"></div></div>
+    ${pushSettingsHTML()}
     <div class="field"><span class="lbl">Remind me to weigh in after</span><div class="seg">${chipSeg('nudge', [[1, '1 day'], [2, '2'], [3, '3'], [5, '5'], [7, '7']], s.nudgeDays)}</div></div>
-    <div class="field"><span class="lbl">Food buddy (a raccoon you feed by logging food)</span><div class="seg">${chipSeg('buddy', [['on', 'On'], ['off', 'Off']], s.buddy === false ? 'off' : 'on')}</div><input name="buddyname" value="${esc(s.buddyName || 'Pebble')}" aria-label="Buddy's name" placeholder="Buddy's name" style="margin-top:6px"></div>
+    <div class="field"><span class="lbl">Food buddy (a pet you feed by logging food)</span><div class="seg">${chipSeg('buddy', [['on', 'On'], ['off', 'Off']], s.buddy === false ? 'off' : 'on')}</div><input name="buddyname" value="${esc(s.buddyName || 'Pebble')}" aria-label="Buddy's name" placeholder="Buddy's name" style="margin-top:6px"></div>
     <div class="field"><span class="lbl">Muscle diagrams show</span><div class="seg">${chipSeg('bodym', [['male', 'Male body'], ['female', 'Female body']], s.bodyModel || 'male')}</div></div>
     <div class="field"><span class="lbl">Apple Watch reminder when a workout starts</span><div class="seg">${chipSeg('watch', [['on', 'On'], ['off', 'Off']], s.watchReminder === false ? 'off' : 'on')}</div></div>
     <div class="fields three">${sel('squat', 'Squat')}${sel('bench', 'Bench')}${sel('deadlift', 'Deadlift')}</div>
     <p class="faint small" style="margin-top:-6px">Which of your lifts count toward the Big 3 total.</p>
     <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:4px 0">
-    <div class="field"><label class="lbl" for="st-gk">AI key (for label scanning)</label><input id="st-gk" name="gkey" type="password" autocomplete="off" value="${esc(geminiKey())}" placeholder="Paste your key from aistudio.google.com"></div>
+    <div class="field"><label class="lbl" for="st-gk">AI key (for label scanning)</label><input id="st-gk" name="gkey" type="password" autocomplete="off" value="${esc(geminiKey())}" placeholder="Paste your key"></div>
     <div class="btnrow"><button class="btn ghost" data-act="testGemini">Test my key</button><a class="btn ghost" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Get a free key</a></div><p class="small" id="gk-test" aria-live="polite"></p>
     <details><summary class="faint small">Advanced: model</summary><input id="st-gm" name="gmodel" autocomplete="off" autocapitalize="off" value="${esc(geminiModel())}" placeholder="Automatic (fastest available)" style="margin-top:6px"></details>
     <p class="faint small" style="margin-top:-6px">Your key is saved only on this phone and only sent to Google.</p>
@@ -94,6 +95,7 @@ A.saveSettings = () => {
     big3: { squat: fval('b3squat') || S().big3.squat, bench: fval('b3bench') || S().big3.bench, deadlift: fval('b3deadlift') || S().big3.deadlift },
   });
   try { localStorage.setItem(GEMINI_KEY, fval('gkey')); localStorage.setItem(GEMINI_MODEL, fval('gmodel')); } catch (e) {}
+  lsSet(PUSH_ON, picked(root, 'pushon') === 'on' ? '1' : '0');
   refreshCaps(); closeSheet(); toast('Settings saved');
 };
 A.exportData = () => {
