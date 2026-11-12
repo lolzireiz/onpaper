@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '3.7.1';
+const APP_VERSION = '3.7.2';
 const CHANGELOG = [
+  ['3.7.2', ['Animated figures: one smooth, continuous body. The odd lumps, creases and patchy shading are gone.']],
   ['3.7.1', ['Animated figures reshaped to look like real athletic bodies: seamless limbs with natural muscle shape, rounded shoulders, a V-taper on the male and an hourglass on the female. No more jointed-doll look.', 'Chest exercises now light up the chest itself.']],
   ['3.7', ['Sports & cardio: log runs, basketball, football, pickleball, martial arts and 30+ other activities in the Train tab. Scan the summary from your watch or type it in.', 'Each activity saves time, distance and pace, calories, heart rate and effort.', 'Activity days count toward your weekly goal, streak and calendar, and sessions count toward the goals they train.']],
   ['3.6.1', ['Cleaner animated figures: a smooth, understated torso with no exaggerated muscle lines.']],

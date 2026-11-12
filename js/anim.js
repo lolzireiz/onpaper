@@ -198,8 +198,8 @@ function rasterCapsule(R, ax, ay, az, bx, by, bz, ra, rb, wa, wb, c, tag, kb = 0
       let sw = 0; if (kb) { const u = g === 1 ? t : Math.pow(t, g); sw = 4 * u * (1 - u); } const r = ra + dr * t + kb * sw, d = Math.sqrt(d2); let cov = r + 0.5 - d; if (cov <= 0) continue; if (cov > 1) cov = 1;
       const nn = d < r ? d / r : 1, nz = Math.sqrt(1 - nn * nn), z = az + dz * t + nz * (wa + dw * t + kw * sw), i = y * W + x;
       if (z < zb[i]) continue;
-      if (tag && cov >= 0.999) { const j = i * 4; px[j] = c0; px[j + 1] = c1; px[j + 2] = c2; px[j + 3] = 255; zb[i] = z; id[i] = 1; if (x < R.bx0) R.bx0 = x; if (x > R.bx1) R.bx1 = x; if (y < R.by0) R.by0 = y; if (y > R.by1) R.by1 = y; continue; }
       const inv = d > 1e-6 ? nn / d : 0, nx = ox * inv, ny = oy * inv;
+      if (tag && cov >= 0.999) { const j = i * 4; px[j] = c0; px[j + 1] = c1; px[j + 2] = c2; px[j + 3] = 255; zb[i] = z; id[i] = 1; R.nx[i] = nx; R.ny[i] = ny; if (x < R.bx0) R.bx0 = x; if (x > R.bx1) R.bx1 = x; if (y < R.by0) R.by0 = y; if (y > R.by1) R.by1 = y; continue; }
       let diff = nx * AL[0] + ny * AL[1] + nz * AL[2]; if (diff < 0) diff = 0;
       const rim = nz * 2.4, sh = (0.36 + 0.7 * diff) * (0.5 + 0.5 * (rim > 1 ? 1 : rim)), sp = diff > 0.93 ? (diff - 0.93) * 420 : 0, j = i * 4;
       const r0 = c0 * sh + sp, g0 = c1 * sh + sp, b0 = c2 * sh + sp;
@@ -220,24 +220,32 @@ function rasterTri(R, A, B, C, c, sh) {
     const j = i * 4; px[j] = r0; px[j + 1] = g0; px[j + 2] = b0; px[j + 3] = 255; zb[i] = z; R.id[i] = 0;
   }
 }
-/* Smooth-shade the tagged (torso) pixels: blur their depth so the seams between the pieces vanish, then light from that surface. */
+/* Light the whole body in one pass. Each body pixel kept its surface normal; here the normals are averaged with their
+   neighbours (only across pixels at a similar depth, so an arm in front of the chest stays separate). Where two body pieces
+   meet, that turns the crease into a smooth blend, so the figure reads as one continuous surface. */
 function smoothShade(R, S) {
   if (R.bx1 < R.bx0) return;
-  const W = R.W, x0 = R.bx0, x1 = R.bx1, y0 = R.by0, y1 = R.by1, w = x1 - x0 + 1, h = y1 - y0 + 1, n = w * h, zb = R.zb, id = R.id, px = R.px, rad = Math.max(2, Math.round(0.027 * S));
-  if (!R.sa || R.sa.length < n) { R.sa = new Float32Array(n); R.sb = new Float32Array(n); R.sc = new Float32Array(n); R.sd = new Float32Array(n); R.sm = new Uint8Array(n); R.ps = new Float64Array(Math.max(R.W, R.H) + 2); R.pc = new Int32Array(Math.max(R.W, R.H) + 2); }
-  const a = R.sa, b = R.sb, cf = R.sc, cg = R.sd, m = R.sm, ps = R.ps, pc = R.pc; let zmin = 1e9;
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = (y + y0) * W + x + x0, k = y * w + x; m[k] = id[i]; if (id[i] && zb[i] < zmin) zmin = zb[i]; }
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const k = y * w + x; a[k] = m[k] ? zb[(y + y0) * W + x + x0] - zmin : 0; }
-  const full = 2 * rad + 1;
-  // one masked box blur each way; cf/cg also collect how much of the window is torso (low near its edges and where a limb crosses in front)
-  for (let y = 0; y < h; y++) { ps[0] = 0; pc[0] = 0; for (let x = 0; x < w; x++) { const k = y * w + x; ps[x + 1] = ps[x] + (m[k] ? a[k] : 0); pc[x + 1] = pc[x] + m[k]; } for (let x = 0; x < w; x++) { const l = Math.max(0, x - rad), r = Math.min(w, x + rad + 1), c = pc[r] - pc[l]; b[y * w + x] = c ? (ps[r] - ps[l]) / c : 0; cf[y * w + x] = c / full; } }
-  for (let x = 0; x < w; x++) { ps[0] = 0; pc[0] = 0; let fs = 0; const fa = R.ps2 || (R.ps2 = new Float64Array(Math.max(R.W, R.H) + 2)); fa[0] = 0; for (let y = 0; y < h; y++) { const k = y * w + x; ps[y + 1] = ps[y] + (m[k] ? b[k] : 0); pc[y + 1] = pc[y] + m[k]; fa[y + 1] = fa[y] + cf[k]; } for (let y = 0; y < h; y++) { const l = Math.max(0, y - rad), r = Math.min(h, y + rad + 1), c = pc[r] - pc[l]; a[y * w + x] = c ? (ps[r] - ps[l]) / c : 0; cg[y * w + x] = (fa[r] - fa[l]) / full; } }
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const k = y * w + x; if (!m[k]) continue;
-    const xl = x > 0 && m[k - 1] ? k - 1 : k, xr = x < w - 1 && m[k + 1] ? k + 1 : k, yu = y > 0 && m[k - w] ? k - w : k, yd = y < h - 1 && m[k + w] ? k + w : k;
-    let nx = xr > xl ? -(a[xr] - a[xl]) / (xr - xl) * S : 0, ny = yd > yu ? -(a[yd] - a[yu]) / ((yd - yu) / w) * S : 0, nz = 1; const l = Math.hypot(nx, ny, nz); nx /= l; ny /= l; nz /= l;
-    let e = (cg[k] - 0.42) / 0.5; e = e < 0 ? 0 : e > 1 ? 1 : e; e = e * e * (3 - 2 * e);
-    let diff = nx * AL[0] + ny * AL[1] + nz * AL[2]; if (diff < 0) diff = 0; const sh = (0.36 + 0.7 * diff) * (0.8 + 0.2 * e), j = ((y + y0) * W + x + x0) * 4;
-    px[j] *= sh; px[j + 1] *= sh; px[j + 2] *= sh; }
+  const W = R.W, x0 = R.bx0, x1 = R.bx1, y0 = R.by0, y1 = R.by1, w = x1 - x0 + 1, h = y1 - y0 + 1, n = w * h, zb = R.zb, id = R.id, px = R.px, T = 0.045;
+  if (!R.sa || R.sa.length < n) { R.sa = new Float32Array(n); R.sb = new Float32Array(n); R.sc = new Float32Array(n); R.sd = new Float32Array(n); R.sz = new Float32Array(n); R.sm = new Uint8Array(n); R.se = new Float32Array(n); }
+  const ax = R.sa, ay = R.sb, bx = R.sc, by = R.sd, z = R.sz, m = R.sm, ed = R.se;
+  for (let y = 0; y < h; y++) { const row = (y + y0) * W + x0, o = y * w; for (let x = 0; x < w; x++) { const i = row + x, k = o + x; m[k] = id[i]; if (m[k]) { ax[k] = R.nx[i]; ay[k] = R.ny[i]; z[k] = zb[i]; } } }
+  const base = Math.max(1, Math.round(0.006 * S)), strides = [base, base * 2, base * 4];
+  for (let it = 0; it < strides.length; it++) { const st = strides[it], last = it === strides.length - 1;
+    for (let y = 0; y < h; y++) { const o = y * w; for (let x = 0; x < w; x++) { const k = o + x; if (!m[k]) continue; let sx = ax[k] * 2, sy = ay[k] * 2, ws = 2; const zk = z[k];
+      if (x >= st) { const q = k - st; if (m[q] && Math.abs(z[q] - zk) < T) { sx += ax[q]; sy += ay[q]; ws++; } }
+      if (x + st < w) { const q = k + st; if (m[q] && Math.abs(z[q] - zk) < T) { sx += ax[q]; sy += ay[q]; ws++; } }
+      bx[k] = sx / ws; by[k] = sy / ws; if (last) ed[k] = ws; } }
+    const sw = st * w;
+    for (let y = 0; y < h; y++) { const o = y * w; for (let x = 0; x < w; x++) { const k = o + x; if (!m[k]) continue; let sx = bx[k] * 2, sy = by[k] * 2, ws = 2; const zk = z[k];
+      if (y >= st) { const q = k - sw; if (m[q] && Math.abs(z[q] - zk) < T) { sx += bx[q]; sy += by[q]; ws++; } }
+      if (y + st < h) { const q = k + sw; if (m[q] && Math.abs(z[q] - zk) < T) { sx += bx[q]; sy += by[q]; ws++; } }
+      ax[k] = sx / ws; ay[k] = sy / ws; if (last) ed[k] += ws; } }
+  }
+  for (let y = 0; y < h; y++) { const row = (y + y0) * W + x0, o = y * w; for (let x = 0; x < w; x++) { const k = o + x; if (!m[k]) continue;
+    let nx = ax[k], ny = ay[k], n2 = nx * nx + ny * ny; if (n2 > 0.98) { const f = Math.sqrt(0.98 / n2); nx *= f; ny *= f; n2 = 0.98; } const nz = Math.sqrt(1 - n2);
+    const lam = nx * AL[0] + ny * AL[1] + nz * AL[2], half = lam * 0.5 + 0.5, rim = nz * 2.2, occ = (ed[k] - 4) / 4;      // soft wrap lighting; occ dims pixels next to a nearer body part
+    const sp = lam > 0.9 ? (lam - 0.9) * 160 : 0, sh = (0.2 + 0.92 * half * half * (0.55 + 0.45 * half)) * (0.5 + 0.5 * (rim > 1 ? 1 : rim)) * (0.84 + 0.16 * occ), j = (row + x) * 4;
+    px[j] = px[j] * sh + sp; px[j + 1] = px[j + 1] * sh + sp; px[j + 2] = px[j + 2] * sh + sp; } }
 }
 function animDraw(cv, def, t, yawDeg, cycle = 0) {
   const ctx = cv.getContext('2d'), W = cv.width, H = cv.height, S = Math.min(W, H * 1.12) / (2 * def.r) * 0.96, q = animPose(def, t, cycle), B = def.build || BUILD.male, J = animJoints(q, B);
@@ -249,10 +257,10 @@ function animDraw(cv, def, t, yawDeg, cycle = 0) {
   ring(def.c[0], def.c[2], def.r * 0.98, 'rgba(255,255,255,.035)', 'rgba(255,255,255,.09)'); ring(def.c[0], def.c[2], def.r * 0.55, null, 'rgba(255,255,255,.05)');
   ring(q.p[0], q.p[2], 0.26 + Math.max(0, 0.6 - q.p[1]) * 0.25, `rgba(0,0,0,${0.5 - Math.min(0.3, q.p[1] * 0.18)})`, null);
   // depth-buffered layer
-  let R = cv._r; if (!R || R.W !== W || R.H !== H) { const o = document.createElement('canvas'); o.width = W; o.height = H; const octx = o.getContext('2d'), img = octx.createImageData(W, H); R = cv._r = { W, H, o, octx, img, px: img.data, zb: new Float32Array(W * H), id: new Uint8Array(W * H) }; }
+  let R = cv._r; if (!R || R.W !== W || R.H !== H) { const o = document.createElement('canvas'); o.width = W; o.height = H; const octx = o.getContext('2d'), img = octx.createImageData(W, H); R = cv._r = { W, H, o, octx, img, px: img.data, zb: new Float32Array(W * H), id: new Uint8Array(W * H), nx: new Float32Array(W * H), ny: new Float32Array(W * H) }; }
   R.px.fill(0); R.zb.fill(-1e9); R.id.fill(0); R.bx0 = R.by0 = 1e9; R.bx1 = R.by1 = -1;
   const caps = [], quads = [];
-  const seg = (a, b, w, key, col, w2) => { const A = P(a), Bp = P(b); caps.push([A, Bp, w / 2, (w2 == null ? w : w2) / 2, col || (def.hl.has(key) ? AC.on : AC.body), SMOOTH[key] ? 1 : 0, 0, 1]); };
+  const seg = (a, b, w, key, col, w2) => { const A = P(a), Bp = P(b); caps.push([A, Bp, w / 2, (w2 == null ? w : w2) / 2, col || (def.hl.has(key) ? AC.on : AC.body), col ? 0 : 1, 0, 1]); };
   const dot = (a, r, key, col) => seg(a, a, r * 2, key, col);
   const limb = (a, b, rr, key) => seg(a, b, rr[0] * 2, key, null, rr[1] * 2);
   const quad = (a, b, w, col, off) => { const d = V.sub(b, a); let wd = [d[2], 0, -d[0]]; if (V.len(wd) < 1e-4) wd = [1, 0, 0]; wd = V.mul(V.norm(wd), w / 2); const o = off || [0, 0, 0]; quads.push([[V.add(a, wd), V.add(b, wd), V.sub(b, wd), V.sub(a, wd)].map(x => P(V.add(x, o))), col]); };
@@ -264,20 +272,21 @@ function animDraw(cv, def, t, yawDeg, cycle = 0) {
     const hip = J['hip' + s], kn = J['kn' + s], an = J['an' + s], sh = J['sh' + s], el = J['el' + s], ha = J['ha' + s];
     belly(hip, kn, B.thigh, 0.36, 'thigh');
     belly(kn, an, B.shin, 0.3, 'shin');
-    { const back = V.mul(across(J['kf' + s], kn, an), -1); seg(off(kn, an, 0.14, back, 0.02), off(kn, an, 0.5, back, 0.008), B.calf * 2, 'shin', null, B.calf * 1.3); }      // calf
+    { const back = V.mul(across(J['kf' + s], kn, an), -1); seg(off(kn, an, 0.12, back, 0.014), off(kn, an, 0.52, back, 0.004), B.calf * 2, 'shin', null, B.calf * 1.2); }      // calf
     seg(an, J['toe' + s], B.foot * 2.1, 'foot', null, B.foot * 1.5);
     belly(sh, el, B.upper, 0.45, 'upper');
-    { const front = V.mul(across(J['eb' + s], sh, el), -1); seg(off(sh, el, 0.3, front, 0.014), off(sh, el, 0.72, front, 0.008), B.bicep * 2, 'upper', null, B.bicep * 1.6); }  // biceps
+    { const front = V.mul(across(J['eb' + s], sh, el), -1); seg(off(sh, el, 0.3, front, 0.01), off(sh, el, 0.74, front, 0.006), B.bicep * 2, 'upper', null, B.bicep * 1.6); }  // biceps
     belly(el, ha, B.fore, 0.28, 'fore'); seg(ha, V.add(ha, V.mul(V.norm(V.sub(ha, el)), 0.07)), B.hand * 2, 'hand', null, B.hand * 1.6);
     seg(V.add(sh, [sx * 0.012, 0.002, 0]), V.lerp(sh, el, 0.4), B.delt * 2, 'sho', null, B.upper[1] * 1.96);                                                                      // deltoid cap
     seg(V.add(J.neck, V.mul(J.up, 0.03)), V.add(sh, [-sx * 0.035, 0, 0]), B.trap * 2 + 0.024, 'trap', null, B.trap * 2);
-    dot(at(-0.02, -B.gback, sx * B.hw * 0.9), B.glute, 'glute');
-    if (B.pec) seg(at(0.725, 0.058, sx * 0.045), at(0.765, 0.044, sx * 0.14), B.pec * 2, 'pec', null, B.pec * 1.7);
-    if (B.bust) { seg(at(0.74, 0.03, sx * 0.04), at(0.76, 0.026, sx * 0.11), 0.09, 'pec'); dot(at(0.67, 0.05, sx * 0.068), B.bust, 'pec'); }
+    dot(at(-0.01, -B.gback, sx * B.hw * 0.85), B.glute, 'glute');
+    if (B.pec) seg(at(0.72, 0.05, sx * 0.05), at(0.765, 0.04, sx * 0.135), B.pec * 2, 'pec', null, B.pec * 1.75);
+    if (B.bust) dot(at(0.675, 0.042, sx * 0.068), B.bust, 'pec');
   }
-  // torso: five vertical columns that follow the width/depth profile, so it shades as one smooth surface (no banding)
-  { const pr = B.prof, pt = (k, j) => { const [f, w, d] = pr[k]; return at(f, 0, (j / 2) * Math.max(0, w - d)); };
-    for (let k = 0; k < pr.length - 1; k++) { const fm = (pr[k][0] + pr[k + 1][0]) / 2, key = fm < 0.2 ? 'pelvis' : fm < 0.55 ? 'tl' : 'tu'; for (let j = -2; j <= 2; j++) seg(pt(k, j), pt(k + 1, j), pr[k][2] * 2, key, null, pr[k + 1][2] * 2); } }
+  // torso: closely spaced rounded slices of a smooth width/depth profile (the lighting pass blends them into one surface)
+  { const pr = B.prof, top = pr[pr.length - 1][0], n = 22; let k = 0;
+    for (let i = 0; i <= n; i++) { const f = top * i / n; while (k < pr.length - 2 && f > pr[k + 1][0]) k++; const a0 = pr[k], a1 = pr[k + 1], tt = Math.min(1, Math.max(0, (f - a0[0]) / (a1[0] - a0[0]))), sm = tt * tt * (3 - 2 * tt), w = a0[1] + (a1[1] - a0[1]) * sm, d = a0[2] + (a1[2] - a0[2]) * sm, c = at(f), e = Math.max(0, w - d);
+      seg(V.add(c, V.mul(X, -e)), V.add(c, V.mul(X, e)), d * 2, f < 0.2 ? 'pelvis' : f < 0.55 ? 'tl' : 'tu'); } }
   seg(V.add(J.neck, V.mul(J.up, -0.04)), V.add(J.head, V.mul(J.up, -0.03)), B.neck * 2.1, 'neck', null, B.neck * 1.8);
   seg(V.add(J.head, V.mul(J.up, 0.02)), V.add(V.add(J.head, V.mul(J.up, -0.062)), V.mul(J.fwd, 0.022)), B.head * 2, 'head', null, B.jaw * 2);
   dot(V.add(V.add(J.head, V.mul(J.up, 0.04)), V.mul(J.fwd, -0.03)), B.head * 0.95, 'hair', B.hair);
@@ -324,7 +333,7 @@ function animHTML(name, sex = 'male') {
 function mountAnim(root) {
   const cv = root && root.querySelector('.anim-cv'); if (!cv || cv._on) return; cv._on = 1;
   const def = animDef(cv.dataset.ex, cv.dataset.sex); if (!def) return;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2), fit = () => { const r = cv.getBoundingClientRect(); if (r.width) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); } };
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.6), fit = () => { const r = cv.getBoundingClientRect(); if (r.width) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); } };
   fit();
   let yaw = def.yaw, drag = null, t0 = performance.now(), still = REDUCED();
   const frame = now => {
