@@ -28,14 +28,14 @@ const BUILD = {
     prof: [[0, 0.192, 0.1], [0.14, 0.182, 0.1], [0.32, 0.116, 0.082], [0.47, 0.126, 0.086], [0.61, 0.146, 0.094], [0.75, 0.154, 0.092], [0.87, 0.156, 0.08]], hair: [96, 62, 44], bun: 1 },
 };
 /* turn a compact pose into full world-space targets */
-function animResolve(o) {
+function animResolve(o, B = BUILD.male) {
   const lean = o.lean || 0, L = lean * Math.PI / 180, u = [0, Math.cos(L), Math.sin(L)], w = [0, -Math.sin(L), Math.cos(L)], p = o.p || [0, 0.95, 0];
-  const neck = V.add(p, V.mul(u, 0.5)), q = { p, lean, shrug: o.shrug || 0, toe: o.toe || 0, ptR: o.ptR ?? o.pt ?? 0, ptL: o.ptL ?? o.pt ?? 0 };
+  const neck = V.add(p, V.mul(u, B.torso || 0.5)), q = { p, lean, shrug: o.shrug || 0, toe: o.toe || 0, ptR: o.ptR ?? o.pt ?? 0, ptL: o.ptL ?? o.pt ?? 0 };
   for (const [s, sx] of SIDES) {
-    const sh = V.add(V.add(neck, V.mul(u, -0.05)), [sx * 0.2, 0, 0]);
+    const sh = V.add(V.add(neck, V.mul(u, -0.05)), [sx * (B.sw || 0.2), 0, 0]);
     if (o['h' + s]) q['h' + s] = o['h' + s]; else if (o.h) q['h' + s] = [o.h[0] * sx, o.h[1], o.h[2]];
     else if (o.hl) q['h' + s] = V.add(V.add(V.add(neck, [o.hl[0] * sx, 0, 0]), V.mul(u, o.hl[1])), V.mul(w, o.hl[2]));
-    else q['h' + s] = V.add(sh, [sx * 0.05, -0.56, 0.03]);
+    else q['h' + s] = V.add(sh, [sx * 0.05, -((B.ua || 0.3) + (B.fa || 0.27) - 0.012), 0.03]);
     if (o['f' + s]) q['f' + s] = o['f' + s]; else { const f = o.f || [0.13, 0.06, 0]; q['f' + s] = [f[0] * sx, f[1], f[2]]; }
     const ep = o['ep' + s] || o.ep || [0.4, -0.4, -1], kp = o['kp' + s] || o.kp || [0, 0.2, 1];
     q['ep' + s] = o['ep' + s] ? ep : [ep[0] * sx, ep[1], ep[2]]; q['kp' + s] = o['kp' + s] ? kp : [kp[0] * sx, kp[1], kp[2]];
@@ -50,10 +50,10 @@ function animLerp(a, b, t) {
   return q;
 }
 function animJoints(q, B = BUILD.male) {
-  const L = q.lean * Math.PI / 180, u = [0, Math.cos(L), Math.sin(L)], neck = V.add(q.p, V.mul(u, 0.5)), J = { pelvis: q.p, neck, head: V.add(neck, V.mul(u, 0.185)), chest: V.add(q.p, V.mul(u, 0.3)), up: u, fwd: [0, -Math.sin(L), Math.cos(L)] };
+  const L = q.lean * Math.PI / 180, u = [0, Math.cos(L), Math.sin(L)], neck = V.add(q.p, V.mul(u, B.torso || 0.5)), J = { pelvis: q.p, neck, head: V.add(neck, V.mul(u, 0.185)), chest: V.add(q.p, V.mul(u, 0.3)), up: u, fwd: [0, -Math.sin(L), Math.cos(L)] };
   for (const [s, sx] of SIDES) {
     const sh = V.add(V.add(neck, V.mul(u, -0.05 + q.shrug)), [sx * B.sw, 0, 0]), hip = V.add(q.p, [sx * B.hw, 0, 0]);
-    const [el, ha, eback] = ik2(sh, q['h' + s], 0.3, 0.27, q['ep' + s]), [kn, an, kfront] = ik2(hip, q['f' + s], 0.46, 0.46, q['kp' + s]), pt = q['pt' + s];
+    const [el, ha, eback] = ik2(sh, q['h' + s], B.ua || 0.3, B.fa || 0.27, q['ep' + s]), [kn, an, kfront] = ik2(hip, q['f' + s], B.th || 0.46, B.sh || 0.46, q['kp' + s]), pt = q['pt' + s];
     // toes: flat on the floor when standing on that foot; otherwise they point out the front of the shin (the side the kneecap faces),
     // and pt points them along the shin. The two are blended by ankle height so a foot never snaps as it lifts.
     const sd = V.norm(V.sub(an, kn)); let pv = V.sub(kfront, V.mul(sd, V.dot(kfront, sd))); if (V.len(pv) < 1e-3) pv = [0, 0, 1]; pv = V.norm(pv);
@@ -108,8 +108,8 @@ const ARCH = {
   fly: () => ({ A: { p: [0, 0.56, 0.22], lean: -90, f: [0.22, 0.06, 0.62], kp: [0, 1, 0.4], h: [0.62, 0.66, -0.26], ep: [0, -1, 0] }, B: { p: [0, 0.56, 0.22], lean: -90, f: [0.22, 0.06, 0.62], kp: [0, 1, 0.4], h: [0.07, 1.08, -0.26], ep: [1, -0.3, 0] }, props: [BENCH, { t: 'db' }], yaw: 40, cue: CUE.fly }),
   pecdeck: () => ({ A: { p: [0, 0.55, 0], lean: -6, f: [0.18, 0.06, 0.42], kp: [0, 1, 0.5], h: [0.56, 1.0, 0.1], ep: [0.5, -1, -0.3] }, B: { p: [0, 0.55, 0], lean: -6, f: [0.18, 0.06, 0.42], kp: [0, 1, 0.5], h: [0.06, 1.0, 0.5], ep: [1, -0.6, 0] }, props: [SEAT, BACKREST, { t: 'grips' }], yaw: 28, cue: CUE.fly }),
   cfly: () => ({ A: AP({ lean: 12, fR: [0.13, 0.06, 0.2], fL: [-0.13, 0.06, -0.2], h: [0.6, 1.3, 0.05], ep: [0.4, -0.6, -1] }), B: AP({ lean: 12, fR: [0.13, 0.06, 0.2], fL: [-0.13, 0.06, -0.2], h: [0.06, 0.96, 0.46], ep: [1, 0.2, -0.3] }), props: [{ t: 'cable2', a: [1.05, 1.9, -0.1] }], yaw: 25, cue: CUE.fly }),
-  pushup: () => ({ A: { p: [0, 0.46, -0.48], lean: 68, f: [0.1, 0.1, -1.33], kp: [0, -1, 0], h: [0.27, 0.04, 0], ep: [0.7, 0.15, -1] }, B: { p: [0, 0.17, -0.41], lean: 85, f: [0.1, 0.1, -1.33], kp: [0, -1, 0], h: [0.27, 0.04, 0], ep: [0.7, 0.15, -1] }, yaw: 62, cue: ['Hands under your shoulders, body in a straight line', 'Lower your chest to just above the floor', 'Push the floor away'] }),
-  plank: () => ({ A: { p: [0, 0.3, -0.45], lean: 78, f: [0.1, 0.08, -1.35], kp: [0, -1, 0], h: [0.2, 0.04, 0.36], ep: [0, -1, -0.2] }, B: { p: [0, 0.315, -0.45], lean: 78, f: [0.1, 0.08, -1.35], kp: [0, -1, 0], h: [0.2, 0.04, 0.36], ep: [0, -1, -0.2] }, yaw: 62, hold: 1, cue: CUE.plank }),
+  pushup: () => ({ hands: 'floor', A: { p: [0, 0.46, -0.48], lean: 68, f: [0.1, 0.1, -1.33], kp: [0, -1, 0], h: [0.27, 0.07, 0], ep: [0.7, 0.15, -1] }, B: { p: [0, 0.2, -0.41], lean: 84, f: [0.1, 0.1, -1.33], kp: [0, -1, 0], h: [0.27, 0.07, 0], ep: [0.7, 0.15, -1] }, yaw: 62, cue: ['Hands under your shoulders, body in a straight line', 'Lower your chest to just above the floor', 'Push the floor away'] }),
+  plank: () => ({ hands: 'floor', A: { p: [0, 0.3, -0.45], lean: 78, f: [0.1, 0.08, -1.35], kp: [0, -1, 0], h: [0.2, 0.04, 0.36], ep: [0, -1, -0.2] }, B: { p: [0, 0.315, -0.45], lean: 78, f: [0.1, 0.08, -1.35], kp: [0, -1, 0], h: [0.2, 0.04, 0.36], ep: [0, -1, -0.2] }, yaw: 62, hold: 1, cue: CUE.plank }),
   dips: () => ({ A: { p: [0, 1.16, -0.03], lean: 5, f: [0.1, 0.36, -0.3], h: [0.3, 1.05, 0], ep: [0.2, 0.3, -1] }, B: { p: [0, 0.9, -0.1], lean: 18, f: [0.1, 0.12, -0.36], h: [0.3, 1.05, 0], ep: [0.25, 0.4, -1] }, props: [{ t: 'rails', y: 1.03, x: 0.3 }], yaw: 50, cue: CUE.dip }),
   ohp: (o = {}) => { const dy = o.seat ? -0.4 : 0, base = o.seat ? { p: [0, 0.55, 0], f: [0.18, 0.06, 0.42], kp: [0, 1, 0.5] } : { p: [0, 0.95, 0], f: [0.15, 0.06, 0] };
     return { A: { ...base, hl: [0.25, -0.04, 0.14], ep: [0.6, -1, 0.3] }, B: { ...base, h: [0.21, 1.95 + dy, 0.02], ep: [1, -0.2, 0.2] }, props: [...(o.seat ? [SEAT, BACKREST] : []), ...(o.props || [{ t: 'bar' }])], cue: CUE.ohp }; },
@@ -162,16 +162,16 @@ const EX_ANIM = {
   'Cable Crunch': ['crunch'], 'Plank': ['plank'], 'Decline Sit-up': ['situp'], 'Farmer Carry': ['carry'], 'Cable Woodchop': ['chop'], 'Pallof Press': ['pallof'], 'Dead Bug': ['deadbug'],
 };
 const MUS_SEG = { quads: ['thigh'], hamstrings: ['thigh'], glutes: ['glute', 'pelvis'], adductors: ['thigh'], abductors: ['pelvis', 'glute'], calves: ['shin'], chest: ['pec'], abs: ['tl'], obliques: ['tl'], lats: ['tu'], upper_back: ['tu', 'trap'], lower_back: ['tl'], traps: ['trap'], delts: ['sho'], side_delts: ['sho'], rear_delts: ['sho'], biceps: ['upper'], triceps: ['upper'], forearms: ['fore'] };
-function animDef(name, sex) {
+function animDef(name, sex, useMesh) {
   const lib = library().get(keyOf(name)), n = lib ? lib.name : name, m = EX_ANIM[n]; if (!m) return null;
   const d = ARCH[m[0]](m[1] || {}), mus = (EX_MUSCLES[keyOf(n)] || [''])[0].split(' ').filter(Boolean), hl = new Set(mus.flatMap(x => MUS_SEG[x] || []));
-  const a = animResolve(d.A), b = animResolve(d.B), build = BUILD[sex] || BUILD.male;
+  const build = (useMesh && G3.state === 'ready' && G3.mesh[sex === 'female' ? 'female' : 'male'].build) || BUILD[sex] || BUILD.male, a = animResolve(d.A, build), b = animResolve(d.B, build);
   // camera target: middle of everything the figure touches across the move
   let lo = [9, 9, 9], hi = [-9, -9, -9];
   for (const q of [a, b, ...(d.alt ? [animMirror(b)] : [])]) for (const [jk, pt] of Object.entries(animJoints(q, build))) if (!/^(kf|eb|up|fwd)/.test(jk)) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], pt[i]); hi[i] = Math.max(hi[i], pt[i]); }
   lo[1] = 0; if (d.arc) hi[1] += d.arc;
   const c = V.mul(V.add(lo, hi), 0.5), r = Math.max(0.78, V.len(V.sub(hi, lo)) / 2 + 0.16);
-  return { ...d, a, b, hl, c, r, build, yaw: d.yaw == null ? 38 : d.yaw };
+  return { ...d, name, a, b, hl, c, r, build, yaw: d.yaw == null ? 38 : d.yaw };
 }
 
 /* ---------- drawing ----------
@@ -330,17 +330,21 @@ function animHTML(name, sex = 'male') {
   const def = animDef(name, sex); if (!def) return '';
   return `<div class="anim"><div class="anim-stage"><canvas class="anim-cv" data-ex="${esc(name)}" data-sex="${sex}" role="img" aria-label="Animation of ${esc(name)}"></canvas><span class="anim-hint">Drag to turn</span><div class="anim-sex" role="group" aria-label="Figure">${[['male', 'Male'], ['female', 'Female']].map(([k, l]) => `<button data-act="musSex" data-s="${k}" aria-pressed="${sex === k}">${l}</button>`).join('')}</div>${def.hl.size ? '<span class="anim-key"><i></i>Working</span>' : ''}</div><ol class="anim-cues">${def.cue.map(c => `<li>${esc(c)}</li>`).join('')}</ol></div>`;
 }
-function mountAnim(root) {
-  const cv = root && root.querySelector('.anim-cv'); if (!cv || cv._on) return; cv._on = 1;
-  const def = animDef(cv.dataset.ex, cv.dataset.sex); if (!def) return;
-  const dpr = Math.min(window.devicePixelRatio || 1, 1.6), fit = () => { const r = cv.getBoundingClientRect(); if (r.width) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); } };
+function mountAnim(root) { const cv = root && root.querySelector('.anim-cv'); if (cv && !cv._on) startAnim(cv); }
+function startAnim(cv, noMesh) {
+  cv._on = 1; const name = cv.dataset.ex, sex = cv.dataset.sex === 'female' ? 'female' : 'male';
+  let def = animDef(name, sex, !noMesh), G = null; if (!def) return;
+  const swap = flag => { const n = cv.cloneNode(false); cv.replaceWith(n); startAnim(n, flag); };
+  if (!noMesh && G3.state === 'ready') { try { G = g3Setup(cv, def, sex); } catch (e) { G = null; } if (!G) return swap(true); }                  // no WebGL: simple figure
+  else if (!noMesh && G3.state !== 'failed') loadBodyMesh(ok => { if (ok && cv.isConnected) swap(false); });                                 // simple figure until the mesh arrives
+  const dpr = Math.min(window.devicePixelRatio || 1, G ? 2.5 : 1.6), fit = () => { const r = cv.getBoundingClientRect(); if (r.width) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); } };
   fit();
   let yaw = def.yaw, drag = null, t0 = performance.now(), still = REDUCED();
   const frame = now => {
-    if (!cv.isConnected) return;
+    if (!cv.isConnected) { if (G) { const x = G.gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); } return; }
     if (!cv.width) fit();
-    const [t, cyc] = still ? [0.5, 0] : animTime(def, now - t0);
-    animDraw(cv, def, t, yaw + (drag || still ? 0 : Math.sin((now - t0) / 2600) * 7), cyc);
+    const [t, cyc] = still ? [0.5, 0] : animTime(def, now - t0), y = yaw + (drag || still ? 0 : Math.sin((now - t0) / 2600) * 7);
+    if (G) g3Draw(cv, G, def, t, y, cyc); else animDraw(cv, def, t, y, cyc);
     if (!still) requestAnimationFrame(frame);
   };
   cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, yaw }; cv.setPointerCapture(e.pointerId); const h = cv.parentElement.querySelector('.anim-hint'); if (h) h.style.opacity = 0; });

@@ -1,6 +1,8 @@
 {
- "version": "3.7.2",
+ "version": "3.8",
  "notes": [
-  "Animated figures: one smooth, continuous body. The odd lumps, creases and patchy shading are gone."
+  "All-new exercise figures: realistic, detailed 3D male and female athletes (over 26,000 polygons each) with real anatomy, hands, feet and faces, replacing the simple mannequin.",
+  "Working muscles light up precisely: quads vs hamstrings, chest vs back, calves, glutes, abs and lower back are all separate now.",
+  "Hands sit flat on the floor in push-ups and planks, and bars and dumbbells sit in the palm."
  ]
 }

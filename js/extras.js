@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '3.7.2';
+const APP_VERSION = '3.8';
 const CHANGELOG = [
+  ['3.8', ['All-new exercise figures: realistic, detailed 3D male and female athletes (over 26,000 polygons each) with real anatomy, hands, feet and faces, replacing the simple mannequin.', 'Working muscles light up precisely: quads vs hamstrings, chest vs back, calves, glutes, abs and lower back are all separate now.', 'Hands sit flat on the floor in push-ups and planks, and bars and dumbbells sit in the palm.']],
   ['3.7.2', ['Animated figures: one smooth, continuous body. The odd lumps, creases and patchy shading are gone.']],
   ['3.7.1', ['Animated figures reshaped to look like real athletic bodies: seamless limbs with natural muscle shape, rounded shoulders, a V-taper on the male and an hourglass on the female. No more jointed-doll look.', 'Chest exercises now light up the chest itself.']],
   ['3.7', ['Sports & cardio: log runs, basketball, football, pickleball, martial arts and 30+ other activities in the Train tab. Scan the summary from your watch or type it in.', 'Each activity saves time, distance and pace, calories, heart rate and effort.', 'Activity days count toward your weekly goal, streak and calendar, and sessions count toward the goals they train.']],
