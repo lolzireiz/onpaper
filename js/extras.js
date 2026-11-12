@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, Apple Watch reminder, muscle diagrams. */
 
-const APP_VERSION = '1.2';
+const APP_VERSION = '1.2.1';
 const CHANGELOG = [
+  ['1.2.1', ['Fixed the arms on the female muscle diagram.']],
   ['1.2', ['Meet Pebble, your raccoon food buddy! Log food to feed them and they\'ll say something nice. Rename or turn them off in Settings.', 'Much better muscle diagrams for both the male and female figures.']],
   ['1.1', ['Muscle diagrams for every exercise: tap the body icon next to an exercise to see what it works (male or female figure).', 'Back up to iCloud Drive from Settings, with a reminder when it has been a week.', 'Apple Watch reminder when you start a workout.', 'Version number in Settings, and this note after each update.']],
   ['1.0', ['First standalone version.']],
@@ -70,6 +71,7 @@ function smoothPath(pts, closed = true) {
   }
   return d + (closed ? 'Z' : '');
 }
+const ARM_WARP = ([x, y]) => [x + 5.5 + (56 - x) * -0.06, y];
 function femaleWarp([x, y]) {
   const k = [[0, .92], [60, .9], [110, .86], [165, .84], [200, 1.1], [235, 1.1], [270, 1.04], [330, .97], [420, .95]];
   let f = 1; for (let i = 1; i < k.length; i++) if (y <= k[i][0]) { const [y0, f0] = k[i - 1], [y1, f1] = k[i]; f = f0 + (f1 - f0) * (y - y0) / (y1 - y0); break; }
@@ -106,12 +108,14 @@ const MUSCLE_SHAPES = {
   },
 };
 function bodySVG(view, sex, mus) {
-  const f = sex === 'female', W = pts => f ? pts.map(femaleWarp) : pts;
+  const f = sex === 'female', W = (pts, arm) => f ? pts.map(arm ? ARM_WARP : femaleWarp) : pts;
+  const ARM_IDS = new Set(['delts', 'side_delts', 'rear_delts', 'biceps', 'triceps', 'forearms']);
+  const outlinePts = f ? BODY_OUTLINE.map((pt, i) => (i >= 4 && i <= 21 ? ARM_WARP : femaleWarp)(pt)) : BODY_OUTLINE;
   const mirror = d => `<g transform="translate(200 0) scale(-1 1)">${d}</g>`;
   const fill = id => mus.p.has(id) ? PRIMARY_RED : mus.s.has(id) ? '#9b3a3f' : '#3c3c44';
   const glow = id => mus.p.has(id) ? ' filter="url(#glow)"' : '';
-  const half = smoothPath(W(BODY_OUTLINE), false);
-  const outline = half + ' ' + smoothPath(W(BODY_OUTLINE).slice().reverse().map(([x, y]) => [200 - x, y]), false).replace(/^M/, 'L') + 'Z';
+  const half = smoothPath(outlinePts, false);
+  const outline = half + ' ' + smoothPath(outlinePts.slice().reverse().map(([x, y]) => [200 - x, y]), false).replace(/^M/, 'L') + 'Z';
   let s = `<defs><linearGradient id="skin" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#303036"/><stop offset="1" stop-color="#25252a"/></linearGradient><filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
   if (f) s += `<path d="M78 30 Q78 2 100 2 Q122 2 122 30 Q124 52 128 66 Q114 70 100 66 Q86 70 72 66 Q76 52 78 30Z" fill="#1d1d21"/>`;
   s += `<path d="${outline}" fill="url(#skin)" stroke="#0e0e10" stroke-width="1.2"/>`;
@@ -121,7 +125,7 @@ function bodySVG(view, sex, mus) {
   for (const [id, pts] of Object.entries(shapes)) {
     let p = pts;
     if (f && id === 'chest') p = [[98, 86], [88, 82], [77, 88], [73, 100], [78, 112], [89, 115], [98, 108]];
-    const d = `<path d="${smoothPath(W(p))}" fill="${fill(id)}" stroke="#121215" stroke-width="1"${glow(id)}/>`;
+    const d = `<path d="${smoothPath(W(p, ARM_IDS.has(id)))}" fill="${fill(id)}" stroke="#121215" stroke-width="1"${glow(id)}/>`;
     s += d + mirror(d);
   }
   if (view === 'front') { const ln = y => `<path d="M${W([[90, y]])[0][0]} ${y} Q100 ${y + 2} ${W([[110, y]])[0][0]} ${y}" stroke="#121215" stroke-width="1" fill="none"/>`; s += ln(134) + ln(152) + ln(171) + `<line x1="100" y1="116" x2="100" y2="194" stroke="#121215" stroke-width="1"/>`; }
