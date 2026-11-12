@@ -55,7 +55,7 @@ const fw = (lb, dp = 1) => lb === 0 ? 'BW' : trim(U.w(lb), dp);
 const fwu = (lb, dp = 1) => lb === 0 ? 'Bodyweight' : `${trim(U.w(lb), dp)} ${U.wu}`;
 
 /* ---------- data store ---------- */
-const COLLS = ['weighins', 'workouts', 'body', 'photos', 'food', 'gyms', 'myfoods', 'jumps'];
+const COLLS = ['weighins', 'workouts', 'body', 'photos', 'food', 'gyms', 'myfoods', 'jumps', 'skills'];
 const DEFAULTS = {
   unit: 'imperial', weeklyGoal: 4, restSec: 120, calTarget: 2500, proteinTarget: 160, nudgeDays: 3,
   activeGym: null, split: null, defaultSets: 3, exTargets: {}, bodyModel: 'male', watchReminder: true, customEx: [], buddy: false, goals: [], sports: [], big3: { squat: 'Squat', bench: 'Bench Press', deadlift: 'Deadlift' },

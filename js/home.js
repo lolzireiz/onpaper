@@ -71,37 +71,44 @@ A.startFromHome = () => { UI.planDay = null; UI.planGym = null; A.startWorkout()
 
 /* ---------- settings ---------- */
 A.openSettings = () => {
-  setTimeout(checkUpdate, 400);
+  setTimeout(checkUpdate, 400); prepBackup();
   const s = S(), names = [...new Set([...liftList().map(L => L.name), ...Object.values(s.big3 || {})])];
   const sel = (k, label) => `<div class="field"><label class="lbl" for="b3-${k}">${label}</label><select id="b3-${k}" name="b3${k}">${names.map(n => `<option ${keyOf(n) === keyOf(s.big3?.[k]) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`;
   openSheet('Settings', `
+    <details class="sset" open><summary><span class="si" aria-hidden="true">🎯</span><span class="grow"><b>You &amp; goals</b><span class="faint small">Goals, units, body diagrams</span></span></summary><div class="sset-b">
     <div class="field"><span class="lbl">Your goals</span>${myGoals().length ? `<div class="gbadges" style="margin:0">${myGoals().map(g => `<span class="gbadge"><i aria-hidden="true">${GOALS[g][0]}</i>${esc(GOALS[g][1])}</span>`).join('')}</div>` : '<p class="muted small" style="margin:0">None picked yet. Exercises that help your goals get a badge.</p>'}${mySports().length ? `<p class="faint small" style="margin:6px 0 0">Into: ${mySports().map(x => `${SPORT[x].e} ${esc(SPORT[x].l)}`).join(', ')}</p>` : ''}</div>
     <div class="fields"><button class="btn ghost" data-act="editGoals">${myGoals().length ? 'Edit goals' : 'Pick goals'}</button><button class="btn ghost" data-act="startOnboarding">Redo setup</button></div>
-    <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:4px 0">
     <div class="field"><span class="lbl">Units</span><div class="seg">${chipSeg('unit', [['imperial', 'lb · in'], ['metric', 'kg · cm']], s.unit)}</div></div>
+    <div class="field"><span class="lbl">Muscle diagrams show</span><div class="seg">${chipSeg('bodym', [['male', 'Male body'], ['female', 'Female body']], s.bodyModel || 'male')}</div></div>
+    </div></details>
+    <details class="sset"><summary><span class="si" aria-hidden="true">🏋️</span><span class="grow"><b>Workouts</b><span class="faint small">Weekly goal, sets, rest, Big 3</span></span></summary><div class="sset-b">
     <div class="field"><span class="lbl">Weekly gym goal (days)</span><div class="seg">${chipSeg('goal', [3, 4, 5, 6, 7].map(n => [n, n]), s.weeklyGoal)}</div></div>
     <div class="field"><span class="lbl">Default sets per exercise</span><div class="seg">${chipSeg('dsets', [2, 3, 4, 5].map(n => [n, n]), s.defaultSets || 3)}</div><p class="faint tiny">Change any single exercise by tapping its target during a workout.</p></div>
     <div class="field"><span class="lbl">Default rest between sets</span><div class="seg">${chipSeg('rest', [[60, '1:00'], [90, '1:30'], [120, '2:00'], [180, '3:00'], [240, '4:00']], s.restSec)}</div></div>
-    <div class="field"><span class="lbl">Your goal</span><div class="seg">${chipSeg('goal2', [['bulk', 'Lean bulk'], ['maintain', 'Maintain'], ['cut', 'Cut']], s.goal || 'bulk')}</div></div>
-    <div class="field"><label class="lbl" for="st-gw">Goal bodyweight (${U.wu}, optional)</label><input id="st-gw" name="gweight" inputmode="decimal" value="${s.goalWeight ? plain(U.w(s.goalWeight)) : ''}" placeholder="e.g. 180"></div>
-    <div class="fields"><div class="field"><label class="lbl" for="st-cal">Daily calories</label><input id="st-cal" name="cal" inputmode="numeric" value="${s.calTarget}"></div><div class="field"><label class="lbl" for="st-p">Daily protein (g)</label><input id="st-p" name="prot" inputmode="numeric" value="${s.proteinTarget}"></div></div>
-    ${pushSettingsHTML()}
-    <div class="field"><span class="lbl">Remind me to weigh in after</span><div class="seg">${chipSeg('nudge', [[1, '1 day'], [2, '2'], [3, '3'], [5, '5'], [7, '7']], s.nudgeDays)}</div></div>
-    <div class="field"><span class="lbl">Food buddy (a pet you feed by logging food)</span><div class="seg">${chipSeg('buddy', [['on', 'On'], ['off', 'Off']], s.buddy === true ? 'on' : 'off')}</div><input name="buddyname" value="${esc(s.buddyName || 'Pebble')}" aria-label="Buddy's name" placeholder="Buddy's name" style="margin-top:6px"></div>
-    <div class="field"><span class="lbl">Muscle diagrams show</span><div class="seg">${chipSeg('bodym', [['male', 'Male body'], ['female', 'Female body']], s.bodyModel || 'male')}</div></div>
     <div class="field"><span class="lbl">Remind me to start my watch workout</span><div class="seg">${chipSeg('watch', [['on', 'On'], ['off', 'Off']], s.watchReminder === false ? 'off' : 'on')}</div></div>
     <div class="fields three">${sel('squat', 'Squat')}${sel('bench', 'Bench')}${sel('deadlift', 'Deadlift')}</div>
     <p class="faint small" style="margin-top:-6px">Which of your lifts count toward the Big 3 total.</p>
-    <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:4px 0">
+    </div></details>
+    <details class="sset"><summary><span class="si" aria-hidden="true">🍽️</span><span class="grow"><b>Food &amp; weight</b><span class="faint small">Targets, eating plan, buddy, label scanning</span></span></summary><div class="sset-b">
+    <div class="field"><span class="lbl">Eating plan</span><div class="seg">${chipSeg('goal2', [['bulk', 'Lean bulk'], ['maintain', 'Maintain'], ['cut', 'Cut']], s.goal || 'bulk')}</div></div>
+    <div class="field"><label class="lbl" for="st-gw">Goal bodyweight (${U.wu}, optional)</label><input id="st-gw" name="gweight" inputmode="decimal" value="${s.goalWeight ? plain(U.w(s.goalWeight)) : ''}" placeholder="e.g. 180"></div>
+    <div class="fields"><div class="field"><label class="lbl" for="st-cal">Daily calories</label><input id="st-cal" name="cal" inputmode="numeric" value="${s.calTarget}"></div><div class="field"><label class="lbl" for="st-p">Daily protein (g)</label><input id="st-p" name="prot" inputmode="numeric" value="${s.proteinTarget}"></div></div>
+    <div class="field"><span class="lbl">Food buddy (a pet you feed by logging food)</span><div class="seg">${chipSeg('buddy', [['on', 'On'], ['off', 'Off']], s.buddy === true ? 'on' : 'off')}</div><input name="buddyname" value="${esc(s.buddyName || 'Pebble')}" aria-label="Buddy's name" placeholder="Buddy's name" style="margin-top:6px"></div>
     <div class="field"><label class="lbl" for="st-gk">AI key (for label scanning)</label><input id="st-gk" name="gkey" type="password" autocomplete="off" value="${esc(geminiKey())}" placeholder="Paste your key"></div>
     <div class="btnrow"><button class="btn ghost" data-act="testGemini">Test my key</button><a class="btn ghost" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Get a free key</a></div><p class="small" id="gk-test" aria-live="polite"></p>
     <details><summary class="faint small">Advanced: model</summary><input id="st-gm" name="gmodel" autocomplete="off" autocapitalize="off" value="${esc(geminiModel())}" placeholder="Automatic (fastest available)" style="margin-top:6px"></details>
     <p class="faint small" style="margin-top:-6px">Your key is saved only on this phone and only sent to Google.</p>
+    </div></details>
+    <details class="sset"><summary><span class="si" aria-hidden="true">🔔</span><span class="grow"><b>Alerts</b><span class="faint small">Rest alerts, weigh-in reminder</span></span></summary><div class="sset-b">
+    ${pushSettingsHTML()}
+    <div class="field"><span class="lbl">Remind me to weigh in after</span><div class="seg">${chipSeg('nudge', [[1, '1 day'], [2, '2'], [3, '3'], [5, '5'], [7, '7']], s.nudgeDays)}</div></div>
+    </div></details>
     <button class="btn block" data-act="saveSettings">Save settings</button>
-    <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:4px 0">
-    <div class="field"><span class="lbl">Your data</span><p class="muted small">Everything is saved on this phone only. Download a backup now and then, and restore it if you switch phones. Photos aren't included.</p></div>
+    <details class="sset"><summary><span class="si" aria-hidden="true">💾</span><span class="grow"><b>Backup &amp; updates</b><span class="faint small">${lastBackup() ? `Last backup ${fmtDate(lastBackup())}` : 'No backup yet'} · v${APP_VERSION}</span></span></summary><div class="sset-b">
+    <div class="field"><span class="lbl">Your data</span><p class="muted small">Everything is saved on this phone only. Back up now and then, and restore it if you switch phones. Progress photos are included.</p></div>
     <button class="btn block" data-act="backupNow">Back up now</button><p class="faint small" style="margin-top:-6px">Then tap <b>Save to Files → iCloud Drive</b>. ${lastBackup() ? `Last backup: ${fmtDate(lastBackup())}.` : 'No backups yet.'}</p><button class="btn ghost block" data-act="importData">Restore from a backup</button>
-    <div id="upd-box">${updStatusHTML()}</div>`);
+    <div id="upd-box">${updStatusHTML()}</div>
+    </div></details>`);
 };
 const chipSeg = (group, opts, cur) => opts.map(([v, l]) => `<button data-act="pick" data-group="${group}" data-value="${v}" aria-pressed="${String(v) === String(cur)}">${l}</button>`).join('');
 A.saveSettings = () => {
@@ -115,9 +122,9 @@ A.saveSettings = () => {
   lsSet(PUSH_ON, picked(root, 'pushon') === 'on' ? '1' : '0');
   refreshCaps(); closeSheet(); toast('Settings saved');
 };
-A.exportData = () => {
+A.exportData = json => {
   const data = { app: 'liftprint', exported: new Date().toISOString(), settings: S(), push: { topic: lsGet(PUSH_TOPIC) || '', on: pushOn() }, ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
-  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+  const blob = new Blob([typeof json === 'string' && json ? json : JSON.stringify(data)], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
   a.href = url; a.download = `liftprint-backup-${todayStr()}.json`; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Backup downloaded. Save it to Files or iCloud.');
 };
@@ -135,12 +142,14 @@ async function onBackupChosen(f) {
     if (!looksRight) return toast("That file isn't a Liftprint backup.", { bad: true });
     const rows = c => { const v = data[c]; if (Array.isArray(v)) return v.filter(d => d && d.id); if (v && typeof v === 'object') return Object.entries(v).map(([id, d]) => ({ ...d, id })); return []; };
     const counts = Object.fromEntries(COLLS.map(c => [c, rows(c).length])), n = COLLS.reduce((a, c) => a + counts[c], 0);
-    const parts = [[counts.workouts, 'workout'], [counts.weighins, 'weigh-in'], [counts.food, 'food entr|y|ies'], [counts.body, 'measurement']].filter(([k]) => k).map(([k, w]) => w.includes('|') ? `${k} ${w.split('|')[0]}${k === 1 ? w.split('|')[1] : w.split('|')[2]}` : plural(k, w));
+    const nPhotos = data.photoFiles && typeof data.photoFiles === 'object' ? Object.keys(data.photoFiles).length : 0;
+    const parts = [[counts.workouts, 'workout'], [counts.weighins, 'weigh-in'], [counts.food, 'food entr|y|ies'], [counts.body, 'measurement'], [nPhotos, 'photo']].filter(([k]) => k).map(([k, w]) => w.includes('|') ? `${k} ${w.split('|')[0]}${k === 1 ? w.split('|')[1] : w.split('|')[2]}` : plural(k, w));
     const when = String(data.exported || '').slice(0, 10);
     if (!(await ask(`Restore this backup${when ? ` from ${fmtDate(when, { rel: false })}` : ''}? It has ${parts.join(', ') || `${n} ${n === 1 ? 'entry' : 'entries'}`}. Anything already on this phone is kept; matching entries are replaced.`, { ok: 'Restore' }))) return toast('Restore cancelled.');
     if (data.settings && typeof data.settings === 'object') Store.settings = { ...DEFAULTS, ...Store.settings, ...(data.settings.buddy === undefined ? { buddy: true } : {}), ...data.settings };
     for (const c of COLLS) { const m = { ...(Store.docs[c] || {}) }; for (const d of rows(c)) { const { id, ...rest } = d; m[id] = rest; } Store.docs[c] = m; }
     if (data.push && /^onpaper-[a-z0-9]{6,}$/.test(data.push.topic || '')) { lsSet(PUSH_TOPIC, data.push.topic); if (data.push.on) lsSet(PUSH_ON, '1'); }
+    if (nPhotos) for (const [k, u] of Object.entries(data.photoFiles)) { try { const bl = dataURLToBlob(u); await IDB.set('photos', k, bl); if (Store.blobs[k]) URL.revokeObjectURL(Store.blobs[k]); Store.blobs[k] = URL.createObjectURL(bl); } catch (e) {} }
     Store.rev++; changed();
     try { await IDB.set('kv', 'state', clone({ v: 1, settings: Store.settings, docs: Store.docs })); }
     catch (e) { return toast("Restored for now, but this phone wouldn't save it. Don't close the app; try again.", { bad: true }); }

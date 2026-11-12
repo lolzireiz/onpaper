@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '3.2';
+const APP_VERSION = '3.3';
 const CHANGELOG = [
+  ['3.3', ['Animated 3D demos: tap the ⓘ on any exercise to watch a figure do the movement, with the working muscles lit up and three form tips. Drag to turn it around.', 'Starter programs: the app can now build a split from your goals, gym days and equipment. Find it in Train, or at the end of setup.', 'Skill trackers in Lifts: mile time, max pull-ups, vertical jump, plank hold and more, with personal bests.', 'Backups now include your progress photos, and you can back up in one tap right after a workout.', 'Reorder exercises mid-workout (⋯ menu), the Log button shows which set you\'re on, and Settings is grouped into sections.']],
   ['3.2', ['Finished exercises lock in your workout so you can\'t log into them by accident. Tap ✎ Edit to reopen one.', 'Fix past workouts: open any workout and tap a set to change it, or add a set you forgot.', 'Watch stats: time now has separate hours, minutes and seconds boxes, and works with any smartwatch or fitness app.', 'Reinstalling? Restore a backup right from the welcome screen.', 'Cleaner Home: your goals are now one compact tile (tap it for the full breakdown), no matter how many you pick.', 'Today shows your progress (1 of 3 done), which of your goals the next workout hits, and a protein bar.', 'Reminders (weigh-in, backup, setup) shrank to one line each. Insights show the top 3, with the rest a tap away, plus a nudge when a goal has no work yet this week.']],
   ['3.1', ['New setup survey: tell Liftprint about you, your sports and what you want to get better at. Skip it anytime, redo it from Settings.', 'Pick from 40+ sports and life goals (running, soccer, climbing, posture, a healthy back, aging well and more). Exercises that help YOUR goals get a badge in workouts, the exercise list and every guide.', 'Your goals card on Home: sets you did for each goal this week. Tap one to see every exercise that helps it.', '10 new exercises: Farmer Carry, Cable Woodchop, Pallof Press, Dead Bug, Jump Squat, Lateral Bounds, Lateral Lunge, Step-up, Single-Leg RDL and Tibialis Raise.', 'The food buddy is now optional and off for new people. Yours stays on.']],
   ['3.0.1', ['Fixed: Restore from a backup did nothing after picking the file. It now shows what is in the backup, restores it, and confirms.', 'Backups now also remember your rest-alert link, so alerts keep working after a restore.']],
@@ -34,18 +35,29 @@ function checkVersion() {
 const lastBackup = () => { try { return localStorage.getItem('onpaper.lastBackup'); } catch (e) { return null; } };
 const hasData = () => COLLS.some(c => Store.list(c).length);
 function backupDue() { const lb = lastBackup(); return hasData() && (!lb || daysBetween(lb, todayStr()) >= 7); }
-A.backupNow = async () => {
+const blobToDataURL = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
+const dataURLToBlob = u => { const [h, b] = String(u).split(','), bin = atob(b || ''), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new Blob([a], { type: (h.match(/:(.*?);/) || [])[1] || 'image/jpeg' }); };
+/* Full backup, progress photos included. Built ahead of time (prepBackup) so the share sheet can open straight from the tap. */
+const Backup = { json: null, rev: -1, busy: null };
+async function backupJSON() {
   const data = { app: 'liftprint', version: APP_VERSION, exported: new Date().toISOString(), settings: S(), push: { topic: lsGet(PUSH_TOPIC) || '', on: pushOn() }, ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
-  const name = `liftprint-backup-${todayStr()}.json`, json = JSON.stringify(data);
+  const files = {};
+  for (const p of Store.list('photos')) { const k = p.assetId || p.local; if (!k || files[k]) continue; try { const bl = await IDB.get('photos', k); if (bl) files[k] = await blobToDataURL(bl); } catch (e) {} }
+  if (Object.keys(files).length) data.photoFiles = files;
+  return JSON.stringify(data);
+}
+function prepBackup() { const rev = Store.rev; if (Backup.rev === rev && Backup.json) return Promise.resolve(Backup.json); if (Backup.busy && Backup.busyRev === rev) return Backup.busy; Backup.busyRev = rev; return Backup.busy = backupJSON().then(j => { Backup.json = j; Backup.rev = rev; return j; }).catch(() => null); }
+A.backupNow = async () => {
+  const name = `liftprint-backup-${todayStr()}.json`, json = Backup.rev === Store.rev && Backup.json ? Backup.json : await prepBackup();
   const mark = () => { try { localStorage.setItem('onpaper.lastBackup', todayStr()); } catch (e) {} changed(); };
   try {
     const file = new File([json], name, { type: 'application/json' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    if (json && navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({ files: [file], title: 'Liftprint backup' });
-      mark(); closeSheet(); toast('Backup saved. Nice.'); return;
+      mark(); if ($('#sheet [data-act=saveSettings]')) closeSheet(); else { const b = $('#sheet .bk-row'); if (b) b.remove(); } toast('Backup saved. Nice.'); return;
     }
   } catch (e) { if (e && e.name === 'AbortError') return; }
-  A.exportData(); mark();
+  A.exportData(json); mark(); const b = $('#sheet .bk-row'); if (b) b.remove();
 };
 
 /* ---------- muscle diagrams ---------- */
@@ -133,6 +145,7 @@ function drawMuscles() {
   const L = liftByKey(keyOf(name));
   sheetBody(`<div class="guide-hero">${lib ? `<span class="gchip">${esc(lib.group)}</span>` : ''}${lib && lib.equip.length ? `<span class="gchip">${esc(lib.equip.map(q => EQ_LABEL[q]).join(' + '))}</span>` : ''}${bwFactor(name) ? `<span class="gchip">Counts ${Math.round(bwFactor(name) * 100)}% bodyweight</span>` : ''}</div>${guideGoalsHTML(name)}
     ${g ? `<p style="font-size:16px;line-height:1.45">${esc(g.a)}</p>
+    ${animHTML(name)}
     <div class="field"><span class="lbl">Builds</span><div class="chips">${g.i.map(x => `<span class="chip" style="pointer-events:none">${esc(x)}</span>`).join('')}</div></div>
     <div class="field"><span class="lbl">In real life, it helps you…</span><ul class="irl">${g.e.map((x, i) => `<li><i aria-hidden="true">${irlIcon(x)}</i><span>${esc(x)}</span></li>`).join('')}</ul></div>` : '<p class="muted">A custom exercise you added.</p>'}
     ${L && L.e1 ? `<button class="row" data-act="openLift" data-key="${esc(L.key)}" style="background:var(--s2);border-radius:12px;padding:10px 12px;border:0"><div class="grow"><b>Your best</b><div class="faint small">${L.bwf ? loadTxt(L.heavy) : fw(L.heavy.w)} × ${L.heavy.r} · est. 1RM ${fw(L.e1, 0)} ${U.wu} · ${L.prs} PRs</div></div>${ICON.chevR.replace('<svg', '<svg width="18" height="18"')}</button>` : ''}
@@ -142,6 +155,7 @@ function drawMuscles() {
     <div class="chips" style="justify-content:center">${[['both', 'Both'], ['front', 'Front'], ['back', 'Back']].map(([k, l]) => `<button class="chip" data-act="musView" data-v="${k}" aria-pressed="${v === k}">${l}</button>`).join('')}</div>
     <div class="legend" style="justify-content:center"><span><i style="background:#f0302e;box-shadow:0 0 8px #ff2a2a"></i>Main muscles</span><span><i style="background:#8c2d33"></i>Helping muscles</span></div>
     <p><b>Works:</b> <span class="muted">${esc(names(mus.p))}</span>${mus.s.size ? `<br><b>Helps:</b> <span class="muted">${esc(names(mus.s))}</span>` : ''}</p>` : ''}`);
+  mountAnim($('#sheet'));
 }
 const BODY_ICON = `<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M12 11v6"/><circle cx="12" cy="7.6" r=".9" fill="currentColor" stroke="none"/></svg>`;
 const musBtn = name => `<button class="iconbtn sm" data-act="muscles" data-ex="${esc(name)}" aria-label="About ${esc(name)} and muscles worked" style="color:var(--tx2)">${BODY_ICON}</button>`;

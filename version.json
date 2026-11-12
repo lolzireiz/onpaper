@@ -1,12 +1,10 @@
 {
- "version": "3.2",
+ "version": "3.3",
  "notes": [
-  "Finished exercises lock in your workout so you can't log into them by accident. Tap \u270e Edit to reopen one.",
-  "Fix past workouts: open any workout and tap a set to change it, or add a set you forgot.",
-  "Watch stats: time now has separate hours, minutes and seconds boxes, and works with any smartwatch or fitness app.",
-  "Reinstalling? Restore a backup right from the welcome screen.",
-  "Cleaner Home: your goals are now one compact tile (tap it for the full breakdown), no matter how many you pick.",
-  "Today shows your progress (1 of 3 done), which of your goals the next workout hits, and a protein bar.",
-  "Reminders (weigh-in, backup, setup) shrank to one line each. Insights show the top 3, with the rest a tap away, plus a nudge when a goal has no work yet this week."
+  "Animated 3D demos: tap the \u24d8 on any exercise to watch a figure do the movement, with the working muscles lit up and three form tips. Drag to turn it around.",
+  "Starter programs: the app can now build a split from your goals, gym days and equipment. Find it in Train, or at the end of setup.",
+  "Skill trackers in Lifts: mile time, max pull-ups, vertical jump, plank hold and more, with personal bests.",
+  "Backups now include your progress photos, and you can back up in one tap right after a workout.",
+  "Reorder exercises mid-workout (\u22ef menu), the Log button shows which set you're on, and Settings is grouped into sections."
  ]
 }

@@ -27,6 +27,7 @@ function openOnboarding(mode = 'full') {
 }
 /* reinstalling: skip the survey and go straight to the file picker (must stay in the same tap) */
 A.obRestore = () => { saveSettings({ onboarded: S().onboarded || 'skipped' }); A.importData(); obClose(); };
+A.obProgram = () => { obClose(); UI.tab = 'train'; UI.session = false; render(); setTimeout(() => A.buildProgram({}), 320); };
 A.startOnboarding = () => { closeSheet(); openOnboarding('full'); };
 A.editGoals = () => { closeSheet(); openOnboarding('edit'); };
 
@@ -92,7 +93,8 @@ const OB_VIEWS = {
     return { t: `You're all set${name ? `, ${esc(name)}` : ''}! 🎉`, next: 'Start lifting',
       sub: g.length ? 'Liftprint will point out exercises that help with:' : 'You can pick goals anytime in Settings.',
       body: `${g.length ? `<div class="ob-chips ob-done-chips">${g.map(id => `<span class="ob-chip on"><i aria-hidden="true">${GOALS[id][0]}</i>${GOALS[id][1]}</span>`).join('')}</div>` : ''}
-        ${ex ? `<div class="ob-in"><span class="lbl">Look for these badges</span><div class="ob-example"><b>${esc(ex[0])}</b>${goalBadges(ex[0], 3)}</div><p class="faint small" style="margin:8px 0 0">They show up in your workouts, the exercise list, and each exercise's ⓘ guide. Home gets a <b>Your goals</b> card too.</p></div>` : ''}` };
+        ${ex ? `<div class="ob-in"><span class="lbl">Look for these badges</span><div class="ob-example"><b>${esc(ex[0])}</b>${goalBadges(ex[0], 3)}</div><p class="faint small" style="margin:8px 0 0">They show up in your workouts, the exercise list, and each exercise's ⓘ guide.</p></div>` : ''}
+        ${splitDays().length ? '' : `<button class="ob-card ob-in" data-act="obProgram"><span class="oe" aria-hidden="true">✨</span><span class="grow"><b>Build my starter program</b><span class="faint small">A ${S().weeklyGoal || 4}-day plan from your goals. Tweak it anytime.</span></span>${ICON.chevR.replace('<svg', '<svg width="18" height="18" style="color:var(--tx3)"')}</button>`}` };
   },
 };
 function obPreviewText() {
