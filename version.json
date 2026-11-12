@@ -1,9 +1,7 @@
 {
- "version": "3.0",
+ "version": "3.0.1",
  "notes": [
-  "New name: On Paper is now Liftprint, with a new fingerprint-and-barbell icon. Your data stays exactly where it was.",
-  "Tap the \u24d8 next to any exercise for a guide: what it is, what it builds, real-life examples, whether it helps your dunk, your best, and the muscles worked.",
-  "Rewarding animations: confetti on PRs and finished workouts, sparkles on every set, numbers counting up, smooth screen transitions.",
-  "Feeding your pet is now a little show: the snack flies in, they munch, cheer and fill up, with confetti when you hit a goal. Pets blink now too."
+  "Fixed: Restore from a backup did nothing after picking the file. It now shows what is in the backup, restores it, and confirms.",
+  "Backups now also remember your rest-alert link, so alerts keep working after a restore."
  ]
 }

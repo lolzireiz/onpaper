@@ -101,25 +101,41 @@ A.saveSettings = () => {
   refreshCaps(); closeSheet(); toast('Settings saved');
 };
 A.exportData = () => {
-  const data = { app: 'liftprint', exported: new Date().toISOString(), settings: S(), ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
+  const data = { app: 'liftprint', exported: new Date().toISOString(), settings: S(), push: { topic: lsGet(PUSH_TOPIC) || '', on: pushOn() }, ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
   const blob = new Blob([JSON.stringify(data)], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
   a.href = url; a.download = `liftprint-backup-${todayStr()}.json`; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Backup downloaded. Save it to Files or iCloud.');
 };
-A.importData = () => {
-  const i = document.createElement('input'); i.type = 'file'; i.accept = 'application/json,.json,.txt';
-  i.onchange = async () => {
-    const f = i.files && i.files[0]; if (!f) return;
-    let data; try { data = JSON.parse(await f.text()); } catch (e) { return toast("That file isn't a Liftprint backup.", { bad: true }); }
-    if (!data || !['onpaper', 'liftprint'].includes(data.app)) return toast("That file isn't a Liftprint backup.", { bad: true });
-    const n = COLLS.reduce((a, c) => a + (Array.isArray(data[c]) ? data[c].length : 0), 0);
-    if (!(await ask(`Restore ${n} entries from ${String(data.exported || '').slice(0, 10) || 'this backup'}? Entries already on this phone are kept; matching ones are replaced.`, { ok: 'Restore' }))) return;
-    if (data.settings) Store.settings = { ...Store.settings, ...data.settings };
-    for (const c of COLLS) for (const d of (Array.isArray(data[c]) ? data[c] : [])) if (d && d.id) { const { id, ...rest } = d; Store.docs[c] = { ...Store.docs[c], [id]: rest }; }
-    changed(); persist(); closeSheet(); toast('Backup restored');
-  };
-  i.click();
-};
+A.importData = () => { const i = $('#file-backup'); i.value = ''; i.click(); };
+/* Restore. The picker is a permanent <input> in index.html: iOS home-screen apps drop the
+   "file chosen" event for inputs created on the fly. Every step reports back so it never fails silently. */
+async function onBackupChosen(f) {
+  if (!f) return toast('No file picked.', { bad: true });
+  toast('Reading backup…');
+  try {
+    let text = await f.text(); text = String(text || '').replace(/^﻿/, '').trim();
+    if (!text) return toast('That file is empty. Try another backup.', { bad: true });
+    let data; try { data = JSON.parse(text); } catch (e) { return toast("That file isn't a Liftprint backup (couldn't read it).", { bad: true }); }
+    const looksRight = data && typeof data === 'object' && (['onpaper', 'liftprint'].includes(data.app) || COLLS.some(c => data[c]));
+    if (!looksRight) return toast("That file isn't a Liftprint backup.", { bad: true });
+    const rows = c => { const v = data[c]; if (Array.isArray(v)) return v.filter(d => d && d.id); if (v && typeof v === 'object') return Object.entries(v).map(([id, d]) => ({ ...d, id })); return []; };
+    const counts = Object.fromEntries(COLLS.map(c => [c, rows(c).length])), n = COLLS.reduce((a, c) => a + counts[c], 0);
+    const parts = [[counts.workouts, 'workout'], [counts.weighins, 'weigh-in'], [counts.food, 'food entr|y|ies'], [counts.body, 'measurement']].filter(([k]) => k).map(([k, w]) => w.includes('|') ? `${k} ${w.split('|')[0]}${k === 1 ? w.split('|')[1] : w.split('|')[2]}` : plural(k, w));
+    const when = String(data.exported || '').slice(0, 10);
+    if (!(await ask(`Restore this backup${when ? ` from ${fmtDate(when, { rel: false })}` : ''}? It has ${parts.join(', ') || `${n} ${n === 1 ? 'entry' : 'entries'}`}. Anything already on this phone is kept; matching entries are replaced.`, { ok: 'Restore' }))) return toast('Restore cancelled.');
+    if (data.settings && typeof data.settings === 'object') Store.settings = { ...DEFAULTS, ...Store.settings, ...data.settings };
+    for (const c of COLLS) { const m = { ...(Store.docs[c] || {}) }; for (const d of rows(c)) { const { id, ...rest } = d; m[id] = rest; } Store.docs[c] = m; }
+    if (data.push && /^onpaper-[a-z0-9]{6,}$/.test(data.push.topic || '')) { lsSet(PUSH_TOPIC, data.push.topic); if (data.push.on) lsSet(PUSH_ON, '1'); }
+    Store.rev++; changed();
+    try { await IDB.set('kv', 'state', clone({ v: 1, settings: Store.settings, docs: Store.docs })); }
+    catch (e) { return toast("Restored for now, but this phone wouldn't save it. Don't close the app; try again.", { bad: true }); }
+    closeSheet(); UI.tab = 'home'; render();
+    toast(`Backup restored ✅ ${parts.join(', ') || `${n} ${n === 1 ? 'entry' : 'entries'}`}`);
+    setTimeout(() => confetti({ n: 90 }), 300);
+  } catch (e) {
+    toast(`Couldn't restore: ${(e && e.message) || 'unknown error'}. Try picking the file again.`, { bad: true });
+  }
+}
 
 function todayCardHTML(lw) {
   const t = todayStr(), wiToday = weighins().filter(w => w.date === t).pop(), nd = nextDay(), g = activeGym();

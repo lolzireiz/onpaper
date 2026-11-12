@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, Apple Watch reminder, muscle diagrams. */
 
-const APP_VERSION = '3.0';
+const APP_VERSION = '3.0.1';
 const CHANGELOG = [
+  ['3.0.1', ['Fixed: Restore from a backup did nothing after picking the file. It now shows what is in the backup, restores it, and confirms.', 'Backups now also remember your rest-alert link, so alerts keep working after a restore.']],
   ['3.0', ['New name: On Paper is now Liftprint, with a new fingerprint-and-barbell icon. Your data stays exactly where it was.', 'Tap the ⓘ next to any exercise for a guide: what it is, what it builds, real-life examples, whether it helps your dunk, your best, and the muscles worked.', 'Rewarding animations: confetti on PRs and finished workouts, sparkles on every set, numbers counting up, smooth screen transitions.', 'Feeding your pet is now a little show: the snack flies in, they munch, cheer and fill up, with confetti when you hit a goal. Pets blink now too.']],
   ['2.5', ['Added Dumbbell Standing Calf Raise and Chin-ups.', 'Bodyweight exercises (calf raises, pull-ups, dips, push-ups, lunges and more) now estimate your total load: share of bodyweight + total dumbbell weight. PRs use that total, so getting heavier counts.', 'Turn bodyweight counting on for any exercise from its ⋯ menu during a workout.']],
   ['2.4', ['Update status: the app tells you the moment a new version is live, with a one-tap Update button (also in Settings).', 'Updates now load right away instead of up to 10 minutes later.']],
@@ -32,7 +33,7 @@ const lastBackup = () => { try { return localStorage.getItem('onpaper.lastBackup
 const hasData = () => COLLS.some(c => Store.list(c).length);
 function backupDue() { const lb = lastBackup(); return hasData() && (!lb || daysBetween(lb, todayStr()) >= 7); }
 A.backupNow = async () => {
-  const data = { app: 'liftprint', version: APP_VERSION, exported: new Date().toISOString(), settings: S(), ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
+  const data = { app: 'liftprint', version: APP_VERSION, exported: new Date().toISOString(), settings: S(), push: { topic: lsGet(PUSH_TOPIC) || '', on: pushOn() }, ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
   const name = `liftprint-backup-${todayStr()}.json`, json = JSON.stringify(data);
   const mark = () => { try { localStorage.setItem('onpaper.lastBackup', todayStr()); } catch (e) {} changed(); };
   try {
