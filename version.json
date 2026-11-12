@@ -1,0 +1,7 @@
+{
+ "version": "2.4",
+ "notes": [
+  "Update status: the app tells you the moment a new version is live, with a one-tap Update button (also in Settings).",
+  "Updates now load right away instead of up to 10 minutes later."
+ ]
+}

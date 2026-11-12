@@ -59,6 +59,7 @@ A.startFromHome = () => { UI.planDay = null; UI.planGym = null; A.startWorkout()
 
 /* ---------- settings ---------- */
 A.openSettings = () => {
+  setTimeout(checkUpdate, 400);
   const s = S(), names = [...new Set([...liftList().map(L => L.name), ...Object.values(s.big3 || {})])];
   const sel = (k, label) => `<div class="field"><label class="lbl" for="b3-${k}">${label}</label><select id="b3-${k}" name="b3${k}">${names.map(n => `<option ${keyOf(n) === keyOf(s.big3?.[k]) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`;
   openSheet('Settings', `
@@ -85,7 +86,7 @@ A.openSettings = () => {
     <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:4px 0">
     <div class="field"><span class="lbl">Your data</span><p class="muted small">Everything is saved on this phone only. Download a backup now and then, and restore it if you switch phones. Photos aren't included.</p></div>
     <button class="btn block" data-act="backupNow">Back up now</button><p class="faint small" style="margin-top:-6px">Then tap <b>Save to Files → iCloud Drive</b>. ${lastBackup() ? `Last backup: ${fmtDate(lastBackup())}.` : 'No backups yet.'}</p><button class="btn ghost block" data-act="importData">Restore from a backup</button>
-    <p class="faint small center">On Paper v${APP_VERSION}</p>`);
+    <div id="upd-box">${updStatusHTML()}</div>`);
 };
 const chipSeg = (group, opts, cur) => opts.map(([v, l]) => `<button data-act="pick" data-group="${group}" data-value="${v}" aria-pressed="${String(v) === String(cur)}">${l}</button>`).join('');
 A.saveSettings = () => {

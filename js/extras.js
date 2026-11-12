@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, Apple Watch reminder, muscle diagrams. */
 
-const APP_VERSION = '2.3.1';
+const APP_VERSION = '2.4';
 const CHANGELOG = [
+  ['2.4', ['Update status: the app tells you the moment a new version is live, with a one-tap Update button (also in Settings).', 'Updates now load right away instead of up to 10 minutes later.']],
   ['2.3.1', ['Added Calf Extension to the exercise list.']],
   ['2.3', ['3 sets is now the default for every exercise. Tap an exercise\'s target during a workout to change it, and it\'s remembered everywhere.', 'Rest alerts now arrive even if you jump to another app right after logging a set.', 'If iPhone closes the app in the background, it reopens right back into your workout with the rest timer still counting.']],
   ['2.2', ['Rest alerts on your lock screen and Apple Watch, even with the app closed. Set it up once in Settings (uses the free ntfy app).', 'The alert tells you which exercise is next.']],

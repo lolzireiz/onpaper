@@ -257,7 +257,7 @@ function render() {
   if (focusId) { const el = document.getElementById(focusId); if (el) { el.focus({ preventScroll: true }); try { if (sel) el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } }
   $('#top').innerHTML = `<div class="top-l">${v.title()}</div><div class="top-r">${ready && v.actions ? v.actions() : ''}<button class="iconbtn" data-act="openSettings" aria-label="Settings">${ICON.gear}</button></div>`;
   $$('.tab').forEach(t => t.setAttribute('aria-current', t.dataset.tab === UI.tab ? 'page' : 'false'));
-  $('#banner').innerHTML = Store.note ? `<div class="banner">${esc(Store.note)}</div>` : '';
+  $('#banner').innerHTML = (typeof updBannerHTML === 'function' ? updBannerHTML() : '') + (Store.note ? `<div class="banner">${esc(Store.note)}</div>` : '');
   mountCharts();
 }
 
