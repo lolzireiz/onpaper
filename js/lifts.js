@@ -69,7 +69,7 @@ function liftsListHTML() {
   if (!lifts.length) return dunkCardHTML() + `<div class="empty"><p>Nothing logged yet. Log a PR you already have (pick its real date) or start a workout. Every set gets checked for rep-max PRs.</p><button class="btn" data-act="logPR">Log a PR attempt</button></div>${big3CardHTML()}`;
   return dunkCardHTML() + big3CardHTML() + `<section class="card flush"><h2 class="sec-t" style="padding-top:14px">All lifts</h2>${lifts.map(L => {
     const lastPR = [...L.sets].reverse().find(s => s.pr);
-    return `<button class="row" data-act="openLift" data-key="${esc(L.key)}"><div class="ring ${lastPR && daysBetween(lastPR.date, todayStr()) <= 14 ? 'is-pr' : ''}"><span>${esc(initials(L.name))}</span></div><div class="grow"><b>${esc(L.name)}</b><div class="faint small">${L.heavy ? `Heaviest ${fw(L.heavy.w)}×${L.heavy.r}` : 'No completed sets'}${lastPR ? ` · last PR ${fmtDate(lastPR.date)}` : ''}</div></div><div class="rnum"><div style="font:700 22px/1 var(--f-display)">${L.e1 ? fw(L.e1, 0) : '—'}</div><div class="faint tiny">est. 1RM</div></div></button>`;
+    return `<button class="row" data-act="openLift" data-key="${esc(L.key)}"><div class="ring ${lastPR && daysBetween(lastPR.date, todayStr()) <= 14 ? 'is-pr' : ''}"><span>${esc(initials(L.name))}</span></div><div class="grow"><b>${esc(L.name)}</b><div class="faint small">${L.heavy ? (L.bwf ? `Best ${loadTxt(L.heavy)} ×${L.heavy.r}` : `Heaviest ${fw(L.heavy.w)}×${L.heavy.r}`) : 'No completed sets'}${lastPR ? ` · last PR ${fmtDate(lastPR.date)}` : ''}</div></div><div class="rnum"><div style="font:700 22px/1 var(--f-display)">${L.e1 ? fw(L.e1, 0) : '—'}</div><div class="faint tiny">est. 1RM</div></div></button>`;
   }).join('')}</section>`;
 }
 A.openLift = d => { closeSheet(); UI.tab = 'lifts'; UI.liftKey = d.key; UI.liftFilter = 'key'; $('#view').scrollTop = 0; render(); };
@@ -86,7 +86,7 @@ function liftDetailHTML(L) {
   const ws = weighins().filter(w => wiX(w) >= x0 - 30 * 864e5);
   const rows = (UI.liftFilter === 'all' ? L.sets : L.sets.filter(s => s.pr || s.baseline || !s.hit)).slice().reverse();
   const frontier = new Map(); for (const r of Object.keys(L.best).map(Number)) { const b = bestAtLeast(L.best, r); if (b) frontier.set(b.id, b); }
-  const repCells = [...frontier.values()].sort((a, b) => a.r - b.r).map(b => `<div><span class="k">${b.r} REP${b.r > 1 ? 'S' : ''}</span><span class="v">${fw(b.w)}</span><span class="faint tiny">${fmtDate(b.date)}${b.bw && b.w ? ` · ${ratio(b.w, b.bw)} BW` : ''}</span></div>`).join('');
+  const repCells = [...frontier.values()].sort((a, b) => a.r - b.r).map(b => `<div><span class="k">${b.r} REP${b.r > 1 ? 'S' : ''}</span><span class="v">${L.bwf ? '≈' : ''}${fw(b.w, L.bwf ? 0 : 1)}</span>${b.bwf ? `<span class="faint tiny">${b.added ? '+' + fw(b.added) : 'BW only'}</span>` : ''}<span class="faint tiny">${fmtDate(b.date)}${b.bw && b.w ? ` · ${ratio(b.w, b.bw)} BW` : ''}</span></div>`).join('');
   return `<button class="back" data-act="liftBack">${ICON.chevL.replace('<svg', '<svg width="18" height="18"')} Lifts</button>
   <div class="card-h"><h1 class="lift-h grow">${esc(L.name)}</h1>${musBtn(L.name)}<button class="iconbtn" data-act="liftMenu" data-key="${esc(L.key)}" aria-label="Lift options">${ICON.dots}</button></div>
   <div class="stats"><div class="stat"><span class="k">Est. 1RM</span><span class="v">${L.e1 ? fw(L.e1, 0) : '—'}<span class="unit">${U.wu}</span></span></div><div class="stat"><span class="k">Heaviest</span><span class="v">${L.heavy ? `${fw(L.heavy.w)}<span class="unit">×${L.heavy.r}</span>` : '—'}</span></div><div class="stat"><span class="k">PRs</span><span class="v">${L.prs}</span></div></div>
@@ -112,7 +112,7 @@ function setHistoryRow(L, s) {
       note = `<div class="note">Your best for ${s.r}+ reps was ${fw(t.w)}×${t.r} on ${fmtDate(t.date)} at ${fwu(t.bw.weight)} bodyweight. This attempt was at ${fwu(s.bw.weight)} (${Math.abs(diff) < 0.05 ? 'the same' : `${trim(Math.abs(U.w(diff)), 1)} ${U.wu} ${diff < 0 ? 'lighter' : 'heavier'}`}).</div>`;
     } else if (t) note = `<div class="note">Your best for ${s.r}+ reps was ${fw(t.w)}×${t.r} on ${fmtDate(t.date)}.${!s.bw ? ' Log weigh-ins to see how bodyweight compares.' : ''}</div>`;
   }
-  return `<button class="row" style="align-items:flex-start" data-act="editSet" data-wid="${s.wid}" data-sid="${s.id}"><div class="grow"><b class="num">${fw(s.w)}${s.w ? ' ' + U.wu : ''} × ${s.r}</b> ${badge}<div class="faint small">${fmtDate(s.date)}${s.bw ? ` · BW ${fw(s.bw.weight)}${s.w ? ` · ${ratio(s.w, s.bw)} BW` : ''}` : ''}${s.r > 1 && s.hit ? ` · est. 1RM ${fw(s.e1, 0)}` : ''}</div>${note}</div></button>`;
+  return `<button class="row" style="align-items:flex-start" data-act="editSet" data-wid="${s.wid}" data-sid="${s.id}"><div class="grow"><b class="num">${s.bwf ? loadTxt(s) : `${fw(s.w)}${s.w ? ' ' + U.wu : ''}`} × ${s.r}</b> ${badge}<div class="faint small">${fmtDate(s.date)}${s.bw ? ` · BW ${fw(s.bw.weight)}${s.w ? ` · ${ratio(s.w, s.bw)} BW` : ''}` : ''}${s.r > 1 && s.hit ? ` · est. 1RM ${fw(s.e1, 0)}` : ''}</div>${note}</div></button>`;
 }
 
 /* ---------- log a PR attempt (outside a workout) ---------- */

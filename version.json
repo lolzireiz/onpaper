@@ -1,7 +1,8 @@
 {
- "version": "2.4",
+ "version": "2.5",
  "notes": [
-  "Update status: the app tells you the moment a new version is live, with a one-tap Update button (also in Settings).",
-  "Updates now load right away instead of up to 10 minutes later."
+  "Added Dumbbell Standing Calf Raise and Chin-ups.",
+  "Bodyweight exercises (calf raises, pull-ups, dips, push-ups, lunges and more) now estimate your total load: share of bodyweight + total dumbbell weight. PRs use that total, so getting heavier counts.",
+  "Turn bodyweight counting on for any exercise from its \u22ef menu during a workout."
  ]
 }

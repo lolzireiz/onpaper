@@ -188,6 +188,11 @@ function allSets() {
     return out;
   });
 }
+/* Bodyweight exercises: share of bodyweight moved (common estimates). Load = share × bodyweight + added weight (total of both dumbbells). */
+const BW_FACTOR = { 'pull-ups': 1, 'chin-ups': 1, 'dips': 1, 'push-ups': 0.64, 'dumbbell standing calf raise': 1, 'bulgarian split squat': 0.85, 'walking lunge': 0.85, 'goblet squat': 0.85, 'hanging leg raise': 0.35, 'back extension': 0.5, 'decline sit-up': 0.5 };
+function bwFactor(name) { const k = keyOf(name), o = (S().bwOverride || {})[k]; return o != null ? +o : (BW_FACTOR[k] || 0); }
+const setBw = s => s.bwt || bwOn(s.date)?.weight || S().lastBw || 0;
+const loadTxt = rec => rec.bwf ? `${rec.added ? '+' + fw(rec.added) : 'BW'}${rec.w ? ` <span class="faint">≈${fw(rec.w, 0)}</span>` : ''}` : `${fw(rec.w)}`;
 function liftIndex() {
   return Store.cached('lifts', () => {
     const map = new Map();
@@ -196,9 +201,9 @@ function liftIndex() {
       let L = map.get(k);
       if (!L) { L = { key: k, name: s.ex, sets: [], best: {}, e1: 0, e1Set: null, heavy: null, last: null, prs: 0, hits: 0 }; map.set(k, L); }
       L.name = s.ex;
-      const r = Math.max(1, Math.round(s.r || 1)), w = +s.w || 0;
+      const r = Math.max(1, Math.round(s.r || 1)), bwf = bwFactor(s.ex), added = +s.w || 0, w = bwf ? Math.round((bwf * setBw(s) + added) * 10) / 10 : added;
       const prevBest = bestAtLeast(L.best, r);
-      const rec = { ...s, r, w, e1: e1rm(w, r), prevBest, bw: bwOn(s.date), hit: s.hit !== false, warm: !!s.warm };
+      const rec = { ...s, r, w, added, bwf, e1: e1rm(w, r), prevBest, bw: bwOn(s.date), hit: s.hit !== false, warm: !!s.warm }; L.bwf = bwf;
       if (rec.hit && !rec.warm) {
         if (!L.hits) rec.baseline = true;
         else if (w > (prevBest ? prevBest.w : -1) + 1e-9) { rec.pr = true; L.prs++; }

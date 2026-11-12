@@ -14,7 +14,7 @@ const LIBRARY = [
   ['Bench Press', 'Chest', ['barbell', 'bench']], ['Incline Bench Press', 'Chest', ['barbell', 'incline']], ['Dumbbell Bench Press', 'Chest', ['db', 'bench']],
   ['Incline Dumbbell Press', 'Chest', ['db', 'incline']], ['Machine Chest Press', 'Chest', ['chestpress']], ['Smith Incline Press', 'Chest', ['smith', 'incline']],
   ['Pec Deck Fly', 'Chest', ['pecdeck']], ['Cable Fly', 'Chest', ['cable']], ['Dips', 'Chest', ['dip']], ['Push-ups', 'Chest', []],
-  ['Deadlift', 'Back', ['barbell']], ['Pull-ups', 'Back', ['pullup']], ['Barbell Row', 'Back', ['barbell']], ['Lat Pulldown', 'Back', ['lat']],
+  ['Deadlift', 'Back', ['barbell']], ['Pull-ups', 'Back', ['pullup']], ['Chin-ups', 'Back', ['pullup']], ['Barbell Row', 'Back', ['barbell']], ['Lat Pulldown', 'Back', ['lat']],
   ['Seated Cable Row', 'Back', ['row']], ['Dumbbell Row', 'Back', ['db', 'bench']], ['T-Bar Row', 'Back', ['tbar']], ['Chest-Supported Row', 'Back', ['db', 'incline']],
   ['Straight-Arm Pulldown', 'Back', ['cable']], ['Back Extension', 'Back', ['ghd']],
   ['Overhead Press', 'Shoulders', ['barbell', 'rack']], ['Dumbbell Shoulder Press', 'Shoulders', ['db']], ['Machine Shoulder Press', 'Shoulders', ['shoulderpress']],
@@ -27,7 +27,7 @@ const LIBRARY = [
   ['Leg Extension', 'Quads', ['legext']], ['Smith Squat', 'Quads', ['smith']], ['Bulgarian Split Squat', 'Quads', ['db', 'bench']], ['Goblet Squat', 'Quads', ['db']], ['Walking Lunge', 'Quads', ['db']],
   ['Romanian Deadlift', 'Hamstrings', ['barbell']], ['Dumbbell RDL', 'Hamstrings', ['db']], ['Lying Leg Curl', 'Hamstrings', ['legcurl']], ['Seated Leg Curl', 'Hamstrings', ['legcurl']], ['Kettlebell Swing', 'Hamstrings', ['kb']],
   ['Hip Thrust', 'Glutes', ['barbell', 'bench']], ['Machine Hip Thrust', 'Glutes', ['hipthrust']], ['Cable Kickback', 'Glutes', ['cable']], ['Hip Abduction', 'Glutes', ['abductor']],
-  ['Standing Calf Raise', 'Calves', ['calf']], ['Calf Extension', 'Calves', ['calf']], ['Seated Calf Raise', 'Calves', ['calf']], ['Leg Press Calf Raise', 'Calves', ['legpress']], ['Smith Calf Raise', 'Calves', ['smith']],
+  ['Standing Calf Raise', 'Calves', ['calf']], ['Calf Extension', 'Calves', ['calf']], ['Dumbbell Standing Calf Raise', 'Calves', ['db']], ['Seated Calf Raise', 'Calves', ['calf']], ['Leg Press Calf Raise', 'Calves', ['legpress']], ['Smith Calf Raise', 'Calves', ['smith']],
   ['Hanging Leg Raise', 'Core', ['pullup']], ['Cable Crunch', 'Core', ['cable']], ['Plank', 'Core', []], ['Decline Sit-up', 'Core', ['bench']],
 ].map(([name, group, equip]) => ({ name, group, equip }));
 const TEMPLATES = {
@@ -169,7 +169,7 @@ const defaultTarget = n => ({ sets: S().defaultSets || 3, reps: isCompound(n) ? 
 const tgtFor = n => ({ ...defaultTarget(n), ...((S().exTargets || {})[keyOf(n)] || {}) });
 const exTarget = (w, n) => tgtFor(n);
 const repRange = r => { const m = String(r || '').match(/(\d+)\s*[-–to]+\s*(\d+)/); if (m) return [+m[1], +m[2]]; const n = parseInt(r, 10); return n ? [n, n] : [8, 12]; };
-function weightStep(name) { const e = library().get(keyOf(name)); const lower = e && ['Quads', 'Hamstrings', 'Glutes'].includes(e.group) && !(e.equip || []).includes('db'); return U.metric ? (lower ? 5 : 2.5) : (lower ? 10 : 5); }
+function weightStep(name) { const e = library().get(keyOf(name)); if (bwFactor(name) && e && (e.equip || []).includes('db')) return U.metric ? 4 : 10; const lower = e && ['Quads', 'Hamstrings', 'Glutes'].includes(e.group) && !(e.equip || []).includes('db'); return U.metric ? (lower ? 5 : 2.5) : (lower ? 10 : 5); }
 function suggestion(w, name) {
   const t = exTarget(w, name), [lo, hi] = repRange(t.reps), prev = lastSessionSets(name, w.id); if (!prev) return null;
   const work = prev.sets.filter(s => !s.warm && s.hit !== false); if (!work.length) return null;
@@ -184,12 +184,13 @@ function exBlockHTML(w, name) {
   const work = all.filter(s => !s.warm && s.hit !== false), t = exTarget(w, name), done = work.length >= t.sets;
   const prev = lastSessionSets(name, w.id), sug = !all.length ? suggestion(w, name) : null, last = all[all.length - 1];
   const pre = last ? { w: last.w, r: last.r } : sug ? sug : prev ? { w: prev.sets.filter(s => !s.warm)[0]?.w ?? prev.sets[0].w, r: prev.sets[0].r } : null;
-  const step = weightStep(name);
+  const step = weightStep(name), bwf = bwFactor(name), bwNow = latestWeighin()?.weight || S().lastBw || 0;
   return `<section class="exb${done ? ' done' : ''}"><header class="exb-h"><div class="grow"><h3>${done ? '<span style="color:var(--ok)">✓</span> ' : ''}${esc(name)}</h3><button class="faint small" style="text-align:left;padding:2px 0" data-act="editTarget" data-ex="${esc(name)}" aria-label="Change target for ${esc(name)}">Target <u style="text-decoration-style:dotted;text-underline-offset:3px">${t.sets} × ${esc(t.reps)}</u> · <b style="color:${done ? 'var(--ok)' : 'var(--tx2)'}">${work.length}/${t.sets} sets</b> ✎</button></div>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
   ${prev ? `<p class="faint small">Last time (${fmtDate(prev.date)}): ${prev.sets.map(s => `${s.warm ? '<span style="opacity:.6">' : ''}${fw(s.w)}×${s.r}${s.hit === false ? '✗' : ''}${s.warm ? '</span>' : ''}`).join(', ')}</p>` : ''}
   ${sug ? `<p class="small" style="background:rgba(51,146,245,.12);color:#9cc8ff;border-radius:10px;padding:8px 10px"><b>Try ${fw(sug.w)} × ${sug.r}.</b> ${esc(sug.why)}</p>` : ''}
-  ${all.length ? `<ol class="sets">${all.map((s, j) => { const rec = setRec(L, s.id); return `<li><button class="setrow" data-act="editSet" data-wid="${w.id}" data-sid="${s.id}"><span class="n">${s.warm ? 'W' : j + 1 - all.slice(0, j).filter(x => x.warm).length}</span><span class="v grow">${fw(s.w)} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r}</span>${rec?.pr ? '<span class="pr">PR</span>' : ''}${s.hit === false ? '<span class="missb">Missed</span>' : ''}${s.warm ? '<span class="baseb">Warm-up</span>' : ''}</button></li>`; }).join('')}</ol>` : ''}
-  <div class="addset2"><div class="stepper"><button data-act="step" data-t="sw-${k}" data-d="-${step}" aria-label="Less weight">−</button><input id="sw-${k}" data-keep inputmode="decimal" value="${pre ? plain(U.w(pre.w)) : ''}" placeholder="${U.wu}" aria-label="Weight in ${U.wu} for ${esc(name)}"><button data-act="step" data-t="sw-${k}" data-d="${step}" aria-label="More weight">+</button></div><span class="x">×</span><div class="stepper"><button data-act="step" data-t="sr-${k}" data-d="-1" aria-label="One less rep">−</button><input id="sr-${k}" data-keep inputmode="numeric" value="${pre ? pre.r : ''}" placeholder="reps" aria-label="Reps for ${esc(name)}"><button data-act="step" data-t="sr-${k}" data-d="1" aria-label="One more rep">+</button></div></div>
+  ${all.length ? `<ol class="sets">${all.map((s, j) => { const rec = setRec(L, s.id); return `<li><button class="setrow" data-act="editSet" data-wid="${w.id}" data-sid="${s.id}"><span class="n">${s.warm ? 'W' : j + 1 - all.slice(0, j).filter(x => x.warm).length}</span><span class="v grow">${bwf ? `${s.w ? '+' + fw(s.w) : 'BW'} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r} <span class="faint small">≈${fw(bwf * (s.bwt || bwNow) + (s.w || 0), 0)} ${U.wu}</span>` : `${fw(s.w)} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r}`}</span>${rec?.pr ? '<span class="pr">PR</span>' : ''}${s.hit === false ? '<span class="missb">Missed</span>' : ''}${s.warm ? '<span class="baseb">Warm-up</span>' : ''}</button></li>`; }).join('')}</ol>` : ''}
+  <div class="addset2"><div class="stepper"><button data-act="step" data-t="sw-${k}" data-d="-${step}" aria-label="Less weight">−</button><input id="sw-${k}" data-keep inputmode="decimal" value="${pre ? plain(U.w(pre.w)) : ''}" placeholder="${bwf ? '+' + U.wu : U.wu}" aria-label="${bwf ? 'Added weight (both dumbbells together)' : 'Weight'} in ${U.wu} for ${esc(name)}"><button data-act="step" data-t="sw-${k}" data-d="${step}" aria-label="More weight">+</button></div><span class="x">×</span><div class="stepper"><button data-act="step" data-t="sr-${k}" data-d="-1" aria-label="One less rep">−</button><input id="sr-${k}" data-keep inputmode="numeric" value="${pre ? pre.r : ''}" placeholder="reps" aria-label="Reps for ${esc(name)}"><button data-act="step" data-t="sr-${k}" data-d="1" aria-label="One more rep">+</button></div></div>
+  ${bwf ? `<div class="bwrow"><label class="faint small" for="sb-${k}">Bodyweight</label><input id="sb-${k}" data-keep inputmode="decimal" value="${bwNow ? plain(U.w(bwNow)) : ''}" placeholder="${U.wu}" aria-label="Your bodyweight in ${U.wu}"><span class="faint small">${U.wu} · weight box = <b>both dumbbells</b> total</span><span class="est" id="est-${k}" data-f="${bwf}">${estTxt(bwf, bwNow ? U.w(bwNow) : 0, pre ? U.w(pre.w) : 0)}</span></div>` : ''}
   <div class="addset-b"><button class="missbtn" id="swu-${k}" data-act="toggle" aria-pressed="false">Warm-up</button><button class="missbtn" id="sh-${k}" data-act="toggle" aria-pressed="false">Missed</button><button class="btn" data-act="logSet" data-ex="${esc(name)}">Log set</button></div></section>`;
 }
 A.editTarget = d => {
@@ -207,7 +208,13 @@ A.saveTarget = () => {
   if (sets === dft.sets && reps === dft.reps) delete all[keyOf(n)]; else all[keyOf(n)] = { sets, reps };
   saveSettings({ exTargets: all }); closeSheet(); toast(`${n}: ${sets} × ${reps} saved`);
 };
-A.step = d => { const el = $('#' + d.t); if (!el) return; const v = Math.max(0, (num(el.value) || 0) + (+d.d)); el.value = plain(v, 2); };
+A.step = d => { const el = $('#' + d.t); if (!el) return; const v = Math.max(0, (num(el.value) || 0) + (+d.d)); el.value = plain(v, 2); el.dispatchEvent(new Event('input', { bubbles: true })); };
+function estTxt(f, bwDisp, addDisp) { return bwDisp ? `≈ <b>${trim(f * bwDisp + (addDisp || 0), 0)} ${U.wu}</b> total${f < 1 ? ` <span class="faint">(${Math.round(f * 100)}% of bodyweight + weight)</span>` : ''}` : 'Enter bodyweight'; }
+document.addEventListener('input', e => {
+  const id = e.target.id || ''; if (!/^s[wb]-/.test(id)) return;
+  const k = id.slice(3), est = document.getElementById('est-' + k); if (!est) return;
+  est.innerHTML = estTxt(+est.dataset.f, num($('#sb-' + k)?.value) || 0, num($('#sw-' + k)?.value) || 0);
+});
 A.resumeWorkout = () => { UI.session = true; UI.tab = 'train'; $('#view').scrollTop = 0; wakeLock(); render(); };
 A.planDay = d => { UI.planDay = d.id; render(); };
 A.planGym = d => { UI.planGym = d.id; render(); };
@@ -226,11 +233,14 @@ A.logSet = d => {
   const k = slug(d.ex), wIn = num($('#sw-' + k)?.value), r = Math.round(num($('#sr-' + k)?.value) || 0);
   if (!r || r < 1) { toast('Enter how many reps you did.', { bad: true }); $('#sr-' + k)?.focus(); return; }
   const hit = $('#sh-' + k)?.getAttribute('aria-pressed') !== 'true', warm = $('#swu-' + k)?.getAttribute('aria-pressed') === 'true';
-  const lb = U.toLb(wIn || 0), L = liftByKey(keyOf(d.ex));
-  const prev = L ? bestAtLeast(L.best, r) : null, isPR = hit && !warm && L && L.hits > 0 && lb > (prev ? prev.w : -1) + 1e-9;
-  const set = { id: newId(), ex: d.ex, w: lb, r, hit, ts: Date.now() }; if (warm) set.warm = true;
+  const lb = U.toLb(wIn || 0), L = liftByKey(keyOf(d.ex)), bwf = bwFactor(d.ex), bwIn = num($('#sb-' + k)?.value), bwt = bwf ? (bwIn ? U.toLb(bwIn) : (latestWeighin()?.weight || S().lastBw || 0)) : 0;
+  if (bwf && !bwt) { toast('Enter your bodyweight so the app can estimate the load.', { bad: true }); $('#sb-' + k)?.focus(); return; }
+  const eff = bwf ? bwf * bwt + lb : lb;
+  const prev = L ? bestAtLeast(L.best, r) : null, isPR = hit && !warm && L && L.hits > 0 && eff > (prev ? prev.w : -1) + 1e-9;
+  const set = { id: newId(), ex: d.ex, w: lb, r, hit, ts: Date.now() }; if (warm) set.warm = true; if (bwf) set.bwt = bwt;
+  if (bwf && bwIn && Math.abs(bwt - (S().lastBw || 0)) > 0.05 && !latestWeighin()) saveSettings({ lastBw: bwt });
   put('workouts', w.id, { ...clone(w), sets: [...(w.sets || []), set] });
-  if (isPR) toast(`PR! ${d.ex}: ${r === 1 ? 'new 1-rep max' : `new ${r}-rep max`}, ${fwu(lb)}`, { pr: true, ms: 3600 });
+  if (isPR) toast(`PR! ${d.ex}: ${r === 1 ? 'new 1-rep max' : `new ${r}-rep max`}, ${bwf ? `≈${fw(eff, 0)} ${U.wu} total` : fwu(lb)}`, { pr: true, ms: 3600 });
   const base = S().restSec || 120, rest = warm ? 60 : isCompound(d.ex) ? (r <= 6 ? Math.max(base, 180) : base) : Math.max(60, Math.min(base, 90));
   const names = sessionNames(activeWorkout() || w), doneSets = n => [...(w.sets || []), set].filter(s => keyOf(s.ex) === keyOf(n) && !s.warm && s.hit !== false).length;
   const nextEx = doneSets(d.ex) >= exTarget(w, d.ex).sets ? (names.find(n => doneSets(n) < exTarget(w, n).sets) || d.ex) : d.ex;
@@ -246,8 +256,10 @@ A.addExercise = () => {
 A.exMenu = d => {
   const w = activeWorkout(); if (!w) return;
   const has = (w.sets || []).some(s => keyOf(s.ex) === keyOf(d.ex));
-  openSheet(d.ex, `<button class="btn ghost block" data-act="swapEx" data-ex="${esc(d.ex)}">Swap for another exercise</button><button class="btn ghost block" data-act="openLift" data-key="${esc(keyOf(d.ex))}">See history and PRs</button><button class="linkbtn danger center" data-act="removeEx" data-ex="${esc(d.ex)}">${has ? 'Remove (and its sets)' : 'Remove from this workout'}</button>`);
+  const f = bwFactor(d.ex);
+  openSheet(d.ex, `<div class="field"><span class="lbl">Counts your bodyweight?</span><div class="chips">${[[0, 'No'], [0.5, '50%'], [0.64, '64%'], [0.85, '85%'], [1, '100%']].map(([v, l]) => `<button class="chip" data-act="setBwf" data-ex="${esc(d.ex)}" data-f="${v}" aria-pressed="${Math.abs(f - v) < 0.001}">${l}</button>`).join('')}</div><p class="faint tiny">For moves like pull-ups or dumbbell calf raises: you enter the added weight, and the app adds that share of your bodyweight to estimate the total load (and judges PRs on it).</p></div><button class="btn ghost block" data-act="swapEx" data-ex="${esc(d.ex)}">Swap for another exercise</button><button class="btn ghost block" data-act="openLift" data-key="${esc(keyOf(d.ex))}">See history and PRs</button><button class="linkbtn danger center" data-act="removeEx" data-ex="${esc(d.ex)}">${has ? 'Remove (and its sets)' : 'Remove from this workout'}</button>`);
 };
+A.setBwf = d => { const o = clone(S().bwOverride || {}); o[keyOf(d.ex)] = +d.f; saveSettings({ bwOverride: o }); closeSheet(); toast(+d.f ? `${d.ex} now counts ${Math.round(d.f * 100)}% of bodyweight` : `${d.ex} uses weight only`); };
 A.swapEx = d => {
   const w = activeWorkout(); if (!w) return; const gym = gyms().find(g => g.id === w.gymId) || null;
   openExercisePicker(name => {
