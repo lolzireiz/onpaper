@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, Apple Watch reminder, muscle diagrams. */
 
-const APP_VERSION = '2.2.2';
+const APP_VERSION = '2.3';
 const CHANGELOG = [
+  ['2.3', ['3 sets is now the default for every exercise. Tap an exercise\'s target during a workout to change it, and it\'s remembered everywhere.', 'Rest alerts now arrive even if you jump to another app right after logging a set.', 'If iPhone closes the app in the background, it reopens right back into your workout with the rest timer still counting.']],
   ['2.2', ['Rest alerts on your lock screen and Apple Watch, even with the app closed. Set it up once in Settings (uses the free ntfy app).', 'The alert tells you which exercise is next.']],
   ['2.1', ['Watch stats on workouts: after you finish, scan your Apple Watch or Fitness summary screenshot (or type it in) to save workout type, time, active and total calories, heart rate and effort.']],
   ['2.0.2', ['Smoother buddy feeding animation.', 'Cleaner scanning messages.']],

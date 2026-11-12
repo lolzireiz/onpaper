@@ -6,7 +6,12 @@ const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return 
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 function pushTopic() { let t = lsGet(PUSH_TOPIC); if (!t) { const a = new Uint8Array(9); crypto.getRandomValues(a); t = 'onpaper-' + [...a].map(b => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join(''); lsSet(PUSH_TOPIC, t); } return t; }
 const pushOn = () => lsGet(PUSH_ON) === '1';
-const Push = { id: null, seq: 0 };
+const Push = { at: 0 };
+/* Fire-and-forget requests that iOS finishes even after the app is backgrounded (no CORS preflight needed). */
+function beacon(url, body = '') {
+  try { if (navigator.sendBeacon && navigator.sendBeacon(url, new Blob([body], { type: 'text/plain' }))) return; } catch (e) {}
+  try { fetch(url, { method: 'POST', body, keepalive: true, mode: 'no-cors' }).catch(() => {}); } catch (e) {}
+}
 async function pushSend(msg, delaySec) {
   const body = { topic: pushTopic(), title: msg.title, message: msg.body, priority: 5, tags: [msg.tag || 'stopwatch'] };
   if (delaySec) body.delay = `${Math.max(10, Math.round(delaySec))}s`;
@@ -14,10 +19,28 @@ async function pushSend(msg, delaySec) {
   if (!r.ok) throw new Error('HTTP ' + r.status);
   return (await r.json()).id;
 }
-function pushCancel() { const id = Push.id; Push.id = null; Push.seq++; if (!id) return; fetch(`https://ntfy.sh/${pushTopic()}/${id}`, { method: 'DELETE' }).catch(() => {}); }
-async function pushScheduleRest(sec, next) {
-  if (!pushOn()) return; pushCancel(); const mySeq = Push.seq;
-  try { const id = await pushSend({ title: 'Rest is up ⏱', body: next ? `Time for your next set: ${next}` : 'Time for your next set.' }, sec); if (mySeq === Push.seq) Push.id = id; else fetch(`https://ntfy.sh/${pushTopic()}/${id}`, { method: 'DELETE' }).catch(() => {}); } catch (e) {}
+/* One scheduled alert per topic under the sequence ID "rest": publishing again replaces it, deleting cancels it. */
+function pushScheduleRest(sec, next) {
+  if (!pushOn() || !(sec > 0)) return;
+  Push.at = Date.now() + sec * 1000;
+  const q = new URLSearchParams({ delay: `${Math.max(10, Math.round(sec))}s`, title: 'Rest is up ⏱', priority: '5', tags: 'stopwatch' });
+  beacon(`https://ntfy.sh/${pushTopic()}/rest?${q}`, next ? `Time for your next set: ${next}` : 'Time for your next set.');
+}
+function pushCancel() {
+  const had = Push.at > Date.now(); Push.at = 0; if (!pushOn() || !had) return;
+  try { fetch(`https://ntfy.sh/${pushTopic()}/rest/delete`, { keepalive: true, mode: 'no-cors' }).catch(() => {}); } catch (e) {}
+}
+/* Leaving the app: re-send the pending alert with the time that's left, so it's on the server before iOS freezes us. */
+function pushOnHide() { if (Rest.end && Rest.end - Date.now() > 10000) pushScheduleRest((Rest.end - Date.now()) / 1000, Rest.next); }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { pushOnHide(); saveRest(); } });
+window.addEventListener('pagehide', () => { pushOnHide(); saveRest(); });
+/* Keep the rest timer across iOS closing the app in the background. */
+function saveRest() { lsSet('onpaper.rest', Rest.end ? JSON.stringify({ end: Rest.end, total: Rest.total, next: Rest.next || '' }) : ''); }
+function restoreRest() {
+  let r = null; try { r = JSON.parse(lsGet('onpaper.rest') || 'null'); } catch (e) {}
+  if (!r || !r.end) return;
+  if (r.end > Date.now() + 1000) { Rest.total = r.total; Rest.end = r.end; Rest.next = r.next; Push.at = r.end; startRestUI(); }
+  else lsSet('onpaper.rest', '');
 }
 function pushSettingsHTML() {
   const on = pushOn(), t = pushTopic();

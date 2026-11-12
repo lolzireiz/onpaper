@@ -21,7 +21,7 @@ function initCaps() { refreshCaps(); scheduleRender(); }
 function start(saved) {
   if (saved && typeof saved === 'object') for (const k of ['tab', 'bodySub', 'liftKey', 'session', 'weightRange', 'weightFilter']) if (saved[k] !== undefined) UI[k] = saved[k];
   render();
-  initStore().then(checkVersion);
+  initStore().then(() => { checkVersion(); if (activeWorkout()) { UI.tab = 'train'; UI.session = true; render(); restoreRest(); } else lsSet('onpaper.rest', ''); });
   initCaps();
 }
 if (window.claude?.hot?.snapshot) window.claude.hot.snapshot(() => ({ tab: UI.tab, bodySub: UI.bodySub, liftKey: UI.liftKey, session: UI.session, weightRange: UI.weightRange, weightFilter: UI.weightFilter }));

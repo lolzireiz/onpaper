@@ -64,6 +64,7 @@ A.openSettings = () => {
   openSheet('Settings', `
     <div class="field"><span class="lbl">Units</span><div class="seg">${chipSeg('unit', [['imperial', 'lb · in'], ['metric', 'kg · cm']], s.unit)}</div></div>
     <div class="field"><span class="lbl">Weekly gym goal (days)</span><div class="seg">${chipSeg('goal', [3, 4, 5, 6, 7].map(n => [n, n]), s.weeklyGoal)}</div></div>
+    <div class="field"><span class="lbl">Default sets per exercise</span><div class="seg">${chipSeg('dsets', [2, 3, 4, 5].map(n => [n, n]), s.defaultSets || 3)}</div><p class="faint tiny">Change any single exercise by tapping its target during a workout.</p></div>
     <div class="field"><span class="lbl">Default rest between sets</span><div class="seg">${chipSeg('rest', [[60, '1:00'], [90, '1:30'], [120, '2:00'], [180, '3:00'], [240, '4:00']], s.restSec)}</div></div>
     <div class="field"><span class="lbl">Your goal</span><div class="seg">${chipSeg('goal2', [['bulk', 'Lean bulk'], ['maintain', 'Maintain'], ['cut', 'Cut']], s.goal || 'bulk')}</div></div>
     <div class="field"><label class="lbl" for="st-gw">Goal bodyweight (${U.wu}, optional)</label><input id="st-gw" name="gweight" inputmode="decimal" value="${s.goalWeight ? plain(U.w(s.goalWeight)) : ''}" placeholder="e.g. 180"></div>
@@ -90,7 +91,7 @@ const chipSeg = (group, opts, cur) => opts.map(([v, l]) => `<button data-act="pi
 A.saveSettings = () => {
   const root = $('#sheet'), cal = num(fval('cal')), prot = num(fval('prot'));
   saveSettings({
-    unit: picked(root, 'unit') || 'imperial', weeklyGoal: +picked(root, 'goal') || 4, restSec: +picked(root, 'rest') || 120,
+    unit: picked(root, 'unit') || 'imperial', weeklyGoal: +picked(root, 'goal') || 4, defaultSets: +picked(root, 'dsets') || 3, restSec: +picked(root, 'rest') || 120,
     calTarget: cal > 0 ? Math.round(cal) : S().calTarget, proteinTarget: prot > 0 ? Math.round(prot) : S().proteinTarget, nudgeDays: +picked(root, 'nudge') || 3, goal: picked(root, 'goal2') || 'bulk', goalWeight: num(fval('gweight')) ? U.toLb(num(fval('gweight'))) : null, bodyModel: picked(root, 'bodym') || 'male', watchReminder: picked(root, 'watch') !== 'off', buddy: picked(root, 'buddy') !== 'off', buddyName: fval('buddyname') || 'Pebble',
     big3: { squat: fval('b3squat') || S().big3.squat, bench: fval('b3bench') || S().big3.bench, deadlift: fval('b3deadlift') || S().big3.deadlift },
   });

@@ -110,7 +110,7 @@ function startCardHTML() {
     h += `<div class="plan">${plan.map(p => {
       const last = p.use ? lastSessionSets(p.use) : null;
       const lastTxt = last ? `${fw(last.sets[0].w)}×${last.sets[0].r}` : '';
-      const tg = (day.targets && day.targets[keyOf(p.name)]) || defaultTarget(p.use || p.name);
+      const tg = tgtFor(p.use || p.name);
       if (!p.swapped) return `<div class="row"><span class="grow">${esc(p.name)} <span class="faint small">${tg.sets}×${esc(tg.reps)}</span></span><span class="faint small rnum">${lastTxt}</span>${musBtn(p.name)}</div>`;
       return `<div class="row"><span class="grow">${p.use ? `<s>${esc(p.name)}</s> → ${esc(p.use)}` : `<s>${esc(p.name)}</s>`}<div class="faint small">${p.use ? 'Swapped: not at this gym' : 'Skipped: nothing similar at this gym'}</div></span><span class="faint small rnum">${lastTxt}</span></div>`;
     }).join('')}</div>`;
@@ -165,8 +165,9 @@ function sessionHTML(w) {
 }
 const COMPOUND = new Set(['Bench Press', 'Incline Bench Press', 'Dumbbell Bench Press', 'Incline Dumbbell Press', 'Machine Chest Press', 'Smith Incline Press', 'Dips', 'Deadlift', 'Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Seated Cable Row', 'Dumbbell Row', 'T-Bar Row', 'Chest-Supported Row', 'Overhead Press', 'Dumbbell Shoulder Press', 'Machine Shoulder Press', 'Close-Grip Bench Press', 'Squat', 'Front Squat', 'Leg Press', 'Hack Squat', 'Smith Squat', 'Bulgarian Split Squat', 'Goblet Squat', 'Walking Lunge', 'Romanian Deadlift', 'Dumbbell RDL', 'Hip Thrust', 'Machine Hip Thrust'].map(keyOf));
 const isCompound = n => COMPOUND.has(keyOf(n));
-const defaultTarget = n => isCompound(n) ? { sets: 4, reps: '5-8' } : { sets: 3, reps: '8-12' };
-const exTarget = (w, n) => (w.targets && w.targets[keyOf(n)]) || defaultTarget(n);
+const defaultTarget = n => ({ sets: S().defaultSets || 3, reps: isCompound(n) ? '6-8' : '8-12' });
+const tgtFor = n => ({ ...defaultTarget(n), ...((S().exTargets || {})[keyOf(n)] || {}) });
+const exTarget = (w, n) => tgtFor(n);
 const repRange = r => { const m = String(r || '').match(/(\d+)\s*[-–to]+\s*(\d+)/); if (m) return [+m[1], +m[2]]; const n = parseInt(r, 10); return n ? [n, n] : [8, 12]; };
 function weightStep(name) { const e = library().get(keyOf(name)); const lower = e && ['Quads', 'Hamstrings', 'Glutes'].includes(e.group) && !(e.equip || []).includes('db'); return U.metric ? (lower ? 5 : 2.5) : (lower ? 10 : 5); }
 function suggestion(w, name) {
@@ -184,13 +185,28 @@ function exBlockHTML(w, name) {
   const prev = lastSessionSets(name, w.id), sug = !all.length ? suggestion(w, name) : null, last = all[all.length - 1];
   const pre = last ? { w: last.w, r: last.r } : sug ? sug : prev ? { w: prev.sets.filter(s => !s.warm)[0]?.w ?? prev.sets[0].w, r: prev.sets[0].r } : null;
   const step = weightStep(name);
-  return `<section class="exb${done ? ' done' : ''}"><header class="exb-h"><div class="grow"><h3>${done ? '<span style="color:var(--ok)">✓</span> ' : ''}${esc(name)}</h3><div class="faint small">Target ${t.sets} × ${esc(t.reps)} · <b style="color:${done ? 'var(--ok)' : 'var(--tx2)'}">${work.length}/${t.sets} sets</b></div></div>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
+  return `<section class="exb${done ? ' done' : ''}"><header class="exb-h"><div class="grow"><h3>${done ? '<span style="color:var(--ok)">✓</span> ' : ''}${esc(name)}</h3><button class="faint small" style="text-align:left;padding:2px 0" data-act="editTarget" data-ex="${esc(name)}" aria-label="Change target for ${esc(name)}">Target <u style="text-decoration-style:dotted;text-underline-offset:3px">${t.sets} × ${esc(t.reps)}</u> · <b style="color:${done ? 'var(--ok)' : 'var(--tx2)'}">${work.length}/${t.sets} sets</b> ✎</button></div>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
   ${prev ? `<p class="faint small">Last time (${fmtDate(prev.date)}): ${prev.sets.map(s => `${s.warm ? '<span style="opacity:.6">' : ''}${fw(s.w)}×${s.r}${s.hit === false ? '✗' : ''}${s.warm ? '</span>' : ''}`).join(', ')}</p>` : ''}
   ${sug ? `<p class="small" style="background:rgba(51,146,245,.12);color:#9cc8ff;border-radius:10px;padding:8px 10px"><b>Try ${fw(sug.w)} × ${sug.r}.</b> ${esc(sug.why)}</p>` : ''}
   ${all.length ? `<ol class="sets">${all.map((s, j) => { const rec = setRec(L, s.id); return `<li><button class="setrow" data-act="editSet" data-wid="${w.id}" data-sid="${s.id}"><span class="n">${s.warm ? 'W' : j + 1 - all.slice(0, j).filter(x => x.warm).length}</span><span class="v grow">${fw(s.w)} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r}</span>${rec?.pr ? '<span class="pr">PR</span>' : ''}${s.hit === false ? '<span class="missb">Missed</span>' : ''}${s.warm ? '<span class="baseb">Warm-up</span>' : ''}</button></li>`; }).join('')}</ol>` : ''}
   <div class="addset2"><div class="stepper"><button data-act="step" data-t="sw-${k}" data-d="-${step}" aria-label="Less weight">−</button><input id="sw-${k}" data-keep inputmode="decimal" value="${pre ? plain(U.w(pre.w)) : ''}" placeholder="${U.wu}" aria-label="Weight in ${U.wu} for ${esc(name)}"><button data-act="step" data-t="sw-${k}" data-d="${step}" aria-label="More weight">+</button></div><span class="x">×</span><div class="stepper"><button data-act="step" data-t="sr-${k}" data-d="-1" aria-label="One less rep">−</button><input id="sr-${k}" data-keep inputmode="numeric" value="${pre ? pre.r : ''}" placeholder="reps" aria-label="Reps for ${esc(name)}"><button data-act="step" data-t="sr-${k}" data-d="1" aria-label="One more rep">+</button></div></div>
   <div class="addset-b"><button class="missbtn" id="swu-${k}" data-act="toggle" aria-pressed="false">Warm-up</button><button class="missbtn" id="sh-${k}" data-act="toggle" aria-pressed="false">Missed</button><button class="btn" data-act="logSet" data-ex="${esc(name)}">Log set</button></div></section>`;
 }
+A.editTarget = d => {
+  const t = tgtFor(d.ex); Sheet.tgtEx = d.ex;
+  openSheet(`Target: ${d.ex}`, `<div class="field"><span class="lbl">Working sets</span><div class="stepper" style="max-width:220px"><button data-act="step" data-t="tg-s" data-d="-1" aria-label="One fewer set">−</button><input id="tg-s" inputmode="numeric" value="${t.sets}" aria-label="Sets"><button data-act="step" data-t="tg-s" data-d="1" aria-label="One more set">+</button></div></div>
+    <div class="field"><label class="lbl" for="tg-r">Rep range</label><input id="tg-r" value="${esc(t.reps)}" placeholder="8-12"><div class="chips" style="margin-top:6px">${['3-5', '5-8', '6-8', '8-10', '8-12', '10-15', '12-15'].map(r => `<button class="chip" data-act="tgReps" data-r="${r}">${r}</button>`).join('')}</div></div>
+    <p class="faint small">Saved for ${esc(d.ex)} in every workout from now on, including your split.</p>
+    <button class="btn block" data-act="saveTarget">Save</button>`);
+};
+A.tgReps = d => { const i = $('#tg-r'); if (i) i.value = d.r; };
+A.saveTarget = () => {
+  const n = Sheet.tgtEx; if (!n) return closeSheet();
+  const sets = clamp(Math.round(num($('#tg-s').value) || 3), 1, 12), reps = ($('#tg-r').value || '').trim().replace(/\s+/g, '') || defaultTarget(n).reps;
+  const all = clone(S().exTargets || {}), dft = defaultTarget(n);
+  if (sets === dft.sets && reps === dft.reps) delete all[keyOf(n)]; else all[keyOf(n)] = { sets, reps };
+  saveSettings({ exTargets: all }); closeSheet(); toast(`${n}: ${sets} × ${reps} saved`);
+};
 A.step = d => { const el = $('#' + d.t); if (!el) return; const v = Math.max(0, (num(el.value) || 0) + (+d.d)); el.value = plain(v, 2); };
 A.resumeWorkout = () => { UI.session = true; UI.tab = 'train'; $('#view').scrollTop = 0; wakeLock(); render(); };
 A.planDay = d => { UI.planDay = d.id; render(); };
@@ -199,10 +215,9 @@ A.setGym = d => saveSettings({ activeGym: d.id });
 A.startWorkout = () => {
   const days = splitDays(), gs = gyms();
   const day = days.find(d => d.id === UI.planDay) || nextDay(), gym = gs.find(g => g.id === UI.planGym) || activeGym();
-  const pf = day ? planFor(day, gym).filter(p => p.use) : [], plan = pf.map(p => p.use), targets = {};
-  for (const p of pf) targets[keyOf(p.use)] = (day.targets && day.targets[keyOf(p.name)]) || defaultTarget(p.use);
+  const pf = day ? planFor(day, gym).filter(p => p.use) : [], plan = pf.map(p => p.use);
   const id = newId();
-  put('workouts', id, { date: todayStr(), startTs: Date.now(), gymId: gym?.id || null, gymName: gym?.name || '', dayId: day?.id || null, dayName: day?.name || 'Workout', plan, targets, sets: [] });
+  put('workouts', id, { date: todayStr(), startTs: Date.now(), gymId: gym?.id || null, gymName: gym?.name || '', dayId: day?.id || null, dayName: day?.name || 'Workout', plan, sets: [] });
   UI.session = true; UI.tab = 'train'; UI.planDay = null; $('#view').scrollTop = 0; audioCtx(); wakeLock(); render();
   if (S().watchReminder !== false) toast('⌚ Start a Strength Training workout on your Apple Watch', { ms: 5000 });
 };
@@ -347,7 +362,7 @@ A.deleteGym = async d => {
 };
 
 /* ---------- split editor ---------- */
-A.editSplit = () => { Sheet.split = clone(splitDays()); openSheet('Your split', '', {}); drawSplit(); };
+A.editSplit = () => { Sheet.split = clone(splitDays()); Sheet.exT = clone(S().exTargets || {}); openSheet('Your split', '', {}); drawSplit(); };
 function drawSplit() {
   const days = Sheet.split; sheetTitle('Your split');
   sheetBody(`<div class="field"><span class="lbl">Start from a template</span><div class="chips">${Object.entries(TEMPLATES).map(([k, t]) => `<button class="chip" data-act="splitTemplate" data-t="${k}">${t.label}</button>`).join('')}</div></div>
@@ -363,7 +378,7 @@ A.splitMove = d => { const i = +d.i, j = i + (+d.d), a = Sheet.split; if (j < 0 
 A.splitDel = async d => { const day = Sheet.split[+d.i]; if (await ask(`Delete ${day.name} from your split?`, { ok: 'Delete', danger: true })) { Sheet.split.splice(+d.i, 1); drawSplit(); } };
 A.splitAdd = () => { Sheet.split.push({ id: newId(), name: `Day ${Sheet.split.length + 1}`, groups: [], exercises: [] }); drawDay(Sheet.split.length - 1); };
 A.splitDay = d => drawDay(+d.i);
-A.splitSave = () => { if (Sheet.di != null && $('#dn')) keepDayName(); saveSettings({ split: { days: Sheet.split } }); closeSheet(); toast('Split saved'); };
+A.splitSave = () => { if (Sheet.di != null && $('#dn')) keepDayName(); saveSettings({ split: { days: Sheet.split }, exTargets: Sheet.exT }); closeSheet(); toast('Split saved'); };
 function drawDay(i) {
   Sheet.di = i; const d = Sheet.split[i]; sheetTitle(d.name || 'Day');
   const inDay = new Set((d.exercises || []).map(keyOf));
@@ -371,14 +386,13 @@ function drawDay(i) {
   sheetBody(`<button class="back" data-act="dayDone">${ICON.chevL.replace('<svg', '<svg width="18" height="18"')} All days</button>
     <div class="field"><label class="lbl" for="dn">Day name</label><input id="dn" name="dayname" value="${esc(d.name)}" autocapitalize="words"></div>
     <div class="field"><span class="lbl">Muscle groups</span><div class="chips">${GROUPS.map(g => `<button class="chip" data-act="dayGroup" data-g="${g}" aria-pressed="${(d.groups || []).includes(g)}">${g}</button>`).join('')}</div></div>
-    <div class="field"><span class="lbl">Exercises, in order · sets × reps target</span>${(d.exercises || []).length ? `<div>${d.exercises.map((n, j) => `<div class="row" style="padding:6px 0;min-height:0"><span class="grow">${esc(n)}</span><span class="tgt-edit"><input class="tgt" data-j="${j}" data-f="sets" value="${((d.targets || {})[keyOf(n)] || defaultTarget(n)).sets}" inputmode="numeric" aria-label="Sets for ${esc(n)}">×<input class="tgt" data-j="${j}" data-f="reps" value="${esc(((d.targets || {})[keyOf(n)] || defaultTarget(n)).reps)}" aria-label="Reps for ${esc(n)}"></span>${musBtn(n)}<div class="reorder"><button class="iconbtn sm" data-act="dayExMove" data-j="${j}" data-d="-1" aria-label="Move ${esc(n)} up">${ICON.up}</button><button class="iconbtn sm" data-act="dayExMove" data-j="${j}" data-d="1" aria-label="Move ${esc(n)} down">${ICON.down}</button><button class="iconbtn sm" data-act="dayExDel" data-j="${j}" aria-label="Remove ${esc(n)}">${ICON.x}</button></div></div>`).join('')}</div>` : '<p class="muted small">None yet. Add some below.</p>'}</div>
+    <div class="field"><span class="lbl">Exercises, in order · sets × reps target</span>${(d.exercises || []).length ? `<div>${d.exercises.map((n, j) => `<div class="row" style="padding:6px 0;min-height:0"><span class="grow">${esc(n)}</span><span class="tgt-edit"><input class="tgt" data-j="${j}" data-f="sets" value="${({ ...defaultTarget(n), ...(Sheet.exT[keyOf(n)] || {}) }).sets}" inputmode="numeric" aria-label="Sets for ${esc(n)}">×<input class="tgt" data-j="${j}" data-f="reps" value="${esc(({ ...defaultTarget(n), ...(Sheet.exT[keyOf(n)] || {}) }).reps)}" aria-label="Reps for ${esc(n)}"></span>${musBtn(n)}<div class="reorder"><button class="iconbtn sm" data-act="dayExMove" data-j="${j}" data-d="-1" aria-label="Move ${esc(n)} up">${ICON.up}</button><button class="iconbtn sm" data-act="dayExMove" data-j="${j}" data-d="1" aria-label="Move ${esc(n)} down">${ICON.down}</button><button class="iconbtn sm" data-act="dayExDel" data-j="${j}" aria-label="Remove ${esc(n)}">${ICON.x}</button></div></div>`).join('')}</div>` : '<p class="muted small">None yet. Add some below.</p>'}</div>
     <div class="field"><span class="lbl">Add exercises${(d.groups || []).length ? '' : ' (pick muscle groups first, or search)'}</span><div class="chips">${opts.map(e => `<button class="chip" data-act="dayExAdd" data-name="${esc(e.name)}">${ICON.plus.replace('<svg', '<svg width="14" height="14"')} ${esc(e.name)}</button>`).join('')}<button class="chip" data-act="dayExSearch">Search all…</button></div></div>
     <button class="btn block" data-act="dayDone">Done</button>`);
 }
 const keepDayName = () => {
   const day = Sheet.split[Sheet.di]; if (!day) return; const v = $('#dn')?.value.trim(); if (v) day.name = v;
-  day.targets = day.targets || {};
-  $$('#sheet .tgt').forEach(i => { const n = day.exercises[+i.dataset.j]; if (!n) return; const t = day.targets[keyOf(n)] || { ...defaultTarget(n) }; if (i.dataset.f === 'sets') t.sets = clamp(Math.round(num(i.value) || t.sets), 1, 12); else t.reps = (i.value || '').trim().replace(/\s+/g, '') || t.reps; day.targets[keyOf(n)] = t; });
+  $$('#sheet .tgt').forEach(i => { const n = day.exercises[+i.dataset.j]; if (!n) return; const k = keyOf(n), t = { ...defaultTarget(n), ...(Sheet.exT[k] || {}) }; if (i.dataset.f === 'sets') t.sets = clamp(Math.round(num(i.value) || t.sets), 1, 12); else t.reps = (i.value || '').trim().replace(/\s+/g, '') || t.reps; const dft = defaultTarget(n); if (t.sets === dft.sets && t.reps === dft.reps) delete Sheet.exT[k]; else Sheet.exT[k] = t; });
 };
 A.dayGroup = d => { keepDayName(); const day = Sheet.split[Sheet.di]; day.groups = day.groups || []; const i = day.groups.indexOf(d.g); if (i >= 0) day.groups.splice(i, 1); else day.groups.push(d.g); drawDay(Sheet.di); };
 A.dayExAdd = d => { keepDayName(); const day = Sheet.split[Sheet.di]; day.exercises = [...(day.exercises || []), d.name]; drawDay(Sheet.di); };
@@ -405,8 +419,11 @@ function scheduleBeeps() {
   });
 }
 function startRest(sec, next) {
-  audioCtx(); Rest.total = sec || S().restSec || 120; Rest.end = Date.now() + Rest.total * 1000; Rest.next = next || ''; scheduleBeeps(); pushScheduleRest(Rest.total, Rest.next);
+  audioCtx(); Rest.total = sec || S().restSec || 120; Rest.end = Date.now() + Rest.total * 1000; Rest.next = next || ''; scheduleBeeps(); pushScheduleRest(Rest.total, Rest.next); saveRest();
   if (!pushOn() && !lsGet('onpaper.pushHint')) { lsSet('onpaper.pushHint', '1'); setTimeout(() => toast('Want rest alerts on your lock screen & Watch? Turn them on in Settings ⚙️', { ms: 5200 }), 900); }
+  startRestUI();
+}
+function startRestUI() {
   const el = $('#rest');
   el.innerHTML = `<svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15" style="stroke:var(--s3)"/><circle id="rest-arc" cx="18" cy="18" r="15" style="stroke:var(--accent)" stroke-dasharray="94.2" stroke-dashoffset="0" stroke-linecap="round"/></svg><span class="rt" id="rest-t" aria-live="off">0:00</span><button class="rb" data-act="restAdd" data-s="-15" aria-label="15 seconds less">−15</button><button class="rb" data-act="restAdd" data-s="15" aria-label="15 seconds more">+15</button><button class="rb" data-act="restSkip">Skip</button>`;
   el.hidden = false; clearInterval(Rest.t); Rest.t = setInterval(tickRest, 250); tickRest();
@@ -419,13 +436,13 @@ function tickRest() {
   $('#rest-arc').setAttribute('stroke-dashoffset', (94.2 * (1 - left / Math.max(Rest.total, left))).toFixed(1));
 }
 function finishRest() {
-  clearInterval(Rest.t); Rest.end = 0; $('#rest').hidden = true;
+  clearInterval(Rest.t); Rest.end = 0; Push.at = 0; saveRest(); $('#rest').hidden = true;
   const f = $('#flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
   try { navigator.vibrate && navigator.vibrate([250, 120, 250]); } catch (e) {}
   toast('Rest is up. Next set!');
 }
-A.restAdd = d => { if (!Rest.end) return; Rest.end = Math.max(Date.now() + 1000, Rest.end + (+d.s) * 1000); Rest.total = Math.max(Rest.total, (Rest.end - Date.now()) / 1000); scheduleBeeps(); tickRest(); clearTimeout(Rest.pushT); Rest.pushT = setTimeout(() => Rest.end && pushScheduleRest((Rest.end - Date.now()) / 1000, Rest.next), 700); };
-A.restSkip = () => { clearTimeout(Rest.pushT); if (Rest.end) pushCancel(); clearBeeps(); clearInterval(Rest.t); Rest.end = 0; const el = $('#rest'); if (el) el.hidden = true; };
+A.restAdd = d => { if (!Rest.end) return; Rest.end = Math.max(Date.now() + 1000, Rest.end + (+d.s) * 1000); Rest.total = Math.max(Rest.total, (Rest.end - Date.now()) / 1000); scheduleBeeps(); tickRest(); clearTimeout(Rest.pushT); Rest.pushT = setTimeout(() => Rest.end && pushScheduleRest((Rest.end - Date.now()) / 1000, Rest.next), 700); saveRest(); };
+A.restSkip = () => { clearTimeout(Rest.pushT); if (Rest.end) pushCancel(); Rest.end = 0; saveRest(); clearBeeps(); clearInterval(Rest.t); Rest.end = 0; const el = $('#rest'); if (el) el.hidden = true; };
 let wakeSentinel = null;
 async function wakeLock() { try { if (navigator.wakeLock && !wakeSentinel) { wakeSentinel = await navigator.wakeLock.request('screen'); wakeSentinel.addEventListener('release', () => { wakeSentinel = null; }); } } catch (e) { wakeSentinel = null; } }
 function releaseWake() { try { wakeSentinel && wakeSentinel.release(); } catch (e) {} wakeSentinel = null; }
