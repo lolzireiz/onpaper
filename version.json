@@ -1,7 +1,8 @@
 {
- "version": "3.5",
+ "version": "3.6",
  "notes": [
-  "Exercise animations redrawn in true 3D: smooth shading, no hard outlines, and limbs now overlap correctly instead of popping in front of each other.",
-  "Fixed the Bulgarian Split Squat back leg, plus smaller joint glitches in push-ups, sit-ups, pulldowns and leg raises."
+  "The animated figure now has realistic adult proportions, with a male and a female build. Switch with the Male / Female buttons on the animation (it starts on your Settings choice).",
+  "Muscle highlights are more specific: chest, upper back, abs, glutes and shoulders light up separately.",
+  "Fixed feet pointing the wrong way when they are off the floor (Bulgarian Split Squat bench foot, kneeling crunch, Dead Bug)."
  ]
 }

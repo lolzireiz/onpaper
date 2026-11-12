@@ -15,13 +15,21 @@ function ik2(a, t, l1, l2, pole) {
   const along = (l1 * l1 - l2 * l2 + dist * dist) / (2 * dist), h = Math.sqrt(Math.max(0, l1 * l1 - along * along));
   let perp = V.sub(pole, V.mul(dir, V.dot(pole, dir))); if (V.len(perp) < 1e-4) perp = V.sub([0.3, 0.2, 1], V.mul(dir, V.dot([0.3, 0.2, 1], dir)));
   perp = V.norm(perp);
-  return [V.add(V.add(a, V.mul(dir, along)), V.mul(perp, h)), V.add(a, V.mul(dir, dist))];
+  return [V.add(V.add(a, V.mul(dir, along)), V.mul(perp, h)), V.add(a, V.mul(dir, dist)), perp];
 }
 const SIDES = [['R', 1], ['L', -1]];
+/* Body builds, in meters (a ~1.78 m adult). sw/hw = shoulder and hip joint half-widths; limb pairs are [radius at top, radius at bottom];
+   prof = torso slices from hips (0) to shoulders (1): [height, half-width, half-depth]. */
+const BUILD = {
+  male: { sw: 0.185, hw: 0.088, delt: 0.064, trap: 0.046, neck: 0.05, head: 0.105, thigh: [0.088, 0.06], shin: [0.058, 0.04], foot: 0.04, upper: [0.057, 0.047], fore: [0.048, 0.035], hand: 0.044, glute: 0.086, pec: 0.06,
+    prof: [[0, 0.168, 0.096], [0.15, 0.162, 0.1], [0.3, 0.148, 0.096], [0.45, 0.152, 0.1], [0.6, 0.168, 0.11], [0.74, 0.182, 0.114], [0.87, 0.184, 0.094]], hair: [58, 52, 56] },
+  female: { sw: 0.158, hw: 0.104, delt: 0.05, trap: 0.03, neck: 0.039, head: 0.1, thigh: [0.092, 0.056], shin: [0.052, 0.035], foot: 0.035, upper: [0.045, 0.037], fore: [0.038, 0.029], hand: 0.038, glute: 0.1, bust: 0.07,
+    prof: [[0, 0.192, 0.1], [0.14, 0.182, 0.1], [0.32, 0.124, 0.084], [0.47, 0.132, 0.088], [0.61, 0.148, 0.096], [0.75, 0.154, 0.092], [0.87, 0.156, 0.08]], hair: [96, 62, 44], bun: 1 },
+};
 /* turn a compact pose into full world-space targets */
 function animResolve(o) {
   const lean = o.lean || 0, L = lean * Math.PI / 180, u = [0, Math.cos(L), Math.sin(L)], w = [0, -Math.sin(L), Math.cos(L)], p = o.p || [0, 0.95, 0];
-  const neck = V.add(p, V.mul(u, 0.5)), q = { p, lean, shrug: o.shrug || 0, toe: o.toe || 0, pt: o.pt || 0 };
+  const neck = V.add(p, V.mul(u, 0.5)), q = { p, lean, shrug: o.shrug || 0, toe: o.toe || 0, ptR: o.ptR ?? o.pt ?? 0, ptL: o.ptL ?? o.pt ?? 0 };
   for (const [s, sx] of SIDES) {
     const sh = V.add(V.add(neck, V.mul(u, -0.05)), [sx * 0.2, 0, 0]);
     if (o['h' + s]) q['h' + s] = o['h' + s]; else if (o.h) q['h' + s] = [o.h[0] * sx, o.h[1], o.h[2]];
@@ -34,20 +42,23 @@ function animResolve(o) {
   return q;
 }
 const mirrorX = a => [-a[0], a[1], a[2]];
-function animMirror(q) { const m = { ...q, p: mirrorX(q.p) }; for (const k of ['h', 'f', 'ep', 'kp']) { m[k + 'R'] = mirrorX(q[k + 'L']); m[k + 'L'] = mirrorX(q[k + 'R']); } return m; }
+function animMirror(q) { const m = { ...q, p: mirrorX(q.p), ptR: q.ptL, ptL: q.ptR }; for (const k of ['h', 'f', 'ep', 'kp']) { m[k + 'R'] = mirrorX(q[k + 'L']); m[k + 'L'] = mirrorX(q[k + 'R']); } return m; }
 function animLerp(a, b, t) {
-  const q = { p: V.lerp(a.p, b.p, t), lean: a.lean + (b.lean - a.lean) * t, shrug: a.shrug + (b.shrug - a.shrug) * t, toe: a.toe + (b.toe - a.toe) * t, pt: a.pt + (b.pt - a.pt) * t };
+  const q = { p: V.lerp(a.p, b.p, t), lean: a.lean + (b.lean - a.lean) * t, shrug: a.shrug + (b.shrug - a.shrug) * t, toe: a.toe + (b.toe - a.toe) * t, ptR: a.ptR + (b.ptR - a.ptR) * t, ptL: a.ptL + (b.ptL - a.ptL) * t };
   for (const k of ['hR', 'hL', 'fR', 'fL', 'epR', 'epL', 'kpR', 'kpL']) q[k] = V.lerp(a[k], b[k], t);
   return q;
 }
-function animJoints(q) {
-  const L = q.lean * Math.PI / 180, u = [0, Math.cos(L), Math.sin(L)], neck = V.add(q.p, V.mul(u, 0.5)), J = { pelvis: q.p, neck, head: V.add(neck, V.mul(u, 0.185)), chest: V.add(q.p, V.mul(u, 0.3)) };
+function animJoints(q, B = BUILD.male) {
+  const L = q.lean * Math.PI / 180, u = [0, Math.cos(L), Math.sin(L)], neck = V.add(q.p, V.mul(u, 0.5)), J = { pelvis: q.p, neck, head: V.add(neck, V.mul(u, 0.185)), chest: V.add(q.p, V.mul(u, 0.3)), up: u, fwd: [0, -Math.sin(L), Math.cos(L)] };
   for (const [s, sx] of SIDES) {
-    const sh = V.add(V.add(neck, V.mul(u, -0.05 + q.shrug)), [sx * 0.2, 0, 0]), hip = V.add(q.p, [sx * 0.1, 0, 0]);
-    const [el, ha] = ik2(sh, q['h' + s], 0.3, 0.27, q['ep' + s]), [kn, an] = ik2(hip, q['f' + s], 0.46, 0.46, q['kp' + s]);
-    let toe;
-    if (an[1] < 0.24 && !q.pt) toe = [an[0], 0.02 + q.toe, an[2] + 0.16];
-    else { const sd = V.norm(V.sub(an, kn)); let r = Math.abs(sd[2]) > 0.9 ? [0, 1, 0] : [0, 0, 1]; const perp = V.norm(V.sub(r, V.mul(sd, V.dot(r, sd)))); toe = V.add(an, V.mul(V.norm(V.add(V.mul(perp, 1 - q.pt), V.mul(sd, q.pt))), 0.16)); }
+    const sh = V.add(V.add(neck, V.mul(u, -0.05 + q.shrug)), [sx * B.sw, 0, 0]), hip = V.add(q.p, [sx * B.hw, 0, 0]);
+    const [el, ha] = ik2(sh, q['h' + s], 0.3, 0.27, q['ep' + s]), [kn, an, kfront] = ik2(hip, q['f' + s], 0.46, 0.46, q['kp' + s]), pt = q['pt' + s];
+    // toes: flat on the floor when standing on that foot; otherwise they point out the front of the shin (the side the kneecap faces),
+    // and pt points them along the shin. The two are blended by ankle height so a foot never snaps as it lifts.
+    const sd = V.norm(V.sub(an, kn)); let pv = V.sub(kfront, V.mul(sd, V.dot(kfront, sd))); if (V.len(pv) < 1e-3) pv = [0, 0, 1]; pv = V.norm(pv);
+    const air = V.add(an, V.mul(V.norm(V.add(V.mul(pv, 1 - pt), V.mul(sd, pt))), 0.16)), ground = [an[0], 0.02 + q.toe, an[2] + 0.16];
+    let g = pt ? 1 : (an[1] - 0.14) / 0.16; g = g < 0 ? 0 : g > 1 ? 1 : g; g = g * g * (3 - 2 * g);
+    let toe = V.lerp(ground, air, g); if (g > 0 && g < 1) toe = V.add(an, V.mul(V.norm(V.sub(toe, an)), 0.16));
     Object.assign(J, { ['sh' + s]: sh, ['hip' + s]: hip, ['el' + s]: el, ['ha' + s]: ha, ['kn' + s]: kn, ['an' + s]: an, ['toe' + s]: toe });
   }
   return J;
@@ -85,8 +96,8 @@ const ARCH = {
   hinge: (o = {}) => ({ A: AP({ h: [0.21, 0.83, 0.1] }), B: o.dead ? AP({ p: [0, 0.56, -0.32], lean: 58, h: [0.22, 0.24, 0.14], f: [0.15, 0.06, 0] }) : AP({ p: [0, 0.84, -0.22], lean: 68, h: [0.21, 0.45, 0.2] }), props: o.props || [{ t: 'bar' }], cue: CUE.hinge }),
   swing: () => ({ A: AP({ p: [0, 0.8, -0.25], lean: 55, h: [0.06, 0.52, -0.16], f: [0.2, 0.06, 0] }), B: AP({ lean: -3, h: [0.06, 1.38, 0.52], f: [0.2, 0.06, 0] }), props: [{ t: 'kb' }], fast: 1, cue: ['Hinge at your hips, not a squat', 'Snap your hips forward to float the bell', 'Arms are just ropes'] }),
   backext: () => ({ A: { p: [0, 0.85, 0], lean: 112, f: [0.12, 0.12, -0.55], hl: [0.1, -0.2, 0.14] }, B: { p: [0, 0.85, 0], lean: 37, f: [0.12, 0.12, -0.55], hl: [0.1, -0.2, 0.14] }, props: [{ t: 'slab', a: [0, 0.74, 0.06], b: [0, 0.8, 0.2], w: 0.4, legs: 1 }], yaw: 62, cue: ['Hips on the pad, feet hooked', 'Lift until your body is one straight line', 'Lower slowly, don\'t swing'] }),
-  slrdl: () => ({ A: AP({}), B: AP({ p: [0, 0.88, -0.1], lean: 75, fR: [0.1, 0.06, 0], fL: [-0.1, 0.76, -0.85], kpL: [0, -1, 0.2] }), props: [{ t: 'db' }], yaw: 55, cue: ['Hinge forward as your back leg lifts', 'Hips stay square to the floor', 'Stand tall and squeeze your glute'] }),
-  lunge: (o = {}) => ({ A: AP({ p: [0, 0.86, 0], fR: [0.11, 0.06, 0.38], fL: [-0.11, o.back ? 0.5 : 0.1, o.back ? -0.6 : -0.42], kpL: [0, -1, 0.35] }), B: AP({ p: [0, 0.52, -0.02], fR: [0.11, 0.06, 0.38], fL: [-0.11, o.back ? 0.5 : 0.1, o.back ? -0.6 : -0.42], kpL: [0, -1, 0.35] }), props: [{ t: 'db' }, ...(o.back ? [{ t: 'slab', a: [-0.4, 0.42, -0.72], b: [0.4, 0.42, -0.72], w: 0.3, legs: 1 }] : [])], yaw: 55, cue: CUE.lunge }),
+  slrdl: () => ({ A: AP({}), B: AP({ p: [0, 0.88, -0.1], lean: 75, fR: [0.1, 0.06, 0], fL: [-0.1, 0.8, -0.98], kpL: [0, -1, 0.2] }), props: [{ t: 'db' }], yaw: 55, cue: ['Hinge forward as your back leg lifts', 'Hips stay square to the floor', 'Stand tall and squeeze your glute'] }),
+  lunge: (o = {}) => ({ A: AP({ p: [0, 0.86, 0], fR: [0.11, 0.06, 0.38], fL: [-0.11, o.back ? 0.5 : 0.1, o.back ? -0.6 : -0.42], kpL: [0, -1, 0.35], ptL: o.back ? 0.6 : 0 }), B: AP({ p: [0, 0.52, -0.02], fR: [0.11, 0.06, 0.38], fL: [-0.11, o.back ? 0.5 : 0.1, o.back ? -0.6 : -0.42], kpL: [0, -1, 0.35], ptL: o.back ? 0.6 : 0 }), props: [{ t: 'db' }, ...(o.back ? [{ t: 'slab', a: [-0.4, 0.42, -0.72], b: [0.4, 0.42, -0.72], w: 0.3, legs: 1 }] : [])], yaw: 55, cue: CUE.lunge }),
   stepup: () => ({ A: AP({ p: [0, 0.9, 0.02], fR: [0.11, 0.48, 0.38], fL: [-0.11, 0.06, -0.05] }), B: AP({ p: [0, 1.37, 0.36], fR: [0.11, 0.48, 0.38], fL: [-0.11, 0.5, 0.3] }), props: [{ t: 'db' }, { t: 'slab', a: [0, 0.4, 0.2], b: [0, 0.4, 0.62], w: 0.6, legs: 1 }], yaw: 55, cue: ['Whole foot on the box', 'Drive through that heel, don\'t push off the floor', 'Step down slowly'] }),
   latlunge: () => ({ A: AP({ hl: [0.07, -0.14, 0.2] }), B: AP({ p: [0.3, 0.62, -0.2], lean: 30, fR: [0.56, 0.06, 0], fL: [-0.13, 0.06, 0], hl: [0.07, -0.14, 0.2] }), props: [{ t: 'kb' }], alt: 1, yaw: 15, cue: ['Step wide and sit back into that hip', 'Other leg stays straight', 'Push off hard back to the middle'] }),
   bounds: () => ({ A: AP({ p: [-0.34, 0.78, 0], lean: 16, fL: [-0.38, 0.06, 0], fR: [-0.12, 0.3, -0.32] }), B: AP({ p: [0.34, 0.78, 0], lean: 16, fR: [0.38, 0.06, 0], fL: [0.12, 0.3, -0.32] }), arc: 0.16, fast: 1, yaw: 12, cue: ['Leap sideways off one leg', 'Stick the landing before you go again', 'Stay low and balanced'] }),
@@ -126,7 +137,7 @@ const ARCH = {
   calf: (o = {}) => ({ A: AP({ hl: o.hl }), B: AP({ p: [0, 1.05, 0], f: [0.13, 0.16, 0], hl: o.hl }), props: o.props || [], yaw: 62, cue: CUE.calf }),
   scalf: () => ({ A: { p: [0, 0.55, 0], f: [0.13, 0.06, 0.42], kp: [0, 1, 0.5], h: [0.22, 0.66, 0.36] }, B: { p: [0, 0.55, 0], f: [0.13, 0.15, 0.42], kp: [0, 1, 0.5], h: [0.22, 0.75, 0.36] }, props: [SEAT], yaw: 62, cue: CUE.calf }),
   tib: () => ({ A: AP({ p: [0, 0.93, -0.12], lean: -6, f: [0.13, 0.06, 0.24] }), B: AP({ p: [0, 0.93, -0.12], lean: -6, f: [0.13, 0.06, 0.24], toe: 0.13 }), props: [{ t: 'wall', z: -0.3 }], yaw: 62, cue: ['Lean your back on a wall, heels out front', 'Pull your toes up toward your shins', 'Lower slowly'] }),
-  crunch: () => ({ A: { p: [0, 0.52, 0], lean: 8, f: [0.12, 0.08, -0.45], kp: [0, -0.6, 1], hl: [0.13, 0.12, 0.12], ep: [1, -0.5, 0.2] }, B: { p: [0, 0.5, -0.06], lean: 78, f: [0.12, 0.08, -0.45], kp: [0, -0.6, 1], hl: [0.13, 0.12, 0.12], ep: [1, -0.5, 0.2] }, props: [{ t: 'cable', a: [0, 2.3, 0.5] }], yaw: 62, cue: ['Kneel and hold the rope by your head', 'Curl your ribs down toward your hips', 'Hips stay still'] }),
+  crunch: () => ({ A: { p: [0, 0.52, 0], lean: 8, f: [0.12, 0.08, -0.45], pt: 0.85, kp: [0, -0.6, 1], hl: [0.13, 0.12, 0.12], ep: [1, -0.5, 0.2] }, B: { p: [0, 0.5, -0.06], lean: 78, f: [0.12, 0.08, -0.45], pt: 0.85, kp: [0, -0.6, 1], hl: [0.13, 0.12, 0.12], ep: [1, -0.5, 0.2] }, props: [{ t: 'cable', a: [0, 2.3, 0.5] }], yaw: 62, cue: ['Kneel and hold the rope by your head', 'Curl your ribs down toward your hips', 'Hips stay still'] }),
   situp: () => ({ A: { p: [0, 0.55, 0.1], lean: -105, f: [0.14, 0.82, 0.6], kp: [0, 1, 0], hl: [0.14, 0.1, 0.1], ep: [1, 0, 0] }, B: { p: [0, 0.55, 0.1], lean: -15, f: [0.14, 0.82, 0.6], kp: [0, 1, 0], hl: [0.14, 0.1, 0.1], ep: [1, 0, 0] }, props: [{ t: 'slab', a: [0, 0.2, -0.62], b: [0, 0.52, 0.3], w: 0.34, legs: 1 }], yaw: 62, cue: CUE.core }),
   deadbug: () => ({ A: { p: [0, 0.12, 0], lean: -90, h: [0.2, 0.66, -0.45], ep: [1, 0, 0], f: [0.1, 0.58, 0.46], kp: [0, 1, -0.2] }, B: { p: [0, 0.12, 0], lean: -90, hR: [0.2, 0.16, -1.02], hL: [-0.2, 0.66, -0.45], epR: [1, 0.5, 0], epL: [-1, 0, 0], fR: [0.1, 0.58, 0.46], fL: [-0.1, 0.17, 0.9], kp: [0, 1, -0.2], kpL: [0, 1, -0.2], kpR: [0, 1, -0.2] }, alt: 1, yaw: 55, cue: ['Lower back pressed into the floor', 'Reach opposite arm and leg out slowly', 'Switch sides without arching'] }),
   pallof: () => ({ A: AP({ f: [0.2, 0.06, 0], h: [0.05, 1.2, 0.18], ep: [0.6, -1, -0.2] }), B: AP({ f: [0.2, 0.06, 0], h: [0.05, 1.2, 0.56], ep: [0.6, -1, -0.2] }), props: [{ t: 'cable', a: [1.3, 1.2, 0.1] }], yaw: 35, cue: ['Stand side-on to the cable', 'Press straight out and don\'t let it twist you', 'Bring it back to your chest slowly'] }),
@@ -149,17 +160,17 @@ const EX_ANIM = {
   'Standing Calf Raise': ['calf'], 'Calf Extension': ['calf'], 'Dumbbell Standing Calf Raise': ['calf', { props: DB }], 'Smith Calf Raise': ['calf', { hl: SQ_HL, props: BAR }], 'Seated Calf Raise': ['scalf'], 'Leg Press Calf Raise': ['lpcalf'], 'Tibialis Raise': ['tib'],
   'Cable Crunch': ['crunch'], 'Plank': ['plank'], 'Decline Sit-up': ['situp'], 'Farmer Carry': ['carry'], 'Cable Woodchop': ['chop'], 'Pallof Press': ['pallof'], 'Dead Bug': ['deadbug'],
 };
-const MUS_SEG = { quads: ['thigh'], hamstrings: ['thigh'], glutes: ['hip', 'thigh'], adductors: ['thigh'], abductors: ['hip'], calves: ['shin'], chest: ['torso'], abs: ['torso'], obliques: ['torso'], lats: ['torso'], upper_back: ['torso'], lower_back: ['torso'], traps: ['torso'], delts: ['sho'], side_delts: ['sho'], rear_delts: ['sho'], biceps: ['upper'], triceps: ['upper'], forearms: ['fore'] };
-function animDef(name) {
+const MUS_SEG = { quads: ['thigh'], hamstrings: ['thigh'], glutes: ['glute', 'pelvis'], adductors: ['thigh'], abductors: ['pelvis', 'glute'], calves: ['shin'], chest: ['tu', 'pec'], abs: ['tl'], obliques: ['tl'], lats: ['tu'], upper_back: ['tu', 'trap'], lower_back: ['tl'], traps: ['trap'], delts: ['sho'], side_delts: ['sho'], rear_delts: ['sho'], biceps: ['upper'], triceps: ['upper'], forearms: ['fore'] };
+function animDef(name, sex) {
   const lib = library().get(keyOf(name)), n = lib ? lib.name : name, m = EX_ANIM[n]; if (!m) return null;
   const d = ARCH[m[0]](m[1] || {}), mus = (EX_MUSCLES[keyOf(n)] || [''])[0].split(' ').filter(Boolean), hl = new Set(mus.flatMap(x => MUS_SEG[x] || []));
-  const a = animResolve(d.A), b = animResolve(d.B);
+  const a = animResolve(d.A), b = animResolve(d.B), build = BUILD[sex] || BUILD.male;
   // camera target: middle of everything the figure touches across the move
   let lo = [9, 9, 9], hi = [-9, -9, -9];
-  for (const q of [a, b, ...(d.alt ? [animMirror(b)] : [])]) for (const pt of Object.values(animJoints(q))) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], pt[i]); hi[i] = Math.max(hi[i], pt[i]); }
+  for (const q of [a, b, ...(d.alt ? [animMirror(b)] : [])]) for (const pt of Object.values(animJoints(q, build))) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], pt[i]); hi[i] = Math.max(hi[i], pt[i]); }
   lo[1] = 0; if (d.arc) hi[1] += d.arc;
   const c = V.mul(V.add(lo, hi), 0.5), r = Math.max(0.78, V.len(V.sub(hi, lo)) / 2 + 0.16);
-  return { ...d, a, b, hl, c, r, yaw: d.yaw == null ? 38 : d.yaw };
+  return { ...d, a, b, hl, c, r, build, yaw: d.yaw == null ? 38 : d.yaw };
 }
 
 /* ---------- drawing ----------
@@ -173,17 +184,17 @@ function animPose(def, t, cycle) {
 }
 const AL = (() => { const l = Math.hypot(0.45, 0.65, 0.62); return [-0.45 / l, -0.65 / l, 0.62 / l]; })();   // light: up-left, toward the viewer
 const AC = { body: [198, 202, 216], skin: [226, 229, 238], on: [255, 118, 72], bar: [158, 164, 180], dark: [74, 78, 96], pad: [50, 53, 68], wall: [30, 32, 42], cable: [120, 126, 142] };
-function rasterCapsule(R, ax, ay, az, bx, by, bz, r, rw, c) {
-  const W = R.W, H = R.H, zb = R.zb, px = R.px, e = r + 1;
+function rasterCapsule(R, ax, ay, az, bx, by, bz, ra, rb, wa, wb, c) {
+  const W = R.W, H = R.H, zb = R.zb, px = R.px, e = Math.max(ra, rb) + 1;
   const x0 = Math.max(0, Math.floor(Math.min(ax, bx) - e)), x1 = Math.min(W - 1, Math.ceil(Math.max(ax, bx) + e)), y0 = Math.max(0, Math.floor(Math.min(ay, by) - e)), y1 = Math.min(H - 1, Math.ceil(Math.max(ay, by) + e));
-  const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy, dz = bz - az, e2 = e * e, c0 = c[0], c1 = c[1], c2 = c[2];
+  const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy, dz = bz - az, e2 = e * e, c0 = c[0], c1 = c[1], c2 = c[2], dr = rb - ra, dw = wb - wa;
   for (let y = y0; y <= y1; y++) {
     const py = y + 0.5 - ay;
     for (let x = x0; x <= x1; x++) {
       const pxx = x + 0.5 - ax; let t = l2 > 1e-6 ? (pxx * dx + py * dy) / l2 : 0; t = t < 0 ? 0 : t > 1 ? 1 : t;
       const ox = pxx - t * dx, oy = py - t * dy, d2 = ox * ox + oy * oy; if (d2 > e2) continue;
-      const d = Math.sqrt(d2); let cov = r + 0.5 - d; if (cov <= 0) continue; if (cov > 1) cov = 1;
-      const nn = d < r ? d / r : 1, nz = Math.sqrt(1 - nn * nn), z = az + dz * t + nz * rw, i = y * W + x;
+      const r = ra + dr * t, d = Math.sqrt(d2); let cov = r + 0.5 - d; if (cov <= 0) continue; if (cov > 1) cov = 1;
+      const nn = d < r ? d / r : 1, nz = Math.sqrt(1 - nn * nn), z = az + dz * t + nz * (wa + dw * t), i = y * W + x;
       if (z < zb[i]) continue;
       const inv = d > 1e-6 ? nn / d : 0, nx = ox * inv, ny = oy * inv;
       let diff = nx * AL[0] + ny * AL[1] + nz * AL[2]; if (diff < 0) diff = 0;
@@ -207,7 +218,7 @@ function rasterTri(R, A, B, C, c, sh) {
   }
 }
 function animDraw(cv, def, t, yawDeg, cycle = 0) {
-  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height, S = Math.min(W, H * 1.12) / (2 * def.r) * 0.96, q = animPose(def, t, cycle), J = animJoints(q);
+  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height, S = Math.min(W, H * 1.12) / (2 * def.r) * 0.96, q = animPose(def, t, cycle), B = def.build || BUILD.male, J = animJoints(q, B);
   const ya = yawDeg * Math.PI / 180, pa = 11 * Math.PI / 180, cy = Math.cos(ya), sy = Math.sin(ya), cp = Math.cos(pa), sp = Math.sin(pa);
   const P = pt => { const x = pt[0] - def.c[0], y = pt[1] - def.c[1], z = pt[2] - def.c[2], x1 = x * cy - z * sy, z1 = x * sy + z * cy, y1 = y * cp - z1 * sp, z2 = y * sp + z1 * cp; return [W / 2 + x1 * S, H * 0.52 - y1 * S, z2]; };
   ctx.clearRect(0, 0, W, H);
@@ -219,16 +230,23 @@ function animDraw(cv, def, t, yawDeg, cycle = 0) {
   let R = cv._r; if (!R || R.W !== W || R.H !== H) { const o = document.createElement('canvas'); o.width = W; o.height = H; const octx = o.getContext('2d'), img = octx.createImageData(W, H); R = cv._r = { W, H, o, octx, img, px: img.data, zb: new Float32Array(W * H) }; }
   R.px.fill(0); R.zb.fill(-1e9);
   const caps = [], quads = [];
-  const seg = (a, b, w, key, col) => { const A = P(a), B = P(b); caps.push([A, B, w / 2, col || (def.hl.has(key) ? AC.on : key === 'head' || key === 'hand' || key === 'neck' ? AC.skin : AC.body)]); };
+  const seg = (a, b, w, key, col, w2) => { const A = P(a), Bp = P(b); caps.push([A, Bp, w / 2, (w2 == null ? w : w2) / 2, col || (def.hl.has(key) ? AC.on : key === 'head' || key === 'hand' || key === 'neck' ? AC.skin : AC.body)]); };
   const dot = (a, r, key, col) => seg(a, a, r * 2, key, col);
+  const limb = (a, b, rr, key) => seg(a, b, rr[0] * 2, key, null, rr[1] * 2);
   const quad = (a, b, w, col, off) => { const d = V.sub(b, a); let wd = [d[2], 0, -d[0]]; if (V.len(wd) < 1e-4) wd = [1, 0, 0]; wd = V.mul(V.norm(wd), w / 2); const o = off || [0, 0, 0]; quads.push([[V.add(a, wd), V.add(b, wd), V.sub(b, wd), V.sub(a, wd)].map(x => P(V.add(x, o))), col]); };
-  for (const [s] of SIDES) {
-    seg(J['hip' + s], J['kn' + s], 0.135, 'thigh'); seg(J['kn' + s], J['an' + s], 0.1, 'shin'); seg(J['an' + s], J['toe' + s], 0.078, 'foot');
-    seg(J['sh' + s], J['el' + s], 0.094, 'upper'); seg(J['el' + s], J['ha' + s], 0.078, 'fore'); dot(J['ha' + s], 0.047, 'hand'); dot(J['sh' + s], 0.062, 'sho');
-    seg(J['sh' + s], J['hip' + s], 0.15, 'torso');
+  const X = [1, 0, 0], at = (f, fw = 0, x = 0) => V.add(V.add(V.add(J.pelvis, V.mul(J.up, f * 0.5)), V.mul(J.fwd, fw)), [x, 0, 0]);
+  for (const [s, sx] of SIDES) {
+    limb(J['hip' + s], J['kn' + s], B.thigh, 'thigh'); limb(J['kn' + s], J['an' + s], B.shin, 'shin'); seg(J['an' + s], J['toe' + s], B.foot * 2.1, 'foot', null, B.foot * 1.6); dot(J['an' + s], B.shin[1] * 1.05, 'shin');
+    limb(J['sh' + s], J['el' + s], B.upper, 'upper'); limb(J['el' + s], J['ha' + s], B.fore, 'fore'); dot(J['ha' + s], B.hand, 'hand'); dot(V.add(J['sh' + s], [sx * 0.008, 0, 0]), B.delt, 'sho');
+    seg(V.add(J.neck, V.mul(J.up, 0.02)), V.add(J['sh' + s], [-sx * 0.03, 0, 0]), B.trap * 2 + 0.02, 'trap', null, B.trap * 2);
+    dot(at(-0.03, -0.058, sx * B.hw * 0.92), B.glute, 'glute');
+    if (B.pec) dot(at(0.7, 0.062, sx * 0.082), B.pec, 'pec');
+    if (B.bust) dot(at(0.66, 0.074, sx * 0.074), B.bust, 'pec');
   }
-  seg(J.hipL, J.hipR, 0.175, 'hip'); seg(J.shL, J.shR, 0.15, 'torso'); seg(J.pelvis, V.lerp(J.pelvis, J.neck, 0.86), 0.23, 'torso'); seg(J.chest, V.lerp(J.pelvis, J.neck, 0.84), 0.27, 'torso');
-  seg(J.neck, J.head, 0.085, 'neck'); dot(J.head, 0.108, 'head');
+  for (const [f, w, d] of B.prof) { const c = at(f), e = Math.max(0, w - d); seg(V.add(c, V.mul(X, -e)), V.add(c, V.mul(X, e)), d * 2, f < 0.2 ? 'pelvis' : f < 0.55 ? 'tl' : 'tu'); }
+  seg(V.add(J.neck, V.mul(J.up, -0.04)), J.head, B.neck * 2, 'neck'); dot(J.head, B.head, 'head');
+  dot(V.add(V.add(J.head, V.mul(J.up, 0.02)), V.mul(J.fwd, -0.026)), B.head * 1.0, 'hair', B.hair);
+  if (B.bun) { dot(V.add(V.add(J.head, V.mul(J.up, 0.085)), V.mul(J.fwd, -0.095)), 0.052, 'hair', B.hair); }
   // equipment
   const mid = V.mul(V.add(J.haR, J.haL), 0.5);
   const tris = [];
@@ -252,7 +270,7 @@ function animDraw(cv, def, t, yawDeg, cycle = 0) {
   for (const [pts, col] of quads) { const n = [(pts[1][1] - pts[0][1]) * (pts[3][2] - pts[0][2]) - (pts[1][2] - pts[0][2]) * (pts[3][1] - pts[0][1]), 0, 0], up = Math.min(1, Math.abs((pts[1][0] - pts[0][0]) * (pts[3][1] - pts[0][1]) - (pts[1][1] - pts[0][1]) * (pts[3][0] - pts[0][0])) / (S * S * 0.25 + 1)), sh = 0.8 + 0.35 * up; rasterTri(R, pts[0], pts[1], pts[2], col, sh); rasterTri(R, pts[0], pts[2], pts[3], col, sh); }
   for (const [A, B, C, col, sh] of tris) rasterTri(R, A, B, C, col, sh);
   caps.sort((a, b) => (a[0][2] + a[1][2]) - (b[0][2] + b[1][2]));
-  for (const [A, B, rw, col] of caps) rasterCapsule(R, A[0], A[1], A[2], B[0], B[1], B[2], Math.max(0.6, rw * S), rw, col);
+  for (const [A, Bp, wa, wb, col] of caps) rasterCapsule(R, A[0], A[1], A[2], Bp[0], Bp[1], Bp[2], Math.max(0.6, wa * S), Math.max(0.6, wb * S), wa, wb, col);
   R.octx.putImageData(R.img, 0, 0); ctx.drawImage(R.o, 0, 0);
 }
 
@@ -263,13 +281,13 @@ function animTime(def, ms) { // → [t 0..1, cycle]
   const up = def.fast ? 520 : 1050, h1 = def.fast ? 160 : 260, dn = def.fast ? 700 : 1400, h2 = 340, T = up + h1 + dn + h2, cyc = Math.floor(ms / T), x = ms % T;
   return [x < up ? easeIO(x / up) : x < up + h1 ? 1 : x < up + h1 + dn ? 1 - easeIO((x - up - h1) / dn) : 0, cyc];
 }
-function animHTML(name) {
-  const def = animDef(name); if (!def) return '';
-  return `<div class="anim"><div class="anim-stage"><canvas class="anim-cv" data-ex="${esc(name)}" role="img" aria-label="Animation of ${esc(name)}"></canvas><span class="anim-hint">Drag to turn</span>${def.hl.size ? '<span class="anim-key"><i></i>Working</span>' : ''}</div><ol class="anim-cues">${def.cue.map(c => `<li>${esc(c)}</li>`).join('')}</ol></div>`;
+function animHTML(name, sex = 'male') {
+  const def = animDef(name, sex); if (!def) return '';
+  return `<div class="anim"><div class="anim-stage"><canvas class="anim-cv" data-ex="${esc(name)}" data-sex="${sex}" role="img" aria-label="Animation of ${esc(name)}"></canvas><span class="anim-hint">Drag to turn</span><div class="anim-sex" role="group" aria-label="Figure">${[['male', 'Male'], ['female', 'Female']].map(([k, l]) => `<button data-act="musSex" data-s="${k}" aria-pressed="${sex === k}">${l}</button>`).join('')}</div>${def.hl.size ? '<span class="anim-key"><i></i>Working</span>' : ''}</div><ol class="anim-cues">${def.cue.map(c => `<li>${esc(c)}</li>`).join('')}</ol></div>`;
 }
 function mountAnim(root) {
   const cv = root && root.querySelector('.anim-cv'); if (!cv || cv._on) return; cv._on = 1;
-  const def = animDef(cv.dataset.ex); if (!def) return;
+  const def = animDef(cv.dataset.ex, cv.dataset.sex); if (!def) return;
   const dpr = Math.min(window.devicePixelRatio || 1, 2), fit = () => { const r = cv.getBoundingClientRect(); if (r.width) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); } };
   fit();
   let yaw = def.yaw, drag = null, t0 = performance.now(), still = REDUCED();

@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '3.5';
+const APP_VERSION = '3.6';
 const CHANGELOG = [
+  ['3.6', ['The animated figure now has realistic adult proportions, with a male and a female build. Switch with the Male / Female buttons on the animation (it starts on your Settings choice).', 'Muscle highlights are more specific: chest, upper back, abs, glutes and shoulders light up separately.', 'Fixed feet pointing the wrong way when they are off the floor (Bulgarian Split Squat bench foot, kneeling crunch, Dead Bug).']],
   ['3.5', ['Exercise animations redrawn in true 3D: smooth shading, no hard outlines, and limbs now overlap correctly instead of popping in front of each other.', 'Fixed the Bulgarian Split Squat back leg, plus smaller joint glitches in push-ups, sit-ups, pulldowns and leg raises.']],
   ['3.4', ['Log food in cups, tablespoons, teaspoons, fl oz, oz or lb, with one-tap fractions (¼, ⅓, ½, ⅔, ¾, 1½).', 'Label in grams but you used a spoon? Add what the serving "also equals" (like 2 tbsp) and log in either. Scanning a label fills this in when the label shows both.', 'The app converts between cups, spoons, ml and fl oz, and between g, oz and lb.']],
   ['3.3', ['Animated 3D demos: tap the ⓘ on any exercise to watch a figure do the movement, with the working muscles lit up and three form tips. Drag to turn it around.', 'Starter programs: the app can now build a split from your goals, gym days and equipment. Find it in Train, or at the end of setup.', 'Skill trackers in Lifts: mile time, max pull-ups, vertical jump, plank hold and more, with personal bests.', 'Backups now include your progress photos, and you can back up in one tap right after a workout.', 'Reorder exercises mid-workout (⋯ menu), the Log button shows which set you\'re on, and Settings is grouped into sections.']],
@@ -147,7 +148,7 @@ function drawMuscles() {
   const L = liftByKey(keyOf(name));
   sheetBody(`<div class="guide-hero">${lib ? `<span class="gchip">${esc(lib.group)}</span>` : ''}${lib && lib.equip.length ? `<span class="gchip">${esc(lib.equip.map(q => EQ_LABEL[q]).join(' + '))}</span>` : ''}${bwFactor(name) ? `<span class="gchip">Counts ${Math.round(bwFactor(name) * 100)}% bodyweight</span>` : ''}</div>${guideGoalsHTML(name)}
     ${g ? `<p style="font-size:16px;line-height:1.45">${esc(g.a)}</p>
-    ${animHTML(name)}
+    ${animHTML(name, sex)}
     <div class="field"><span class="lbl">Builds</span><div class="chips">${g.i.map(x => `<span class="chip" style="pointer-events:none">${esc(x)}</span>`).join('')}</div></div>
     <div class="field"><span class="lbl">In real life, it helps you…</span><ul class="irl">${g.e.map((x, i) => `<li><i aria-hidden="true">${irlIcon(x)}</i><span>${esc(x)}</span></li>`).join('')}</ul></div>` : '<p class="muted">A custom exercise you added.</p>'}
     ${L && L.e1 ? `<button class="row" data-act="openLift" data-key="${esc(L.key)}" style="background:var(--s2);border-radius:12px;padding:10px 12px;border:0"><div class="grow"><b>Your best</b><div class="faint small">${L.bwf ? loadTxt(L.heavy) : fw(L.heavy.w)} × ${L.heavy.r} · est. 1RM ${fw(L.e1, 0)} ${U.wu} · ${L.prs} PRs</div></div>${ICON.chevR.replace('<svg', '<svg width="18" height="18"')}</button>` : ''}
