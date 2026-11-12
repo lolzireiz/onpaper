@@ -21,9 +21,9 @@ const SIDES = [['R', 1], ['L', -1]];
 /* Body builds, in meters (a ~1.78 m adult). sw/hw = shoulder and hip joint half-widths; limb pairs are [radius at top, radius at bottom];
    prof = torso slices from hips (0) to shoulders (1): [height, half-width, half-depth]. */
 const BUILD = {
-  male: { sw: 0.185, hw: 0.088, delt: 0.064, trap: 0.046, neck: 0.05, head: 0.105, thigh: [0.088, 0.06], shin: [0.058, 0.04], foot: 0.04, upper: [0.057, 0.047], fore: [0.048, 0.035], hand: 0.044, glute: 0.086, pec: 0.06,
+  male: { sw: 0.185, hw: 0.088, delt: 0.064, trap: 0.046, neck: 0.05, head: 0.105, thigh: [0.088, 0.06], shin: [0.058, 0.04], foot: 0.04, upper: [0.057, 0.047], fore: [0.048, 0.035], hand: 0.044, glute: 0.078, gback: 0.034,
     prof: [[0, 0.168, 0.096], [0.15, 0.162, 0.1], [0.3, 0.148, 0.096], [0.45, 0.152, 0.1], [0.6, 0.168, 0.11], [0.74, 0.182, 0.114], [0.87, 0.184, 0.094]], hair: [58, 52, 56] },
-  female: { sw: 0.158, hw: 0.104, delt: 0.05, trap: 0.03, neck: 0.039, head: 0.1, thigh: [0.092, 0.056], shin: [0.052, 0.035], foot: 0.035, upper: [0.045, 0.037], fore: [0.038, 0.029], hand: 0.038, glute: 0.1, bust: 0.07,
+  female: { sw: 0.158, hw: 0.104, delt: 0.05, trap: 0.03, neck: 0.039, head: 0.1, thigh: [0.092, 0.056], shin: [0.052, 0.035], foot: 0.035, upper: [0.045, 0.037], fore: [0.038, 0.029], hand: 0.038, glute: 0.088, gback: 0.04, bust: 0.06,
     prof: [[0, 0.192, 0.1], [0.14, 0.182, 0.1], [0.32, 0.124, 0.084], [0.47, 0.132, 0.088], [0.61, 0.148, 0.096], [0.75, 0.154, 0.092], [0.87, 0.156, 0.08]], hair: [96, 62, 44], bun: 1 },
 };
 /* turn a compact pose into full world-space targets */
@@ -160,7 +160,7 @@ const EX_ANIM = {
   'Standing Calf Raise': ['calf'], 'Calf Extension': ['calf'], 'Dumbbell Standing Calf Raise': ['calf', { props: DB }], 'Smith Calf Raise': ['calf', { hl: SQ_HL, props: BAR }], 'Seated Calf Raise': ['scalf'], 'Leg Press Calf Raise': ['lpcalf'], 'Tibialis Raise': ['tib'],
   'Cable Crunch': ['crunch'], 'Plank': ['plank'], 'Decline Sit-up': ['situp'], 'Farmer Carry': ['carry'], 'Cable Woodchop': ['chop'], 'Pallof Press': ['pallof'], 'Dead Bug': ['deadbug'],
 };
-const MUS_SEG = { quads: ['thigh'], hamstrings: ['thigh'], glutes: ['glute', 'pelvis'], adductors: ['thigh'], abductors: ['pelvis', 'glute'], calves: ['shin'], chest: ['tu', 'pec'], abs: ['tl'], obliques: ['tl'], lats: ['tu'], upper_back: ['tu', 'trap'], lower_back: ['tl'], traps: ['trap'], delts: ['sho'], side_delts: ['sho'], rear_delts: ['sho'], biceps: ['upper'], triceps: ['upper'], forearms: ['fore'] };
+const MUS_SEG = { quads: ['thigh'], hamstrings: ['thigh'], glutes: ['glute', 'pelvis'], adductors: ['thigh'], abductors: ['pelvis', 'glute'], calves: ['shin'], chest: ['tu'], abs: ['tl'], obliques: ['tl'], lats: ['tu'], upper_back: ['tu', 'trap'], lower_back: ['tl'], traps: ['trap'], delts: ['sho'], side_delts: ['sho'], rear_delts: ['sho'], biceps: ['upper'], triceps: ['upper'], forearms: ['fore'] };
 function animDef(name, sex) {
   const lib = library().get(keyOf(name)), n = lib ? lib.name : name, m = EX_ANIM[n]; if (!m) return null;
   const d = ARCH[m[0]](m[1] || {}), mus = (EX_MUSCLES[keyOf(n)] || [''])[0].split(' ').filter(Boolean), hl = new Set(mus.flatMap(x => MUS_SEG[x] || []));
@@ -183,9 +183,10 @@ function animPose(def, t, cycle) {
   return q;
 }
 const AL = (() => { const l = Math.hypot(0.45, 0.65, 0.62); return [-0.45 / l, -0.65 / l, 0.62 / l]; })();   // light: up-left, toward the viewer
+const SMOOTH = { pelvis: 1, tl: 1, tu: 1, glute: 1, trap: 1 };
 const AC = { body: [198, 202, 216], skin: [226, 229, 238], on: [255, 118, 72], bar: [158, 164, 180], dark: [74, 78, 96], pad: [50, 53, 68], wall: [30, 32, 42], cable: [120, 126, 142] };
-function rasterCapsule(R, ax, ay, az, bx, by, bz, ra, rb, wa, wb, c) {
-  const W = R.W, H = R.H, zb = R.zb, px = R.px, e = Math.max(ra, rb) + 1;
+function rasterCapsule(R, ax, ay, az, bx, by, bz, ra, rb, wa, wb, c, tag) {
+  const W = R.W, H = R.H, zb = R.zb, px = R.px, id = R.id, e = Math.max(ra, rb) + 1;
   const x0 = Math.max(0, Math.floor(Math.min(ax, bx) - e)), x1 = Math.min(W - 1, Math.ceil(Math.max(ax, bx) + e)), y0 = Math.max(0, Math.floor(Math.min(ay, by) - e)), y1 = Math.min(H - 1, Math.ceil(Math.max(ay, by) + e));
   const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy, dz = bz - az, e2 = e * e, c0 = c[0], c1 = c[1], c2 = c[2], dr = rb - ra, dw = wb - wa;
   for (let y = y0; y <= y1; y++) {
@@ -196,12 +197,13 @@ function rasterCapsule(R, ax, ay, az, bx, by, bz, ra, rb, wa, wb, c) {
       const r = ra + dr * t, d = Math.sqrt(d2); let cov = r + 0.5 - d; if (cov <= 0) continue; if (cov > 1) cov = 1;
       const nn = d < r ? d / r : 1, nz = Math.sqrt(1 - nn * nn), z = az + dz * t + nz * (wa + dw * t), i = y * W + x;
       if (z < zb[i]) continue;
+      if (tag && cov >= 0.999) { const j = i * 4; px[j] = c0; px[j + 1] = c1; px[j + 2] = c2; px[j + 3] = 255; zb[i] = z; id[i] = 1; if (x < R.bx0) R.bx0 = x; if (x > R.bx1) R.bx1 = x; if (y < R.by0) R.by0 = y; if (y > R.by1) R.by1 = y; continue; }
       const inv = d > 1e-6 ? nn / d : 0, nx = ox * inv, ny = oy * inv;
       let diff = nx * AL[0] + ny * AL[1] + nz * AL[2]; if (diff < 0) diff = 0;
       const rim = nz * 2.4, sh = (0.36 + 0.7 * diff) * (0.5 + 0.5 * (rim > 1 ? 1 : rim)), sp = diff > 0.93 ? (diff - 0.93) * 420 : 0, j = i * 4;
       const r0 = c0 * sh + sp, g0 = c1 * sh + sp, b0 = c2 * sh + sp;
-      if (cov >= 0.999) { px[j] = r0; px[j + 1] = g0; px[j + 2] = b0; px[j + 3] = 255; zb[i] = z; }
-      else { const a0 = px[j + 3] / 255, k = 1 - cov, oa = cov + a0 * k; px[j] = (r0 * cov + px[j] * a0 * k) / oa; px[j + 1] = (g0 * cov + px[j + 1] * a0 * k) / oa; px[j + 2] = (b0 * cov + px[j + 2] * a0 * k) / oa; px[j + 3] = oa * 255; if (cov > 0.5) zb[i] = z; }
+      if (cov >= 0.999) { px[j] = r0; px[j + 1] = g0; px[j + 2] = b0; px[j + 3] = 255; zb[i] = z; id[i] = 0; }
+      else { if (id[i]) continue; const a0 = px[j + 3] / 255, k = 1 - cov, oa = cov + a0 * k; px[j] = (r0 * cov + px[j] * a0 * k) / oa; px[j + 1] = (g0 * cov + px[j + 1] * a0 * k) / oa; px[j + 2] = (b0 * cov + px[j + 2] * a0 * k) / oa; px[j + 3] = oa * 255; if (cov > 0.5) zb[i] = z; }
     }
   }
 }
@@ -214,8 +216,27 @@ function rasterTri(R, A, B, C, c, sh) {
     const w0 = ((B[0] - qx) * (C[1] - qy) - (B[1] - qy) * (C[0] - qx)) / area, w1 = ((C[0] - qx) * (A[1] - qy) - (C[1] - qy) * (A[0] - qx)) / area, w2 = 1 - w0 - w1;
     if (w0 < 0 || w1 < 0 || w2 < 0) continue;
     const z = w0 * A[2] + w1 * B[2] + w2 * C[2], i = y * W + x; if (z < zb[i]) continue;
-    const j = i * 4; px[j] = r0; px[j + 1] = g0; px[j + 2] = b0; px[j + 3] = 255; zb[i] = z;
+    const j = i * 4; px[j] = r0; px[j + 1] = g0; px[j + 2] = b0; px[j + 3] = 255; zb[i] = z; R.id[i] = 0;
   }
+}
+/* Smooth-shade the tagged (torso) pixels: blur their depth so the seams between the pieces vanish, then light from that surface. */
+function smoothShade(R, S) {
+  if (R.bx1 < R.bx0) return;
+  const W = R.W, x0 = R.bx0, x1 = R.bx1, y0 = R.by0, y1 = R.by1, w = x1 - x0 + 1, h = y1 - y0 + 1, n = w * h, zb = R.zb, id = R.id, px = R.px, rad = Math.max(2, Math.round(0.036 * S));
+  if (!R.sa || R.sa.length < n) { R.sa = new Float32Array(n); R.sb = new Float32Array(n); R.sc = new Float32Array(n); R.sd = new Float32Array(n); R.sm = new Uint8Array(n); R.ps = new Float64Array(Math.max(R.W, R.H) + 2); R.pc = new Int32Array(Math.max(R.W, R.H) + 2); }
+  const a = R.sa, b = R.sb, cf = R.sc, cg = R.sd, m = R.sm, ps = R.ps, pc = R.pc; let zmin = 1e9;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = (y + y0) * W + x + x0, k = y * w + x; m[k] = id[i]; if (id[i] && zb[i] < zmin) zmin = zb[i]; }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const k = y * w + x; a[k] = m[k] ? zb[(y + y0) * W + x + x0] - zmin : 0; }
+  const full = 2 * rad + 1;
+  // one masked box blur each way; cf/cg also collect how much of the window is torso (low near its edges and where a limb crosses in front)
+  for (let y = 0; y < h; y++) { ps[0] = 0; pc[0] = 0; for (let x = 0; x < w; x++) { const k = y * w + x; ps[x + 1] = ps[x] + (m[k] ? a[k] : 0); pc[x + 1] = pc[x] + m[k]; } for (let x = 0; x < w; x++) { const l = Math.max(0, x - rad), r = Math.min(w, x + rad + 1), c = pc[r] - pc[l]; b[y * w + x] = c ? (ps[r] - ps[l]) / c : 0; cf[y * w + x] = c / full; } }
+  for (let x = 0; x < w; x++) { ps[0] = 0; pc[0] = 0; let fs = 0; const fa = R.ps2 || (R.ps2 = new Float64Array(Math.max(R.W, R.H) + 2)); fa[0] = 0; for (let y = 0; y < h; y++) { const k = y * w + x; ps[y + 1] = ps[y] + (m[k] ? b[k] : 0); pc[y + 1] = pc[y] + m[k]; fa[y + 1] = fa[y] + cf[k]; } for (let y = 0; y < h; y++) { const l = Math.max(0, y - rad), r = Math.min(h, y + rad + 1), c = pc[r] - pc[l]; a[y * w + x] = c ? (ps[r] - ps[l]) / c : 0; cg[y * w + x] = (fa[r] - fa[l]) / full; } }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const k = y * w + x; if (!m[k]) continue;
+    const xl = x > 0 && m[k - 1] ? k - 1 : k, xr = x < w - 1 && m[k + 1] ? k + 1 : k, yu = y > 0 && m[k - w] ? k - w : k, yd = y < h - 1 && m[k + w] ? k + w : k;
+    let nx = xr > xl ? -(a[xr] - a[xl]) / (xr - xl) * S : 0, ny = yd > yu ? -(a[yd] - a[yu]) / ((yd - yu) / w) * S : 0, nz = 1; const l = Math.hypot(nx, ny, nz); nx /= l; ny /= l; nz /= l;
+    let e = (cg[k] - 0.42) / 0.5; e = e < 0 ? 0 : e > 1 ? 1 : e; e = e * e * (3 - 2 * e);
+    let diff = nx * AL[0] + ny * AL[1] + nz * AL[2]; if (diff < 0) diff = 0; const sh = (0.36 + 0.7 * diff) * (0.8 + 0.2 * e), j = ((y + y0) * W + x + x0) * 4;
+    px[j] *= sh; px[j + 1] *= sh; px[j + 2] *= sh; }
 }
 function animDraw(cv, def, t, yawDeg, cycle = 0) {
   const ctx = cv.getContext('2d'), W = cv.width, H = cv.height, S = Math.min(W, H * 1.12) / (2 * def.r) * 0.96, q = animPose(def, t, cycle), B = def.build || BUILD.male, J = animJoints(q, B);
@@ -227,10 +248,10 @@ function animDraw(cv, def, t, yawDeg, cycle = 0) {
   ring(def.c[0], def.c[2], def.r * 0.98, 'rgba(255,255,255,.035)', 'rgba(255,255,255,.09)'); ring(def.c[0], def.c[2], def.r * 0.55, null, 'rgba(255,255,255,.05)');
   ring(q.p[0], q.p[2], 0.26 + Math.max(0, 0.6 - q.p[1]) * 0.25, `rgba(0,0,0,${0.5 - Math.min(0.3, q.p[1] * 0.18)})`, null);
   // depth-buffered layer
-  let R = cv._r; if (!R || R.W !== W || R.H !== H) { const o = document.createElement('canvas'); o.width = W; o.height = H; const octx = o.getContext('2d'), img = octx.createImageData(W, H); R = cv._r = { W, H, o, octx, img, px: img.data, zb: new Float32Array(W * H) }; }
-  R.px.fill(0); R.zb.fill(-1e9);
+  let R = cv._r; if (!R || R.W !== W || R.H !== H) { const o = document.createElement('canvas'); o.width = W; o.height = H; const octx = o.getContext('2d'), img = octx.createImageData(W, H); R = cv._r = { W, H, o, octx, img, px: img.data, zb: new Float32Array(W * H), id: new Uint8Array(W * H) }; }
+  R.px.fill(0); R.zb.fill(-1e9); R.id.fill(0); R.bx0 = R.by0 = 1e9; R.bx1 = R.by1 = -1;
   const caps = [], quads = [];
-  const seg = (a, b, w, key, col, w2) => { const A = P(a), Bp = P(b); caps.push([A, Bp, w / 2, (w2 == null ? w : w2) / 2, col || (def.hl.has(key) ? AC.on : key === 'head' || key === 'hand' || key === 'neck' ? AC.skin : AC.body)]); };
+  const seg = (a, b, w, key, col, w2) => { const A = P(a), Bp = P(b); caps.push([A, Bp, w / 2, (w2 == null ? w : w2) / 2, col || (def.hl.has(key) ? AC.on : key === 'head' || key === 'hand' || key === 'neck' ? AC.skin : AC.body), SMOOTH[key] ? 1 : 0]); };
   const dot = (a, r, key, col) => seg(a, a, r * 2, key, col);
   const limb = (a, b, rr, key) => seg(a, b, rr[0] * 2, key, null, rr[1] * 2);
   const quad = (a, b, w, col, off) => { const d = V.sub(b, a); let wd = [d[2], 0, -d[0]]; if (V.len(wd) < 1e-4) wd = [1, 0, 0]; wd = V.mul(V.norm(wd), w / 2); const o = off || [0, 0, 0]; quads.push([[V.add(a, wd), V.add(b, wd), V.sub(b, wd), V.sub(a, wd)].map(x => P(V.add(x, o))), col]); };
@@ -239,14 +260,15 @@ function animDraw(cv, def, t, yawDeg, cycle = 0) {
     limb(J['hip' + s], J['kn' + s], B.thigh, 'thigh'); limb(J['kn' + s], J['an' + s], B.shin, 'shin'); seg(J['an' + s], J['toe' + s], B.foot * 2.1, 'foot', null, B.foot * 1.6); dot(J['an' + s], B.shin[1] * 1.05, 'shin');
     limb(J['sh' + s], J['el' + s], B.upper, 'upper'); limb(J['el' + s], J['ha' + s], B.fore, 'fore'); dot(J['ha' + s], B.hand, 'hand'); dot(V.add(J['sh' + s], [sx * 0.008, 0, 0]), B.delt, 'sho');
     seg(V.add(J.neck, V.mul(J.up, 0.02)), V.add(J['sh' + s], [-sx * 0.03, 0, 0]), B.trap * 2 + 0.02, 'trap', null, B.trap * 2);
-    dot(at(-0.03, -0.058, sx * B.hw * 0.92), B.glute, 'glute');
-    if (B.pec) dot(at(0.7, 0.062, sx * 0.082), B.pec, 'pec');
-    if (B.bust) dot(at(0.66, 0.074, sx * 0.074), B.bust, 'pec');
+    dot(at(-0.02, -B.gback, sx * B.hw * 0.9), B.glute, 'glute');
+    if (B.bust) dot(at(0.67, 0.046, sx * 0.066), B.bust, 'tu');
   }
-  for (const [f, w, d] of B.prof) { const c = at(f), e = Math.max(0, w - d); seg(V.add(c, V.mul(X, -e)), V.add(c, V.mul(X, e)), d * 2, f < 0.2 ? 'pelvis' : f < 0.55 ? 'tl' : 'tu'); }
+  // torso: five vertical columns that follow the width/depth profile, so it shades as one smooth surface (no banding)
+  { const pr = B.prof, pt = (k, j) => { const [f, w, d] = pr[k]; return at(f, 0, (j / 2) * Math.max(0, w - d)); };
+    for (let k = 0; k < pr.length - 1; k++) { const fm = (pr[k][0] + pr[k + 1][0]) / 2, key = fm < 0.2 ? 'pelvis' : fm < 0.55 ? 'tl' : 'tu'; for (let j = -2; j <= 2; j++) seg(pt(k, j), pt(k + 1, j), pr[k][2] * 2, key, null, pr[k + 1][2] * 2); } }
   seg(V.add(J.neck, V.mul(J.up, -0.04)), J.head, B.neck * 2, 'neck'); dot(J.head, B.head, 'head');
-  dot(V.add(V.add(J.head, V.mul(J.up, 0.02)), V.mul(J.fwd, -0.026)), B.head * 1.0, 'hair', B.hair);
-  if (B.bun) { dot(V.add(V.add(J.head, V.mul(J.up, 0.085)), V.mul(J.fwd, -0.095)), 0.052, 'hair', B.hair); }
+  dot(V.add(V.add(J.head, V.mul(J.up, 0.03)), V.mul(J.fwd, -0.034)), B.head * 0.93, 'hair', B.hair);
+  if (B.bun) { dot(V.add(V.add(J.head, V.mul(J.up, 0.075)), V.mul(J.fwd, -0.105)), 0.046, 'hair', B.hair); }
   // equipment
   const mid = V.mul(V.add(J.haR, J.haL), 0.5);
   const tris = [];
@@ -270,7 +292,8 @@ function animDraw(cv, def, t, yawDeg, cycle = 0) {
   for (const [pts, col] of quads) { const n = [(pts[1][1] - pts[0][1]) * (pts[3][2] - pts[0][2]) - (pts[1][2] - pts[0][2]) * (pts[3][1] - pts[0][1]), 0, 0], up = Math.min(1, Math.abs((pts[1][0] - pts[0][0]) * (pts[3][1] - pts[0][1]) - (pts[1][1] - pts[0][1]) * (pts[3][0] - pts[0][0])) / (S * S * 0.25 + 1)), sh = 0.8 + 0.35 * up; rasterTri(R, pts[0], pts[1], pts[2], col, sh); rasterTri(R, pts[0], pts[2], pts[3], col, sh); }
   for (const [A, B, C, col, sh] of tris) rasterTri(R, A, B, C, col, sh);
   caps.sort((a, b) => (a[0][2] + a[1][2]) - (b[0][2] + b[1][2]));
-  for (const [A, Bp, wa, wb, col] of caps) rasterCapsule(R, A[0], A[1], A[2], Bp[0], Bp[1], Bp[2], Math.max(0.6, wa * S), Math.max(0.6, wb * S), wa, wb, col);
+  for (const [A, Bp, wa, wb, col, tag] of caps) rasterCapsule(R, A[0], A[1], A[2], Bp[0], Bp[1], Bp[2], Math.max(0.6, wa * S), Math.max(0.6, wb * S), wa, wb, col, tag);
+  smoothShade(R, S);
   R.octx.putImageData(R.img, 0, 0); ctx.drawImage(R.o, 0, 0);
 }
 

@@ -1,8 +1,6 @@
 {
- "version": "3.6",
+ "version": "3.6.1",
  "notes": [
-  "The animated figure now has realistic adult proportions, with a male and a female build. Switch with the Male / Female buttons on the animation (it starts on your Settings choice).",
-  "Muscle highlights are more specific: chest, upper back, abs, glutes and shoulders light up separately.",
-  "Fixed feet pointing the wrong way when they are off the floor (Bulgarian Split Squat bench foot, kneeling crunch, Dead Bug)."
+  "Cleaner animated figures: a smooth, understated torso with no exaggerated muscle lines."
  ]
 }

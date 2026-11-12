@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '3.6';
+const APP_VERSION = '3.6.1';
 const CHANGELOG = [
+  ['3.6.1', ['Cleaner animated figures: a smooth, understated torso with no exaggerated muscle lines.']],
   ['3.6', ['The animated figure now has realistic adult proportions, with a male and a female build. Switch with the Male / Female buttons on the animation (it starts on your Settings choice).', 'Muscle highlights are more specific: chest, upper back, abs, glutes and shoulders light up separately.', 'Fixed feet pointing the wrong way when they are off the floor (Bulgarian Split Squat bench foot, kneeling crunch, Dead Bug).']],
   ['3.5', ['Exercise animations redrawn in true 3D: smooth shading, no hard outlines, and limbs now overlap correctly instead of popping in front of each other.', 'Fixed the Bulgarian Split Squat back leg, plus smaller joint glitches in push-ups, sit-ups, pulldowns and leg raises.']],
   ['3.4', ['Log food in cups, tablespoons, teaspoons, fl oz, oz or lb, with one-tap fractions (¼, ⅓, ½, ⅔, ¾, 1½).', 'Label in grams but you used a spoon? Add what the serving "also equals" (like 2 tbsp) and log in either. Scanning a label fills this in when the label shows both.', 'The app converts between cups, spoons, ml and fl oz, and between g, oz and lb.']],
