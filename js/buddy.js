@@ -54,7 +54,7 @@ function buddyState(date = todayStr()) {
 function buddyCardHTML() {
   if (!buddyOn()) return '';
   const b = buddyState(UI.foodDate || todayStr());
-  return `<section class="card buddy" style="flex-direction:row;align-items:center;gap:12px;padding:10px 14px"><button data-act="petBuddy" aria-label="Pet ${esc(buddyName())}" style="flex:none">${raccoonSVG(b.mood, 96)}</button><div class="grow"><b>${esc(buddyName())}</b><p class="muted small">${esc(b.text)}</p><div class="bar" style="margin-top:8px" aria-label="${esc(buddyName())}'s fullness"><i style="width:${clamp(b.pct * 100, 4, 100)}%;background:var(--grad)"></i></div></div></section>`;
+  return `<section class="card buddy" style="flex-direction:row;align-items:center;gap:12px;padding:10px 14px"><button data-act="petBuddy" aria-label="Pet ${esc(buddyName())}" style="flex:none">${raccoonSVG(b.mood, 96)}</button><div class="grow"><button data-act="renameBuddy" style="display:inline-flex;align-items:center;gap:6px" aria-label="Rename ${esc(buddyName())}"><b>${esc(buddyName())}</b><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></button><p class="muted small">${esc(b.text)}</p><div class="bar" style="margin-top:8px" aria-label="${esc(buddyName())}'s fullness"><i style="width:${clamp(b.pct * 100, 4, 100)}%;background:var(--grad)"></i></div></div></section>`;
 }
 A.petBuddy = (d, el) => { const svg = el.querySelector('svg'); svg.classList.remove('rc-pet'); void svg.offsetWidth; svg.classList.add('rc-pet'); toast(['Hehe, that tickles!', `${buddyName()} loves you!`, '*happy raccoon noises*'][Math.floor(Math.random() * 3)]); };
 function feedBuddy(before, after) {
@@ -70,3 +70,8 @@ function feedBuddy(before, after) {
   feedBuddy.t1 = setTimeout(() => { const rc = $('.bp-rc', L); if (rc) rc.innerHTML = raccoonSVG('happy', 170); const m = $('.bp-msg span', L); if (m) m.textContent = msg; L.classList.add('done'); }, 1500);
   feedBuddy.t2 = setTimeout(() => { L.hidden = true; L.classList.remove('done'); }, 5200);
 }
+
+A.renameBuddy = () => {
+  openSheet('Rename your buddy', `<div style="display:grid;place-items:center">${raccoonSVG('happy', 120)}</div><div class="field"><label class="lbl" for="bd-n">Name</label><input id="bd-n" name="bname" maxlength="24" value="${esc(buddyName())}" autocapitalize="words" autocomplete="off"></div><button class="btn block" data-act="saveBuddyName">Save name</button>`, { onMount(L) { setTimeout(() => { const i = $('#bd-n', L); if (i) { i.focus(); i.select(); } }, 280); } });
+};
+A.saveBuddyName = () => { const n = fval('bname').replace(/\s+/g, ' ').trim(); if (!n) return toast('Give your buddy a name.', { bad: true }); saveSettings({ buddyName: n }); closeSheet(); toast(`${n} loves their new name!`); };

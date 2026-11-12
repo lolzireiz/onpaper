@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, Apple Watch reminder, muscle diagrams. */
 
-const APP_VERSION = '1.2.1';
+const APP_VERSION = '1.2.2';
 const CHANGELOG = [
+  ['1.2.2', ['Slimmer, better-proportioned arms on the female diagram.', 'Tap the pencil next to your food buddy\'s name to rename them.']],
   ['1.2.1', ['Fixed the arms on the female muscle diagram.']],
   ['1.2', ['Meet Pebble, your raccoon food buddy! Log food to feed them and they\'ll say something nice. Rename or turn them off in Settings.', 'Much better muscle diagrams for both the male and female figures.']],
   ['1.1', ['Muscle diagrams for every exercise: tap the body icon next to an exercise to see what it works (male or female figure).', 'Back up to iCloud Drive from Settings, with a reminder when it has been a week.', 'Apple Watch reminder when you start a workout.', 'Version number in Settings, and this note after each update.']],
@@ -71,7 +72,7 @@ function smoothPath(pts, closed = true) {
   }
   return d + (closed ? 'Z' : '');
 }
-const ARM_WARP = ([x, y]) => [x + 5.5 + (56 - x) * -0.06, y];
+const ARM_WARP = ([x, y]) => { const cx = 57 - Math.max(0, y - 100) * 0.08; return [cx + (x - cx) * 0.78 + 5.5, y]; };
 function femaleWarp([x, y]) {
   const k = [[0, .92], [60, .9], [110, .86], [165, .84], [200, 1.1], [235, 1.1], [270, 1.04], [330, .97], [420, .95]];
   let f = 1; for (let i = 1; i < k.length; i++) if (y <= k[i][0]) { const [y0, f0] = k[i - 1], [y1, f1] = k[i]; f = f0 + (f1 - f0) * (y - y0) / (y1 - y0); break; }
