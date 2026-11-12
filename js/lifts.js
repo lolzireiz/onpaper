@@ -146,28 +146,35 @@ A.savePR = () => {
 };
 
 /* ---------- edit a single set (from history or a workout) ---------- */
+A.addPastSet = d => {
+  const w = Store.docs.workouts[d.wid]; if (!w) return; const prev = (w.sets || []).filter(x => keyOf(x.ex) === keyOf(d.ex) && !x.warm).pop();
+  A.editSet({ wid: d.wid, sid: 'new', ex: d.ex, back: '1', w: prev ? prev.w : 0, r: prev ? prev.r : '' });
+};
 A.editSet = d => {
-  const w = Store.docs.workouts[d.wid]; const s = w && (w.sets || []).find(x => x.id === d.sid); if (!s) return;
-  openSheet(`Edit ${s.ex}`, `
+  const w = Store.docs.workouts[d.wid]; const s = w && (d.sid === 'new' ? { id: 'new', ex: d.ex, w: d.w || 0, r: d.r || '', hit: true } : (w.sets || []).find(x => x.id === d.sid)); if (!s) return;
+  const back = d.back ? ` data-back="1"` : '', isNew = s.id === 'new';
+  (back && !$('#sheet').hidden ? (t, b) => { sheetTitle(t); sheetBody(b); } : openSheet)(`${isNew ? 'Add set' : 'Edit'}: ${s.ex}`, `
     <div class="fields"><div class="field"><label class="lbl" for="es-w">Weight (${U.wu})</label><input id="es-w" name="w" inputmode="decimal" value="${plain(U.w(s.w))}"></div><div class="field"><label class="lbl" for="es-r">Reps</label><input id="es-r" name="r" inputmode="numeric" value="${s.r}"></div></div>
     <div class="seg">${['hit', 'miss'].map(v => `<button data-act="pick" data-group="res" data-value="${v}" aria-pressed="${(v === 'hit') === (s.hit !== false)}">${v === 'hit' ? 'Made it' : 'Missed it'}</button>`).join('')}</div>
     <div class="seg">${['work', 'warm'].map(v => `<button data-act="pick" data-group="kind" data-value="${v}" aria-pressed="${(v === 'warm') === !!s.warm}">${v === 'warm' ? 'Warm-up set' : 'Working set'}</button>`).join('')}</div>
     ${w.quick ? `<div class="field"><label class="lbl" for="es-d">Date</label><input id="es-d" type="date" name="date" value="${w.date}" max="${todayStr()}"></div>` : `<p class="faint small">${fmtDay(w.date)} · ${esc(w.dayName || 'Workout')}</p>`}
-    <button class="btn block" data-act="saveSet" data-wid="${d.wid}" data-sid="${d.sid}">Save</button>
-    <button class="linkbtn danger center" data-act="deleteSet" data-wid="${d.wid}" data-sid="${d.sid}">Delete this set</button>`);
+    <button class="btn block" data-act="saveSet" data-wid="${d.wid}" data-sid="${s.id}" data-ex="${esc(s.ex)}"${back}>${isNew ? 'Add set' : 'Save'}</button>
+    ${isNew ? '' : `<button class="linkbtn danger center" data-act="deleteSet" data-wid="${d.wid}" data-sid="${d.sid}"${back}>Delete this set</button>`}${back ? `<button class="linkbtn center" data-act="showWorkout" data-id="${d.wid}">Back</button>` : ''}`);
 };
 A.saveSet = d => {
   const w = clone(Store.docs.workouts[d.wid]); if (!w) return closeSheet();
   const r = Math.round(num(fval('r')) || 0); if (!r) return toast('Enter the number of reps.', { bad: true });
-  w.sets = w.sets.map(s => s.id === d.sid ? { ...s, w: U.toLb(num(fval('w')) || 0), r, hit: picked($('#sheet'), 'res') !== 'miss', warm: picked($('#sheet'), 'kind') === 'warm' } : s);
+  const vals = { w: U.toLb(num(fval('w')) || 0), r, hit: picked($('#sheet'), 'res') !== 'miss', warm: picked($('#sheet'), 'kind') === 'warm' };
+  if (d.sid === 'new') { const set = { id: newId(), ex: d.ex, ...vals, ts: w.endTs || Date.now() }; if (!set.warm) delete set.warm; if (bwFactor(d.ex)) set.bwt = bwOn(w.date)?.weight || S().lastBw || latestWeighin()?.weight || 0; w.sets = [...(w.sets || []), set]; }
+  else w.sets = w.sets.map(s => s.id === d.sid ? { ...s, ...vals } : s);
   if (w.quick && fval('date')) w.date = fval('date');
-  put('workouts', d.wid, w); closeSheet();
+  put('workouts', d.wid, w); if (d.back) { showWorkout(d.wid); toast(d.sid === 'new' ? 'Set added' : 'Set updated'); } else closeSheet();
 };
 A.deleteSet = d => {
   const orig = clone(Store.docs.workouts[d.wid]); if (!orig) return closeSheet();
   const w = clone(orig); w.sets = w.sets.filter(s => s.id !== d.sid);
   if (!w.sets.length && w.quick) del('workouts', d.wid); else put('workouts', d.wid, w);
-  closeSheet(); toastUndo('Set deleted', () => put('workouts', d.wid, orig));
+  if (d.back && Store.docs.workouts[d.wid]) showWorkout(d.wid); else closeSheet(); toastUndo('Set deleted', () => put('workouts', d.wid, orig));
 };
 
 /* ---------- rename / merge a lift ---------- */

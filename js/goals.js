@@ -129,16 +129,12 @@ function goalSetsThisWeek() {
   for (const w of Store.list('workouts')) if (w.date >= since) for (const s of w.sets || []) if (!s.warm && s.hit !== false) for (const g of exHelps(s.ex)) cnt[g] = (cnt[g] || 0) + 1;
   return cnt;
 }
-function goalsCardHTML() {
-  if (!myGoals().length) {
-    if (S().onboarded && S().onboarded !== 'skipped') return '';
-    return `<section class="card goals-cta"><div class="grow"><b>Make Liftprint yours</b><p class="muted small" style="margin:2px 0 0">Pick your sports and goals. Exercises that help them get a badge.</p></div><button class="btn sm" data-act="startOnboarding">30 sec</button></section>`;
-  }
-  const cnt = goalSetsThisWeek();
-  return `<section class="card"><div class="card-h"><h2 class="sec-t">Your goals</h2><button class="linkbtn" data-act="editGoals">Edit</button></div>
-    <div class="goal-grid">${myGoals().map(g => `<button class="goal-tile${cnt[g] ? ' on' : ''}" data-act="goalExercises" data-g="${g}"><span class="ge" aria-hidden="true">${GOALS[g][0]}</span><span class="gl">${esc(GOALS[g][1])}</span><span class="gn"><b data-count="${cnt[g] || 0}">${cnt[g] || 0}</b> ${cnt[g] === 1 ? 'set' : 'sets'} this week</span></button>`).join('')}</div>
-    <p class="faint small" style="margin:0">Tap a goal to see every exercise that helps it.</p></section>`;
-}
+A.goalsSheet = () => {
+  const g = myGoals(), cnt = goalSetsThisWeek(), max = Math.max(1, ...g.map(x => cnt[x] || 0));
+  openSheet('Goals this week', `<p class="muted small" style="margin:0">Work sets from the last 7 days that helped each goal. Tap one for exercises.</p>
+    <div class="goalrows">${g.map(x => `<button class="goalrow" data-act="goalExercises" data-g="${x}"><span class="ge" aria-hidden="true">${GOALS[x][0]}</span><span class="grow"><span class="gl">${esc(GOALS[x][1])}</span><span class="gbar"><i style="width:${(cnt[x] || 0) / max * 100}%"></i></span></span><span class="gn${cnt[x] ? '' : ' zero'}">${cnt[x] || 0}</span>${ICON.chevR.replace('<svg', '<svg width="16" height="16" style="color:var(--tx3)"')}</button>`).join('')}</div>
+    <button class="btn ghost block" data-act="editGoals">Edit goals</button>`, { onMount(L) { if (!REDUCED()) $$('.gbar i', L).forEach((b, i) => b.animate([{ width: '0%' }, { width: b.style.width }], { duration: 600, delay: 120 + i * 40, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' })); } });
+};
 A.goalExercises = d => {
   const g = d.g, gym = activeGym(), all = [...library().values()].filter(e => exGoalIds(e.name).includes(g));
   const top = bestForGoals([g, ...myGoals().filter(x => x !== g)], 3, all.filter(e => available(e.name, gym)));

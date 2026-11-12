@@ -1,10 +1,12 @@
 {
- "version": "3.1",
+ "version": "3.2",
  "notes": [
-  "New setup survey: tell Liftprint about you, your sports and what you want to get better at. Skip it anytime, redo it from Settings.",
-  "Pick from 40+ sports and life goals (running, soccer, climbing, posture, a healthy back, aging well and more). Exercises that help YOUR goals get a badge in workouts, the exercise list and every guide.",
-  "Your goals card on Home: sets you did for each goal this week. Tap one to see every exercise that helps it.",
-  "10 new exercises: Farmer Carry, Cable Woodchop, Pallof Press, Dead Bug, Jump Squat, Lateral Bounds, Lateral Lunge, Step-up, Single-Leg RDL and Tibialis Raise.",
-  "The food buddy is now optional and off for new people. Yours stays on."
+  "Finished exercises lock in your workout so you can't log into them by accident. Tap \u270e Edit to reopen one.",
+  "Fix past workouts: open any workout and tap a set to change it, or add a set you forgot.",
+  "Watch stats: time now has separate hours, minutes and seconds boxes, and works with any smartwatch or fitness app.",
+  "Reinstalling? Restore a backup right from the welcome screen.",
+  "Cleaner Home: your goals are now one compact tile (tap it for the full breakdown), no matter how many you pick.",
+  "Today shows your progress (1 of 3 done), which of your goals the next workout hits, and a protein bar.",
+  "Reminders (weigh-in, backup, setup) shrank to one line each. Insights show the top 3, with the rest a tap away, plus a nudge when a goal has no work yet this week."
  ]
 }

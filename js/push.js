@@ -1,5 +1,5 @@
 'use strict';
-/* Lock-screen + Apple Watch rest alerts. Web apps can't run timers in the background on iPhone,
+/* Lock-screen + smartwatch rest alerts. Web apps can't run timers in the background on iPhone,
    so the rest-end alert is scheduled on the ntfy push service and delivered by the free ntfy app. */
 const PUSH_ON = 'onpaper.pushOn', PUSH_TOPIC = 'onpaper.pushTopic';
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -44,7 +44,7 @@ function restoreRest() {
 }
 function pushSettingsHTML() {
   const on = pushOn(), t = pushTopic();
-  return `<div class="field"><span class="lbl">Rest alerts on your lock screen &amp; Apple Watch</span><div class="seg">${chipSeg('pushon', [['on', 'On'], ['off', 'Off']], on ? 'on' : 'off')}</div></div>
+  return `<div class="field"><span class="lbl">Rest alerts on your lock screen &amp; watch</span><div class="seg">${chipSeg('pushon', [['on', 'On'], ['off', 'Off']], on ? 'on' : 'off')}</div></div>
     <details ${on ? '' : 'open'} class="small" style="background:var(--s2);border-radius:12px;padding:10px 12px"><summary style="font-weight:650">One-time setup (1 minute)</summary>
       <ol class="muted" style="padding-left:18px;margin:8px 0;display:flex;flex-direction:column;gap:6px">
         <li>In <b>Safari</b>, open <b>ntfy.sh/app</b>, tap <b>Share → Add to Home Screen</b>.</li>
@@ -52,7 +52,7 @@ function pushSettingsHTML() {
         <li>If you installed the ntfy App Store app, delete it. On iPhone it often only shows alerts when it's open.</li>
         <li>Turn this <b>On</b>, save, tap <b>Send a test alert</b>, then lock your phone and wait a few seconds.</li>
       </ol>
-      <p class="faint tiny">Your Watch shows the alert whenever your phone is locked or in your pocket. The topic is a random private name, so only you get these.</p></details>
+      <p class="faint tiny">Your watch shows the alert whenever your phone is locked or in your pocket. The topic is a random private name, so only you get these.</p></details>
     <button class="btn ghost block" data-act="testPush">Send a test alert</button><p class="small" id="push-test" aria-live="polite"></p>`;
 }
 A.copyTopic = async () => { try { await navigator.clipboard.writeText(pushTopic()); toast('Topic copied'); } catch (e) { toast('Press and hold the topic to copy it.'); } };

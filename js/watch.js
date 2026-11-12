@@ -1,5 +1,5 @@
 'use strict';
-/* Apple Watch / Fitness stats on a workout: scan the summary screenshot or type it in. */
+/* Watch / tracker stats on a workout (any smartwatch or fitness app): scan the summary screenshot or type it in. */
 
 const WATCH_TYPES = ['Traditional Strength Training', 'Functional Strength Training', 'High Intensity Interval Training', 'Core Training', 'Cross Training', 'Basketball', 'Indoor Run', 'Outdoor Run', 'Indoor Walk', 'Outdoor Walk', 'Indoor Cycle', 'Outdoor Cycle', 'Elliptical', 'Stair Stepper', 'Rower', 'Mixed Cardio', 'Hiking', 'Jump Rope', 'Kickboxing', 'Boxing', 'Dance', 'Yoga', 'Pilates', 'Flexibility', 'Cooldown', 'Pool Swim', 'Open Water Swim', 'Soccer', 'Tennis', 'Pickleball', 'Climbing', 'Other'];
 const EFFORT = n => n <= 3 ? 'Easy' : n <= 6 ? 'Moderate' : n <= 8 ? 'Hard' : 'All Out';
@@ -15,7 +15,7 @@ const watchLine = w => w && w.watch ? [w.watch.activeCal ? `${trim(w.watch.activ
 
 function watchSectionHTML(w, id) {
   const x = w.watch;
-  if (!x) return `<section class="card" style="background:var(--s2);gap:10px"><div><b>⌚ Add your Watch stats</b><p class="muted small">Scan the workout summary screenshot from your Watch or the Fitness app, or type the numbers in.</p></div>
+  if (!x) return `<section class="card" style="background:var(--s2);gap:10px"><div><b>⌚ Add your watch stats</b><p class="muted small">Scan the workout summary screenshot from your smartwatch or fitness app, or type the numbers in.</p></div>
     <div class="btnrow">${CAP.sample ? `<button class="btn" data-act="watchScan" data-id="${id}">${ICON.camera} Scan screenshot</button>` : ''}<button class="btn ghost" data-act="watchForm" data-id="${id}" style="background:var(--s3)${CAP.sample ? '' : ';grid-column:1/-1'}">Type it in</button></div>
     ${CAP.sample ? '' : '<p class="faint tiny">Add your AI key in Settings to scan screenshots.</p>'}</section>`;
   const cell = (k, v) => `<div class="stat"><span class="k">${k}</span><span class="v" style="font-size:22px">${v}</span></div>`;
@@ -24,12 +24,12 @@ function watchSectionHTML(w, id) {
 }
 
 A.watchScan = d => { Sheet.watchId = d.id; const i = $('#file-watch'); i.value = ''; i.click(); };
-const PROMPT_WATCH = `This is a screenshot of an Apple Watch or iPhone Fitness app workout summary. Read the values exactly as shown.
+const PROMPT_WATCH = `This is a screenshot of a workout summary from a smartwatch or fitness app (any brand: Apple, Garmin, Fitbit, Samsung, Whoop, Polar, Coros, etc.). Read the values exactly as shown.
 Reply with only JSON: {"type": "workout type as shown, e.g. Traditional Strength Training", "duration_seconds": 0, "active_cal": 0, "total_cal": 0, "avg_hr": 0, "max_hr": 0, "effort": 0, "note": ""}
-- duration_seconds: the Workout Time (e.g. 1:02:15 is 3735). Not elapsed time if both are shown.
-- active_cal: Active Kilocalories. total_cal: Total Kilocalories.
-- avg_hr: Avg. Heart Rate in BPM. max_hr: the highest heart rate if shown, otherwise null.
-- effort: the Effort rating from 1 to 10 if shown, otherwise null.
+- duration_seconds: the workout time / duration (e.g. 1:02:15 is 3735). Not elapsed time if both are shown.
+- active_cal: active calories (kcal). total_cal: total calories (kcal).
+- avg_hr: average heart rate in BPM. max_hr: the highest heart rate if shown, otherwise null.
+- effort: an effort / exertion rating from 1 to 10 if shown, otherwise null.
 Use null for anything that isn't shown. "note" is one short sentence about anything unclear, or "".
 If the image is not a workout summary, reply {"type": null, "note": "<what you see instead>"}.`;
 async function onWatchPhoto(file) {
@@ -57,18 +57,22 @@ function watchForm(id, vals, imgUrl) {
   const html = `${imgUrl ? `<img class="prev-img" src="${imgUrl}" alt="Your screenshot" style="max-height:160px">` : ''}
     ${x.note ? `<p class="tip-line">${esc(x.note)}</p>` : imgUrl ? '<p class="tip-line">Check the numbers, then save.</p>' : ''}
     <div class="field"><label class="lbl" for="wt-t">Workout type</label><select id="wt-t" name="wtype">${types.map(t => `<option ${t === x.type ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
-    <div class="fields"><div class="field"><label class="lbl" for="wt-d">Time (h:mm:ss)</label><input id="wt-d" name="wdur" inputmode="numeric" value="${x.duration ? fmtDur(x.duration) : ''}" placeholder="1:05:30"></div><div class="field"><label class="lbl" for="wt-a">Active kcal</label><input id="wt-a" name="wact" inputmode="numeric" value="${x.activeCal ?? ''}"></div></div>
-    <div class="fields three"><div class="field"><label class="lbl" for="wt-tc">Total kcal</label><input id="wt-tc" name="wtot" inputmode="numeric" value="${x.totalCal ?? ''}"></div><div class="field"><label class="lbl" for="wt-h">Avg HR</label><input id="wt-h" name="whr" inputmode="numeric" value="${x.avgHr ?? ''}" placeholder="bpm"></div><div class="field"><label class="lbl" for="wt-m">Max HR</label><input id="wt-m" name="wmax" inputmode="numeric" value="${x.maxHr ?? ''}" placeholder="bpm"></div></div>
+    <div class="field"><span class="lbl" id="wt-dl">Time</span><div class="durin" role="group" aria-labelledby="wt-dl"><label><input name="wdh" inputmode="numeric" maxlength="2" value="${x.duration ? Math.floor(x.duration / 3600) : ''}" placeholder="0" aria-label="Hours"><span>h</span></label><label><input name="wdm" inputmode="numeric" maxlength="2" value="${x.duration ? pad(Math.floor(x.duration % 3600 / 60)) : ''}" placeholder="00" aria-label="Minutes"><span>m</span></label><label><input name="wds" inputmode="numeric" maxlength="2" value="${x.duration ? pad(Math.round(x.duration % 60)) : ''}" placeholder="00" aria-label="Seconds"><span>s</span></label></div></div>
+    <div class="fields"><div class="field"><label class="lbl" for="wt-a">Active kcal</label><input id="wt-a" name="wact" inputmode="numeric" value="${x.activeCal ?? ''}"></div><div class="field"><label class="lbl" for="wt-tc">Total kcal</label><input id="wt-tc" name="wtot" inputmode="numeric" value="${x.totalCal ?? ''}"></div></div>
+    <div class="fields"><div class="field"><label class="lbl" for="wt-h">Avg HR</label><input id="wt-h" name="whr" inputmode="numeric" value="${x.avgHr ?? ''}" placeholder="bpm"></div><div class="field"><label class="lbl" for="wt-m">Max HR</label><input id="wt-m" name="wmax" inputmode="numeric" value="${x.maxHr ?? ''}" placeholder="bpm"></div></div>
     <div class="field"><span class="lbl">Effort <span class="faint" id="wt-el">${x.effort ? `${x.effort} · ${EFFORT(x.effort)}` : '(optional)'}</span></span><div class="effort" role="radiogroup" aria-label="Effort from 1 to 10">${[...Array(10)].map((_, i) => `<button data-act="wEffort" data-n="${i + 1}" aria-pressed="${x.effort === i + 1}" style="--c:${EFFORT_COL(i + 1)}">${i + 1}</button>`).join('')}</div></div>
-    <button class="btn block" data-act="watchSave">Save Watch stats</button>
-    ${w.watch ? `<button class="linkbtn danger center" data-act="watchRemove">Remove Watch stats</button>` : `<button class="linkbtn center" data-act="showWorkout" data-id="${id}">Back</button>`}`;
+    <button class="btn block" data-act="watchSave">Save watch stats</button>
+    ${w.watch ? `<button class="linkbtn danger center" data-act="watchRemove">Remove watch stats</button>` : `<button class="linkbtn center" data-act="showWorkout" data-id="${id}">Back</button>`}`;
   if ($('#sheet').hidden) openSheet('Watch stats', html); else { sheetTitle('Watch stats'); sheetBody(html); }
 }
+document.addEventListener('input', e => { const i = e.target; if (!i.closest || !i.closest('.durin')) return; i.value = i.value.replace(/\D/g, '').slice(0, 2); if (i.value.length === 2 && i.name !== 'wds') { const n = i.closest('label').nextElementSibling?.querySelector('input'); if (n) { n.focus(); n.select(); } } });
 A.wEffort = (d, el) => { const on = el.getAttribute('aria-pressed') === 'true'; $$('#sheet .effort button').forEach(b => b.setAttribute('aria-pressed', 'false')); if (!on) el.setAttribute('aria-pressed', 'true'); const n = +d.n; $('#wt-el').textContent = on ? '(optional)' : `${n} · ${EFFORT(n)}`; };
 A.watchSave = () => {
   const id = Sheet.watchId, w = Store.docs.workouts[id]; if (!w) return closeSheet();
   const n = name => { const v = num(fval(name)); return v != null && v > 0 ? v : null; };
-  const dur = parseDur(fval('wdur')); if (fval('wdur') && dur == null) return toast('Time looks off. Use h:mm:ss, like 1:05:30.', { bad: true });
+  const hh = num(fval('wdh')) || 0, mm = num(fval('wdm')) || 0, ss = num(fval('wds')) || 0;
+  if (hh < 0 || mm < 0 || ss < 0 || mm >= 60 || ss >= 60) return toast('Minutes and seconds go up to 59.', { bad: true });
+  const dur = hh || mm || ss ? Math.round(hh * 3600 + mm * 60 + ss) : null;
   const ef = $('#sheet .effort [aria-pressed="true"]');
   const watch = { type: fval('wtype'), duration: dur, activeCal: n('wact'), totalCal: n('wtot'), avgHr: n('whr'), maxHr: n('wmax'), effort: ef ? +ef.dataset.n : null, src: Sheet.watchSrc || 'manual' };
   put('workouts', id, { ...clone(w), watch }); toast('Watch stats saved ⌚'); showWorkout(id);

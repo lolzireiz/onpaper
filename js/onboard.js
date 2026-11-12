@@ -25,6 +25,8 @@ function openOnboarding(mode = 'full') {
   if (!REDUCED()) R.firstElementChild.animate([{ opacity: 0, transform: 'scale(1.04)' }, { opacity: 1, transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)' });
   obRender(0);
 }
+/* reinstalling: skip the survey and go straight to the file picker (must stay in the same tap) */
+A.obRestore = () => { saveSettings({ onboarded: S().onboarded || 'skipped' }); A.importData(); obClose(); };
 A.startOnboarding = () => { closeSheet(); openOnboarding('full'); };
 A.editGoals = () => { closeSheet(); openOnboarding('edit'); };
 
@@ -46,7 +48,7 @@ const OB_VIEWS = {
     const back = hasData();
     return { t: back ? 'Make Liftprint <span class="gtxt">yours</span>' : 'Welcome to <span class="gtxt">Liftprint</span>', next: "Let's go", alt: true,
       sub: back ? "New: tell the app what you're training for, and it'll point out every exercise that gets you there. All your data stays exactly as it is." : "Every set, PR and weigh-in, and what's actually moving you forward. First, a few quick taps so the app fits you.",
-      body: `<div class="ob-hero ob-in">${obLogo()}</div><p class="faint small ob-in" style="text-align:center;margin:0">About 30 seconds · skip anytime</p>` };
+      body: `<div class="ob-hero ob-in">${obLogo()}</div><p class="faint small ob-in" style="text-align:center;margin:0">About 30 seconds · skip anytime</p>${back ? '' : '<button class="linkbtn ob-in" data-act="obRestore" style="align-self:center;font-size:14px">Reinstalling? Restore a backup</button>'}` };
   },
   you() {
     const lw = latestWeighin(), wu = OB.a.unit === 'metric' ? 'kg' : 'lb';

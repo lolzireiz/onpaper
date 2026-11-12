@@ -188,7 +188,13 @@ function exBlockHTML(w, name) {
   const prev = lastSessionSets(name, w.id), sug = !all.length ? suggestion(w, name) : null, last = all[all.length - 1];
   const pre = last ? { w: last.w, r: last.r } : sug ? sug : prev ? { w: prev.sets.filter(s => !s.warm)[0]?.w ?? prev.sets[0].w, r: prev.sets[0].r } : null;
   const step = weightStep(name), bwf = bwFactor(name), bwNow = latestWeighin()?.weight || S().lastBw || 0;
-  return `<section class="exb${done ? ' done' : ''}${UI.justDone === keyOf(name) ? ' just-done' : ''}"><header class="exb-h"><div class="grow"><h3>${done ? '<span style="color:var(--ok)">✓</span> ' : ''}${esc(name)}</h3><button class="faint small" style="text-align:left;padding:2px 0" data-act="editTarget" data-ex="${esc(name)}" aria-label="Change target for ${esc(name)}">Target <u style="text-decoration-style:dotted;text-underline-offset:3px">${t.sets} × ${esc(t.reps)}</u> · <b style="color:${done ? 'var(--ok)' : 'var(--tx2)'}">${work.length}/${t.sets} sets</b> ✎</button>${exHelps(name).length ? `<div>${goalBadges(name)}</div>` : ''}</div>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
+  const editing = done && UI.unlocked && UI.unlocked.has(keyOf(name));
+  if (done && !editing) {
+    return `<section class="exb done locked${UI.justDone === keyOf(name) ? ' just-done' : ''}" aria-label="${esc(name)}, finished"><header class="exb-h"><div class="grow"><h3><span style="color:var(--ok)">✓</span> ${esc(name)}</h3><span class="faint small">${work.length}/${t.sets} sets done · locked</span></div><button class="btn ghost sm" data-act="unlockEx" data-ex="${esc(name)}" aria-label="Edit ${esc(name)}">✎ Edit</button></header>
+    <div class="schips">${all.map(s => { const rec = setRec(L, s.id); return `<span class="schip${s.warm ? ' w' : ''}${s.hit === false ? ' x' : ''}">${s.warm ? '<i>W</i>' : ''}${bwf ? (s.w ? '+' + fw(s.w) : 'BW') : fw(s.w)}×${s.r}${rec?.pr ? ' <b class="pr">PR</b>' : ''}${s.hit === false ? ' ✗' : ''}</span>`; }).join('')}</div></section>`;
+  }
+  return `<section class="exb${done ? ' done' : ''}${editing ? ' editing' : ''}${UI.justDone === keyOf(name) ? ' just-done' : ''}"><header class="exb-h"><div class="grow"><h3>${done ? '<span style="color:var(--ok)">✓</span> ' : ''}${esc(name)}</h3><button class="faint small" style="text-align:left;padding:2px 0" data-act="editTarget" data-ex="${esc(name)}" aria-label="Change target for ${esc(name)}">Target <u style="text-decoration-style:dotted;text-underline-offset:3px">${t.sets} × ${esc(t.reps)}</u> · <b style="color:${done ? 'var(--ok)' : 'var(--tx2)'}">${work.length}/${t.sets} sets</b> ✎</button>${exHelps(name).length ? `<div>${goalBadges(name)}</div>` : ''}</div>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
+  ${editing ? `<div class="unlock-bar"><span>✎ Editing a finished exercise</span><button class="btn sm" data-act="lockEx" data-ex="${esc(name)}">Done</button></div>` : ''}
   ${prev ? `<p class="faint small">Last time (${fmtDate(prev.date)}): ${prev.sets.map(s => `${s.warm ? '<span style="opacity:.6">' : ''}${fw(s.w)}×${s.r}${s.hit === false ? '✗' : ''}${s.warm ? '</span>' : ''}`).join(', ')}</p>` : ''}
   ${sug ? `<p class="small" style="background:rgba(51,146,245,.12);color:#9cc8ff;border-radius:10px;padding:8px 10px"><b>Try ${fw(sug.w)} × ${sug.r}.</b> ${esc(sug.why)}</p>` : ''}
   ${all.length ? `<ol class="sets">${all.map((s, j) => { const rec = setRec(L, s.id); return `<li class="${UI.justSet === s.id ? 'just' : ''}"><button class="setrow" data-act="editSet" data-wid="${w.id}" data-sid="${s.id}"><span class="n">${s.warm ? 'W' : j + 1 - all.slice(0, j).filter(x => x.warm).length}</span><span class="v grow">${bwf ? `${s.w ? '+' + fw(s.w) : 'BW'} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r} <span class="faint small">≈${fw(bwf * (s.bwt || bwNow) + (s.w || 0), 0)} ${U.wu}</span>` : `${fw(s.w)} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r}`}</span>${rec?.pr ? '<span class="pr">PR</span>' : ''}${s.hit === false ? '<span class="missb">Missed</span>' : ''}${s.warm ? '<span class="baseb">Warm-up</span>' : ''}</button></li>`; }).join('')}</ol>` : ''}
@@ -196,6 +202,8 @@ function exBlockHTML(w, name) {
   ${bwf ? `<div class="bwrow"><label class="faint small" for="sb-${k}">Bodyweight</label><input id="sb-${k}" data-keep inputmode="decimal" value="${bwNow ? plain(U.w(bwNow)) : ''}" placeholder="${U.wu}" aria-label="Your bodyweight in ${U.wu}"><span class="faint small">${U.wu} · weight box = <b>both dumbbells</b> total</span><span class="est" id="est-${k}" data-f="${bwf}">${estTxt(bwf, bwNow ? U.w(bwNow) : 0, pre ? U.w(pre.w) : 0)}</span></div>` : ''}
   <div class="addset-b"><button class="missbtn" id="swu-${k}" data-act="toggle" aria-pressed="false">Warm-up</button><button class="missbtn" id="sh-${k}" data-act="toggle" aria-pressed="false">Missed</button><button class="btn" data-act="logSet" data-ex="${esc(name)}">Log set</button></div></section>`;
 }
+A.unlockEx = d => { UI.unlocked = UI.unlocked || new Set(); UI.unlocked.add(keyOf(d.ex)); UI.justDone = null; render(); const b = [...$$('.exb.editing')].find(x => x.querySelector(`[data-ex="${CSS.escape(d.ex)}"]`)); if (b && !REDUCED()) b.animate([{ opacity: .4, transform: 'scale(.98)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'cubic-bezier(.2,.8,.2,1)' }); };
+A.lockEx = d => { if (UI.unlocked) UI.unlocked.delete(keyOf(d.ex)); render(); };
 A.editTarget = d => {
   const t = tgtFor(d.ex); Sheet.tgtEx = d.ex;
   openSheet(`Target: ${d.ex}`, `<div class="field"><span class="lbl">Working sets</span><div class="stepper" style="max-width:220px"><button data-act="step" data-t="tg-s" data-d="-1" aria-label="One fewer set">−</button><input id="tg-s" inputmode="numeric" value="${t.sets}" aria-label="Sets"><button data-act="step" data-t="tg-s" data-d="1" aria-label="One more set">+</button></div></div>
@@ -229,11 +237,12 @@ A.startWorkout = () => {
   const id = newId();
   put('workouts', id, { date: todayStr(), startTs: Date.now(), gymId: gym?.id || null, gymName: gym?.name || '', dayId: day?.id || null, dayName: day?.name || 'Workout', plan, sets: [] });
   UI.session = true; UI.tab = 'train'; UI.planDay = null; $('#view').scrollTop = 0; audioCtx(); wakeLock(); render();
-  if (S().watchReminder !== false) toast('⌚ Start a Strength Training workout on your Apple Watch', { ms: 5000 });
+  if (S().watchReminder !== false) toast('⌚ Start a strength workout on your watch too', { ms: 4000 });
 };
 A.logSet = d => {
   const w = activeWorkout(); if (!w) return;
   const k = slug(d.ex), wIn = num($('#sw-' + k)?.value), r = Math.round(num($('#sr-' + k)?.value) || 0);
+  if (UI.unlocked && UI.unlocked.size) UI.unlocked = new Set([...UI.unlocked].filter(x => x === keyOf(d.ex)));
   if (!r || r < 1) { toast('Enter how many reps you did.', { bad: true }); $('#sr-' + k)?.focus(); return; }
   const hit = $('#sh-' + k)?.getAttribute('aria-pressed') !== 'true', warm = $('#swu-' + k)?.getAttribute('aria-pressed') === 'true';
   const lb = U.toLb(wIn || 0), L = liftByKey(keyOf(d.ex)), bwf = bwFactor(d.ex), bwIn = num($('#sb-' + k)?.value), bwt = bwf ? (bwIn ? U.toLb(bwIn) : (latestWeighin()?.weight || S().lastBw || 0)) : 0;
@@ -290,12 +299,12 @@ A.finishWorkout = async () => {
     return;
   }
   put('workouts', w.id, { ...clone(w), endTs: Date.now() });
-  UI.session = false; A.restSkip(); releaseWake(); render(); showWorkout(w.id, true); setTimeout(() => { confetti({ n: 120 }); countUps($('#sheet')); }, 250);
+  UI.session = false; UI.unlocked = null; A.restSkip(); releaseWake(); render(); showWorkout(w.id, true); setTimeout(() => { confetti({ n: 120 }); countUps($('#sheet')); }, 250);
 };
 A.discardWorkout = async () => {
   const w = activeWorkout(); if (!w) return;
   if (!(await ask(`Discard this workout${(w.sets || []).length ? ` and its ${plural(w.sets.length, 'set')}` : ''}?`, { ok: 'Discard', danger: true }))) return;
-  del('workouts', w.id); UI.session = false; A.restSkip(); releaseWake(); render();
+  del('workouts', w.id); UI.session = false; UI.unlocked = null; A.restSkip(); releaseWake(); render();
 };
 A.showWorkout = d => showWorkout(d.id);
 function showWorkout(id, justFinished = false) {
@@ -310,7 +319,7 @@ function showWorkout(id, justFinished = false) {
     <div class="stats">${dur != null ? `<div class="stat"><span class="k">Time</span><span class="v">${dur}<span class="unit">min</span></span></div>` : ''}<div class="stat"><span class="k">Sets</span><span class="v" data-count="${sets.length}">${sets.length}</span></div><div class="stat"><span class="k">Volume</span><span class="v"><span data-count="${(U.w(vol) / 1000).toFixed(1)}" data-dp="1">${trim(U.w(vol) / 1000, 1)}</span>k<span class="unit">${U.wu}</span></span></div></div>
     ${watchSectionHTML(w, id)}
     ${prs.length ? `<div class="note" style="background:none;padding:0"><span class="pr">${prs.length} PR${prs.length > 1 ? 's' : ''}</span> ${prs.map(s => `${esc(s.ex)} ${fw(s.w)}×${s.r}`).join(', ')}</div>` : ''}
-    <div>${Object.entries(groups).map(([ex, ss]) => `<div class="row" style="align-items:flex-start"><div class="grow"><b>${esc(ex)}</b><div class="muted small">${ss.map(s => `${fw(s.w)}×${s.r}${s.hit === false ? ' (missed)' : ''}${setRec(idx.get(keyOf(s.ex)), s.id)?.pr ? ' PR' : ''}`).join(' · ')}</div></div></div>`).join('') || '<p class="muted">Marked as a gym day.</p>'}</div>
+    <div>${Object.entries(groups).map(([ex, ss]) => `<div class="pastex"><div class="pastex-h"><b>${esc(ex)}</b>${activeWorkout()?.id === id ? '' : `<button class="linkbtn" data-act="addPastSet" data-wid="${id}" data-ex="${esc(ex)}">+ Add set</button>`}</div><div class="schips">${ss.map(s => `<button class="schip${s.warm ? ' w' : ''}${s.hit === false ? ' x' : ''}" data-act="editSet" data-wid="${id}" data-sid="${s.id}" data-back="1" aria-label="Edit set ${fw(s.w)} by ${s.r}">${s.warm ? '<i>W</i>' : ''}${fw(s.w)}×${s.r}${setRec(idx.get(keyOf(s.ex)), s.id)?.pr ? ' <b class="pr">PR</b>' : ''}${s.hit === false ? ' ✗' : ''}</button>`).join('')}</div></div>`).join('') + (Object.keys(groups).length ? '<p class="faint small" style="margin:6px 0 0">Tap a set to fix it.</p>' : '') || '<p class="muted">Marked as a gym day.</p>'}</div>
     <button class="linkbtn danger center" data-act="deleteWorkout" data-id="${id}">Delete this workout</button>`);
 }
 A.deleteWorkout = d => {
@@ -439,7 +448,7 @@ function scheduleBeeps() {
 }
 function startRest(sec, next) {
   audioCtx(); Rest.total = sec || S().restSec || 120; Rest.end = Date.now() + Rest.total * 1000; Rest.next = next || ''; scheduleBeeps(); pushScheduleRest(Rest.total, Rest.next); saveRest();
-  if (!pushOn() && !lsGet('onpaper.pushHint')) { lsSet('onpaper.pushHint', '1'); setTimeout(() => toast('Want rest alerts on your lock screen & Watch? Turn them on in Settings ⚙️', { ms: 5200 }), 900); }
+  if (!pushOn() && !lsGet('onpaper.pushHint')) { lsSet('onpaper.pushHint', '1'); setTimeout(() => toast('Want rest alerts on your lock screen & watch? Turn them on in Settings ⚙️', { ms: 5200 }), 900); }
   startRestUI();
 }
 function startRestUI() {
