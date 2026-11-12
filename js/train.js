@@ -150,7 +150,7 @@ function recentWorkoutsHTML() {
   const idx = liftIndex();
   return `<section class="card flush"><h2 class="sec-t" style="padding-top:14px">Recent workouts</h2>${ws.map(w => {
     const prs = (w.sets || []).filter(s => setRec(idx.get(keyOf(s.ex)), s.id)?.pr).length;
-    return `<button class="row" data-act="showWorkout" data-id="${w.id}"><div class="grow"><b>${esc(w.dayName || 'Workout')}</b>${prs ? ` <span class="pr">${prs} PR${prs > 1 ? 's' : ''}</span>` : ''}<div class="faint small">${fmtDate(w.date)}${w.gymName ? ' · ' + esc(w.gymName) : ''} · ${plural(w.sets.length, 'set')}</div></div><span class="faint">${ICON.chevR.replace('<svg', '<svg width="18" height="18"')}</span></button>`;
+    return `<button class="row" data-act="showWorkout" data-id="${w.id}"><div class="grow"><b>${esc(w.dayName || 'Workout')}</b>${prs ? ` <span class="pr">${prs} PR${prs > 1 ? 's' : ''}</span>` : ''}<div class="faint small">${fmtDate(w.date)}${w.gymName ? ' · ' + esc(w.gymName) : ''} · ${plural(w.sets.length, 'set')}${w.watch ? ' · ⌚ ' + esc(watchLine(w)) : ''}</div></div><span class="faint">${ICON.chevR.replace('<svg', '<svg width="18" height="18"')}</span></button>`;
   }).join('')}</section>`;
 }
 
@@ -273,6 +273,7 @@ function showWorkout(id, justFinished = false) {
   openSheet(justFinished ? 'Workout saved' : (w.dayName || 'Workout'), `
     <p class="muted">${fmtDay(w.date)}${w.gymName ? ' · ' + esc(w.gymName) : ''}</p>
     <div class="stats">${dur != null ? `<div class="stat"><span class="k">Time</span><span class="v">${dur}<span class="unit">min</span></span></div>` : ''}<div class="stat"><span class="k">Sets</span><span class="v">${sets.length}</span></div><div class="stat"><span class="k">Volume</span><span class="v">${trim(U.w(vol) / 1000, 1)}k<span class="unit">${U.wu}</span></span></div></div>
+    ${watchSectionHTML(w, id)}
     ${prs.length ? `<div class="note" style="background:none;padding:0"><span class="pr">${prs.length} PR${prs.length > 1 ? 's' : ''}</span> ${prs.map(s => `${esc(s.ex)} ${fw(s.w)}×${s.r}`).join(', ')}</div>` : ''}
     <div>${Object.entries(groups).map(([ex, ss]) => `<div class="row" style="align-items:flex-start"><div class="grow"><b>${esc(ex)}</b><div class="muted small">${ss.map(s => `${fw(s.w)}×${s.r}${s.hit === false ? ' (missed)' : ''}${setRec(idx.get(keyOf(s.ex)), s.id)?.pr ? ' PR' : ''}`).join(' · ')}</div></div></div>`).join('') || '<p class="muted">Marked as a gym day.</p>'}</div>
     <button class="linkbtn danger center" data-act="deleteWorkout" data-id="${id}">Delete this workout</button>`);

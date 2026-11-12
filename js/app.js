@@ -12,6 +12,7 @@ A.tab = d => {
   render();
 };
 $('#file-food').addEventListener('change', e => onFoodPhoto(e.target.files && e.target.files[0]));
+$('#file-watch').addEventListener('change', e => onWatchPhoto(e.target.files && e.target.files[0]));
 $('#file-photo').addEventListener('change', e => onPhotoChosen(e.target.files && e.target.files[0]));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('#dialog').hidden) return; closeSheet(); } });
 setInterval(() => { if (UI.tab === 'train' && UI.session && $('#sheet').hidden) scheduleRender(); }, 60000);
