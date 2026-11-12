@@ -10,6 +10,7 @@ Views.home = {
     if (!hasAny || !gyms().length || !splitDays().length) h += setupHTML(lw);
     const since = lw ? daysBetween(lw.date, todayStr()) : null;
     if (lw && since >= (s.nudgeDays || 3)) h += `<div class="nudge"><p>It's been <b>${since} days</b> since your last weigh-in.</p><button class="btn sm" data-act="logWeighin">Weigh in</button></div>`;
+    if (backupDue()) h += `<div class="nudge"><p>${lastBackup() ? `Last backup was <b>${daysBetween(lastBackup(), todayStr())} days ago</b>.` : 'You haven\'t backed up yet.'} Save a copy to iCloud in case something happens to your phone.</p><button class="btn sm" data-act="backupNow">Back up</button></div>`;
     if (w) h += `<section class="card"><div class="card-h"><div><div class="eyebrow">Workout in progress</div><h2 class="lift-h" style="font-size:34px">${esc(w.dayName || 'Workout')}</h2><p class="muted small">${plural((w.sets || []).length, 'set')} · started ${fmtClock(w.startTs)}</p></div><button class="btn" data-act="resumeWorkout">Resume</button></div></section>`;
     else { const nd = nextDay(), g = activeGym(); if (nd) h += `<section class="card next"><div class="eyebrow">Up next${g ? ' · ' + esc(g.name) : ''}</div><h2>${esc(nd.name)}</h2><p class="muted small">${esc(planFor(nd, g).map(p => p.use).filter(Boolean).slice(0, 5).join(' · '))}</p><button class="btn block" data-act="startFromHome">Start ${esc(nd.name)}</button></section>`; }
     h += `<div class="tiles">${bwTile(lw)}${weekTile()}${foodTile()}${big3Tile()}</div>`;
@@ -65,6 +66,8 @@ A.openSettings = () => {
     <div class="field"><span class="lbl">Default rest between sets</span><div class="seg">${chipSeg('rest', [[60, '1:00'], [90, '1:30'], [120, '2:00'], [180, '3:00'], [240, '4:00']], s.restSec)}</div></div>
     <div class="fields"><div class="field"><label class="lbl" for="st-cal">Daily calories</label><input id="st-cal" name="cal" inputmode="numeric" value="${s.calTarget}"></div><div class="field"><label class="lbl" for="st-p">Daily protein (g)</label><input id="st-p" name="prot" inputmode="numeric" value="${s.proteinTarget}"></div></div>
     <div class="field"><span class="lbl">Remind me to weigh in after</span><div class="seg">${chipSeg('nudge', [[1, '1 day'], [2, '2'], [3, '3'], [5, '5'], [7, '7']], s.nudgeDays)}</div></div>
+    <div class="field"><span class="lbl">Muscle diagrams show</span><div class="seg">${chipSeg('bodym', [['male', 'Male body'], ['female', 'Female body']], s.bodyModel || 'male')}</div></div>
+    <div class="field"><span class="lbl">Apple Watch reminder when a workout starts</span><div class="seg">${chipSeg('watch', [['on', 'On'], ['off', 'Off']], s.watchReminder === false ? 'off' : 'on')}</div></div>
     <div class="fields three">${sel('squat', 'Squat')}${sel('bench', 'Bench')}${sel('deadlift', 'Deadlift')}</div>
     <p class="faint small" style="margin-top:-6px">Which of your lifts count toward the Big 3 total.</p>
     <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:4px 0">
@@ -74,14 +77,15 @@ A.openSettings = () => {
     <button class="btn block" data-act="saveSettings">Save settings</button>
     <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:4px 0">
     <div class="field"><span class="lbl">Your data</span><p class="muted small">Everything is saved on this phone only. Download a backup now and then, and restore it if you switch phones. Photos aren't included.</p></div>
-    <div class="btnrow"><button class="btn ghost" data-act="exportData">Download backup</button><button class="btn ghost" data-act="importData">Restore backup</button></div>`);
+    <button class="btn block" data-act="backupNow">Back up now</button><p class="faint small" style="margin-top:-6px">Then tap <b>Save to Files → iCloud Drive</b>. ${lastBackup() ? `Last backup: ${fmtDate(lastBackup())}.` : 'No backups yet.'}</p><button class="btn ghost block" data-act="importData">Restore from a backup</button>
+    <p class="faint small center">On Paper v${APP_VERSION}</p>`);
 };
 const chipSeg = (group, opts, cur) => opts.map(([v, l]) => `<button data-act="pick" data-group="${group}" data-value="${v}" aria-pressed="${String(v) === String(cur)}">${l}</button>`).join('');
 A.saveSettings = () => {
   const root = $('#sheet'), cal = num(fval('cal')), prot = num(fval('prot'));
   saveSettings({
     unit: picked(root, 'unit') || 'imperial', weeklyGoal: +picked(root, 'goal') || 4, restSec: +picked(root, 'rest') || 120,
-    calTarget: cal > 0 ? Math.round(cal) : S().calTarget, proteinTarget: prot > 0 ? Math.round(prot) : S().proteinTarget, nudgeDays: +picked(root, 'nudge') || 3,
+    calTarget: cal > 0 ? Math.round(cal) : S().calTarget, proteinTarget: prot > 0 ? Math.round(prot) : S().proteinTarget, nudgeDays: +picked(root, 'nudge') || 3, bodyModel: picked(root, 'bodym') || 'male', watchReminder: picked(root, 'watch') !== 'off',
     big3: { squat: fval('b3squat') || S().big3.squat, bench: fval('b3bench') || S().big3.bench, deadlift: fval('b3deadlift') || S().big3.deadlift },
   });
   try { localStorage.setItem(GEMINI_KEY, fval('gkey')); localStorage.setItem(GEMINI_MODEL, fval('gmodel') || 'gemini-flash-latest'); } catch (e) {}

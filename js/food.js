@@ -29,6 +29,7 @@ Views.food = {
       ${macroBar('Calories', t.cal, s.calTarget, 'kcal')}${macroBar('Protein', t.p, s.proteinTarget, 'g', 'p')}
       <p class="faint small">${t.cal < s.calTarget ? `${trim(s.calTarget - t.cal, 0)} kcal` : 'Calories done'} and ${t.p < s.proteinTarget ? `${trim(s.proteinTarget - t.p, 0)} g protein to go` : 'protein hit'}. Carbs ${trim(t.c, 0)} g · fat ${trim(t.f, 0)} g.</p></section>
     <div class="btnrow${img ? '' : ''}">${img ? `<button class="btn" data-act="foodSnap">${ICON.camera} Snap a label</button>` : ''}${ai ? `<button class="btn ${img ? 'ghost' : ''}" data-act="foodDescribe">${ICON.spark} Describe it</button>` : ''}<button class="btn ghost" data-act="foodManual" ${ai ? '' : 'style="grid-column:1/-1"'}>${ICON.plus} Enter manually</button></div>
+    <button class="btn ghost block" data-act="mealStart" style="margin-top:-4px">🍽 Build a meal</button>
     ${img ? '<p class="faint small" style="margin-top:-6px">Snap a nutrition label for exact numbers, or a photo of your plate for an estimate.</p>' : ''}`;
     const rec = recentFoods();
     if (rec.length) h += `<div class="field"><span class="lbl">Add again</span><div class="chips scroll">${rec.map((it, i) => `<button class="chip" data-act="foodAgain" data-i="${i}">${esc(it.name)} <span class="faint">${trim((it.cal || 0) * (it.qty || 1), 0)}</span></button>`).join('')}</div></div>`;
@@ -38,9 +39,10 @@ Views.food = {
   },
 };
 A.foodDay = d => { const cur = UI.foodDate || todayStr(), nx = addDays(cur, +d.d); if (nx > todayStr()) return; UI.foodDate = nx === todayStr() ? null : nx; render(); };
-A.foodManual = () => foodForm({ name: '', serving: '', cal: '', p: '', c: '', f: '', qty: 1, src: 'manual' });
-A.foodAgain = d => { const it = recentFoods()[+d.i]; if (!it) return; addFoodItem({ ...clone(it), id: newId(), ts: Date.now() }); toast(`Added ${it.name}`); };
-A.foodEdit = d => { const it = (foodDay(UI.foodDate || todayStr()).items || []).find(x => x.id === d.id); if (it) foodForm(clone(it), null, true); };
+A.foodManual = d => { if (!d || d.inmeal !== '1') Sheet.meal = null; foodFormX(); };
+const foodFormX = () => foodForm({ name: '', serving: '', cal: '', p: '', c: '', f: '', qty: 1, src: 'manual' });
+A.foodAgain = d => { const it = recentFoods()[+d.i]; if (!it) return; if (Sheet.meal && d.inmeal === '1') { Sheet.meal.parts.push({ ...clone(it), id: newId() }); return drawMeal(); } addFoodItem({ ...clone(it), id: newId(), ts: Date.now() }); toast(`Added ${it.name}`); };
+A.foodEdit = d => { Sheet.meal = null; const it = (foodDay(UI.foodDate || todayStr()).items || []).find(x => x.id === d.id); if (it) foodForm(clone(it), null, true); };
 function addFoodItem(item) { const date = UI.foodDate || todayStr(), day = clone(foodDay(date)); day.date = date; day.items = [...(day.items || []).filter(x => x.id !== item.id), item]; put('food', date, day); }
 
 function foodForm(it, imgUrl, editing = false) {
@@ -52,7 +54,7 @@ function foodForm(it, imgUrl, editing = false) {
     <div class="field"><label class="lbl" for="fd-q">How many servings</label><div class="chips">${qtyChips.map(q => `<button class="chip" data-act="foodQty" data-q="${q}" aria-pressed="${+it.qty === q}">${q}</button>`).join('')}</div><input id="fd-q" name="qty" inputmode="decimal" value="${it.qty ?? 1}" aria-label="Servings"></div>
     <div class="fields four"><div class="field"><label class="lbl" for="fd-cal">kcal</label><input id="fd-cal" name="cal" inputmode="decimal" value="${it.cal ?? ''}"></div><div class="field"><label class="lbl" for="fd-p">Protein</label><input id="fd-p" name="p" inputmode="decimal" value="${it.p ?? ''}"></div><div class="field"><label class="lbl" for="fd-c">Carbs</label><input id="fd-c" name="c" inputmode="decimal" value="${it.c ?? ''}"></div><div class="field"><label class="lbl" for="fd-f">Fat</label><input id="fd-f" name="f" inputmode="decimal" value="${it.f ?? ''}"></div></div>
     <p class="faint small">Numbers are per serving. Protein, carbs and fat are in grams.</p>
-    <button class="btn block" data-act="foodSave">${editing ? 'Save' : 'Add to ' + (UI.foodDate ? fmtDate(UI.foodDate) : 'today')}</button>
+    <button class="btn block" data-act="foodSave">${Sheet.meal ? 'Add to meal' : editing ? 'Save' : 'Add to ' + (UI.foodDate ? fmtDate(UI.foodDate) : 'today')}</button>${Sheet.meal ? '<button class="linkbtn center" data-act="mealBack">Back to meal</button>' : ''}
     ${editing ? `<button class="linkbtn danger center" data-act="foodDelete" data-id="${it.id}">Remove</button>` : ''}`;
   Sheet.food = it;
   if ($('#sheet').hidden) openSheet(editing ? 'Edit food' : 'Add food', html); else { sheetTitle(editing ? 'Edit food' : 'Check and add'); sheetBody(html); }
@@ -62,6 +64,7 @@ A.foodSave = () => {
   const name = fval('name'); if (!name) return toast('Name the food.', { bad: true });
   const cal = num(fval('cal')); if (cal == null) return toast('Enter the calories.', { bad: true });
   const it = Sheet.food || {};
+  if (Sheet.meal) { Sheet.meal.parts.push({ id: newId(), name, serving: fval('serving'), qty: num(fval('qty')) || 1, cal, p: num(fval('p')) || 0, c: num(fval('c')) || 0, f: num(fval('f')) || 0, src: it.src || 'manual' }); return drawMeal(); }
   addFoodItem({ id: it.id || newId(), name, serving: fval('serving'), qty: num(fval('qty')) || 1, cal, p: num(fval('p')) || 0, c: num(fval('c')) || 0, f: num(fval('f')) || 0, src: it.src || 'manual', ts: it.ts || Date.now() });
   closeSheet(); toast(`${name} added`);
 };
@@ -103,15 +106,16 @@ function aiErrorText(e) {
 }
 function aiWorking(title, imgUrl, label) {
   const ctl = new AbortController(); Sheet.ai = ctl;
-  openSheet(title, `${imgUrl ? `<img class="prev-img" src="${imgUrl}" alt="Your photo">` : ''}<p class="thinking" id="ai-st">${label}</p><button class="btn ghost block" data-act="aiStop">Stop</button>`, { onClose: () => ctl.abort() });
+  const body = `${imgUrl ? `<img class="prev-img" src="${imgUrl}" alt="Your photo">` : ''}<p class="thinking" id="ai-st">${label}</p><button class="btn ghost block" data-act="aiStop">Stop</button>`;
+  if (Sheet.meal && !$('#sheet').hidden) { sheetTitle(title); sheetBody(body); Sheet.onClose = () => ctl.abort(); } else openSheet(title, body, { onClose: () => ctl.abort() });
   return ctl;
 }
-A.aiStop = () => { Sheet.ai?.abort(); closeSheet(); };
+A.aiStop = () => { Sheet.ai?.abort(); if (Sheet.meal) drawMeal(); else closeSheet(); };
 function aiFailed(e, imgUrl) {
   const msg = aiErrorText(e); if (msg == null) return;
-  sheetBody(`${imgUrl ? `<img class="prev-img" src="${imgUrl}" alt="Your photo">` : ''}<p class="tip-line">${esc(msg)}</p><button class="btn block" data-act="foodManual">Enter manually</button>`);
+  sheetBody(`${imgUrl ? `<img class="prev-img" src="${imgUrl}" alt="Your photo">` : ''}<p class="tip-line">${esc(msg)}</p><button class="btn block" data-act="foodManual" data-inmeal="${Sheet.meal ? 1 : 0}">Enter manually</button>${Sheet.meal ? '<button class="linkbtn center" data-act="mealBack">Back to meal</button>' : ''}`);
 }
-A.foodSnap = () => { const i = $('#file-food'); i.value = ''; i.click(); };
+A.foodSnap = d => { if (!d || d.inmeal !== '1') Sheet.meal = null; const i = $('#file-food'); i.value = ''; i.click(); };
 async function onFoodPhoto(file) {
   if (!file || !CAP.sample) return;
   const blob = await toJpeg(file, 1600, 0.88), url = URL.createObjectURL(blob);
@@ -119,12 +123,13 @@ async function onFoodPhoto(file) {
   try {
     const out = await CAP.sample.json(PROMPT_PHOTO, { images: [blob], signal: ctl.signal });
     if (ctl.signal.aborted) return;
-    if (!out || out.kind === 'none') return sheetBody(`<img class="prev-img" src="${url}" alt="Your photo"><p class="tip-line">${esc(out?.note || "That doesn't look like food or a nutrition label.")}</p><button class="btn block" data-act="foodSnap">Try another photo</button><button class="btn ghost block" data-act="foodManual">Enter manually</button>`);
+    if (!out || out.kind === 'none') return sheetBody(`<img class="prev-img" src="${url}" alt="Your photo"><p class="tip-line">${esc(out?.note || "That doesn't look like food or a nutrition label.")}</p><button class="btn block" data-act="foodSnap" data-inmeal="${Sheet.meal ? 1 : 0}">Try another photo</button><button class="btn ghost block" data-act="foodManual" data-inmeal="${Sheet.meal ? 1 : 0}">Enter manually</button>`);
     foodForm(fromAI(out, out.kind === 'label' ? 'label' : 'ai'), url);
   } catch (e) { aiFailed(e, url); }
 }
-A.foodDescribe = () => {
-  openSheet('Describe what you ate', `<div class="field"><label class="lbl" for="fd-txt">What and how much</label><textarea id="fd-txt" name="txt" placeholder="e.g. Chipotle bowl with double chicken, white rice, black beans, cheese and mild salsa"></textarea></div><button class="btn block" data-act="foodEstimate">${ICON.spark} Estimate</button><p class="faint small">Gemini estimates from typical portions and published nutrition info. Check the numbers before adding.</p>`, { onMount(L) { setTimeout(() => $('#fd-txt', L)?.focus(), 280); } });
+A.foodDescribe = d => {
+  if (!d || d.inmeal !== '1') Sheet.meal = null;
+  (Sheet.meal ? (t, b) => { sheetTitle(t); sheetBody(b); } : openSheet)('Describe what you ate', `<div class="field"><label class="lbl" for="fd-txt">What and how much</label><textarea id="fd-txt" name="txt" placeholder="e.g. Chipotle bowl with double chicken, white rice, black beans, cheese and mild salsa"></textarea></div><button class="btn block" data-act="foodEstimate">${ICON.spark} Estimate</button>${Sheet.meal ? '<button class="linkbtn center" data-act="mealBack">Back to meal</button>' : ''}<p class="faint small">Gemini estimates from typical portions and published nutrition info. Check the numbers before adding.</p>`, { onMount(L) { setTimeout(() => $('#fd-txt', L)?.focus(), 280); } });
 };
 A.foodEstimate = async () => {
   const txt = fval('txt'); if (!txt) return toast('Describe the food first.', { bad: true });
@@ -135,4 +140,29 @@ A.foodEstimate = async () => {
     if (ctl.signal.aborted) return;
     foodForm(fromAI(out || {}, 'ai'));
   } catch (e) { aiFailed(e); }
+};
+
+/* ---------- build a meal: several items logged as one ---------- */
+A.mealStart = () => { Sheet.meal = { name: '', parts: [] }; openSheet('Build a meal', '', { onClose: () => { Sheet.meal = null; } }); drawMeal(); };
+A.mealBack = () => drawMeal();
+function keepMealName() { const n = $('#ml-n'); if (n && Sheet.meal) Sheet.meal.name = n.value.trim(); }
+function drawMeal() {
+  const m = Sheet.meal; if (!m) return; sheetTitle('Build a meal');
+  const t = m.parts.reduce((a, it) => { const q = it.qty || 1; a.cal += (it.cal || 0) * q; a.p += (it.p || 0) * q; a.c += (it.c || 0) * q; a.f += (it.f || 0) * q; return a; }, { cal: 0, p: 0, c: 0, f: 0 });
+  const ai = !!CAP.sample, img = ai && CAP.sampleImages, rec = recentFoods();
+  sheetBody(`<div class="field"><label class="lbl" for="ml-n">Meal name</label><input id="ml-n" name="mealname" value="${esc(m.name)}" placeholder="e.g. Post-workout dinner" autocapitalize="sentences"></div>
+    <div class="card" style="background:var(--s2);padding:12px"><div class="stats"><div class="stat"><span class="k">Calories</span><span class="v">${trim(t.cal, 0)}</span></div><div class="stat"><span class="k">Protein</span><span class="v">${trim(t.p, 0)}<span class="unit">g</span></span></div><div class="stat"><span class="k">Items</span><span class="v">${m.parts.length}</span></div></div></div>
+    ${m.parts.length ? `<div>${m.parts.map((it, i) => `<div class="row"><div class="grow"><b>${esc(it.name)}</b><div class="faint small">${it.qty && it.qty !== 1 ? trim(it.qty, 2) + ' × ' : ''}${esc(it.serving || '1 serving')} · ${trim((it.cal || 0) * (it.qty || 1), 0)} kcal · ${trim((it.p || 0) * (it.qty || 1), 0)} g protein</div></div><button class="iconbtn sm" data-act="mealDel" data-i="${i}" aria-label="Remove ${esc(it.name)}">${ICON.x}</button></div>`).join('')}</div>` : '<p class="muted small">Add each part of the meal: snap its label, describe it, or type it in.</p>'}
+    <div class="btnrow">${img ? `<button class="btn ghost" data-act="mealAdd" data-how="snap">${ICON.camera} Snap label</button>` : ''}${ai ? `<button class="btn ghost" data-act="mealAdd" data-how="describe">${ICON.spark} Describe</button>` : ''}<button class="btn ghost" data-act="mealAdd" data-how="manual" ${img ? '' : 'style="grid-column:1/-1"'}>${ICON.plus} Type it in</button></div>
+    ${rec.length ? `<div class="field"><span class="lbl">Add something you've had before</span><div class="chips scroll">${rec.map((it, i) => `<button class="chip" data-act="foodAgain" data-inmeal="1" data-i="${i}">${esc(it.name)}</button>`).join('')}</div></div>` : ''}
+    <button class="btn block" data-act="mealSave" ${m.parts.length ? '' : 'disabled'}>Log meal${m.parts.length ? ` · ${trim(t.cal, 0)} kcal` : ''}</button>`);
+}
+A.mealAdd = d => { keepMealName(); if (d.how === 'snap') A.foodSnap({ inmeal: '1' }); else if (d.how === 'describe') A.foodDescribe({ inmeal: '1' }); else A.foodManual({ inmeal: '1' }); };
+A.mealDel = d => { keepMealName(); Sheet.meal.parts.splice(+d.i, 1); drawMeal(); };
+A.mealSave = () => {
+  keepMealName(); const m = Sheet.meal; if (!m || !m.parts.length) return;
+  const sum = k => Math.round(m.parts.reduce((a, it) => a + (it[k] || 0) * (it.qty || 1), 0) * 10) / 10;
+  const name = m.name || (m.parts.length === 1 ? m.parts[0].name : 'Meal');
+  addFoodItem({ id: newId(), name, serving: m.parts.map(p => p.name).join(' + ').slice(0, 120), qty: 1, cal: sum('cal'), p: sum('p'), c: sum('c'), f: sum('f'), src: 'meal', parts: m.parts, ts: Date.now() });
+  Sheet.meal = null; closeSheet(); toast(`${name} logged`);
 };

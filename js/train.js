@@ -110,7 +110,7 @@ function startCardHTML() {
     h += `<div class="plan">${plan.map(p => {
       const last = p.use ? lastSessionSets(p.use) : null;
       const lastTxt = last ? `${fw(last.sets[0].w)}×${last.sets[0].r}` : '';
-      if (!p.swapped) return `<div class="row"><span class="grow">${esc(p.name)}</span><span class="faint small rnum">${lastTxt}</span></div>`;
+      if (!p.swapped) return `<div class="row"><span class="grow">${esc(p.name)}</span><span class="faint small rnum">${lastTxt}</span>${musBtn(p.name)}</div>`;
       return `<div class="row"><span class="grow">${p.use ? `<s>${esc(p.name)}</s> → ${esc(p.use)}` : `<s>${esc(p.name)}</s>`}<div class="faint small">${p.use ? 'Swapped: not at this gym' : 'Skipped: nothing similar at this gym'}</div></span><span class="faint small rnum">${lastTxt}</span></div>`;
     }).join('')}</div>`;
   }
@@ -166,7 +166,7 @@ function exBlockHTML(w, name) {
   const k = slug(name), sets = (w.sets || []).filter(s => keyOf(s.ex) === keyOf(name)), L = liftByKey(keyOf(name));
   const prev = lastSessionSets(name, w.id), lastSet = sets[sets.length - 1] || prev?.sets[0];
   const best = L ? L.e1Set : null;
-  return `<section class="exb"><header class="exb-h"><h3>${esc(name)}</h3><button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
+  return `<section class="exb"><header class="exb-h"><h3 class="grow">${esc(name)}</h3>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
   ${prev || best ? `<p class="faint small">${prev ? `Last time (${fmtDate(prev.date)}): ${prev.sets.map(s => `${fw(s.w)}×${s.r}`).join(', ')}` : ''}${prev && best ? '<br>' : ''}${best ? `Best: ${fw(best.w)}×${best.r} (est. 1RM ${fw(L.e1, 0)})` : ''}</p>` : ''}
   ${sets.length ? `<ol class="sets">${sets.map((s, j) => { const rec = setRec(L, s.id); return `<li><button class="setrow" data-act="editSet" data-wid="${w.id}" data-sid="${s.id}"><span class="n">${j + 1}</span><span class="v grow">${fw(s.w)} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r}</span>${rec?.pr ? '<span class="pr">PR</span>' : ''}${s.hit === false ? '<span class="missb">Missed</span>' : ''}</button></li>`; }).join('')}</ol>` : ''}
   <div class="addset"><input id="sw-${k}" data-keep inputmode="decimal" value="${lastSet ? plain(U.w(lastSet.w)) : ''}" placeholder="${U.wu}" aria-label="Weight in ${U.wu} for ${esc(name)}"><span class="x">×</span><input id="sr-${k}" data-keep inputmode="numeric" value="${lastSet ? lastSet.r : ''}" placeholder="reps" aria-label="Reps for ${esc(name)}"><button class="missbtn" id="sh-${k}" data-act="toggle" aria-pressed="false" aria-label="Mark this set as missed">Miss</button><button class="btn sm" style="min-height:46px" data-act="logSet" data-ex="${esc(name)}">Log</button></div></section>`;
@@ -182,6 +182,7 @@ A.startWorkout = () => {
   const id = newId();
   put('workouts', id, { date: todayStr(), startTs: Date.now(), gymId: gym?.id || null, gymName: gym?.name || '', dayId: day?.id || null, dayName: day?.name || 'Workout', plan, sets: [] });
   UI.session = true; UI.tab = 'train'; UI.planDay = null; $('#view').scrollTop = 0; audioCtx(); wakeLock(); render();
+  if (S().watchReminder !== false) toast('⌚ Start a Strength Training workout on your Apple Watch', { ms: 5000 });
 };
 A.logSet = d => {
   const w = activeWorkout(); if (!w) return;
@@ -278,7 +279,7 @@ function exListHTML(q) {
   const gym = Sheet.pickGym, ex = new Set(Sheet.pickExclude), qq = keyOf(q);
   const all = [...library().values()].filter(e => !ex.has(keyOf(e.name)) && (!qq || keyOf(e.name).includes(qq) || keyOf(e.group).includes(qq)));
   const avail = all.filter(e => available(e.name, gym)), missing = qq ? all.filter(e => !available(e.name, gym)) : [];
-  const row = (e, dim) => `<button class="row" data-act="pickEx" data-name="${esc(e.name)}" ${dim ? 'style="opacity:.5"' : ''}><span class="grow">${esc(e.name)}</span><span class="faint small">${esc(e.equip.map(q => EQ_LABEL[q]).join(', ') || (e.custom ? 'Custom' : 'No equipment'))}</span></button>`;
+  const row = (e, dim) => `<div class="row" style="padding:0;${dim ? 'opacity:.5' : ''}"><button class="grow" style="padding:12px 0;text-align:left" data-act="pickEx" data-name="${esc(e.name)}">${esc(e.name)}<div class="faint small">${esc(e.equip.map(q => EQ_LABEL[q]).join(', ') || (e.custom ? 'Custom' : 'No equipment'))}</div></button>${musBtn(e.name)}</div>`;
   let h = '';
   if (qq && !library().has(qq)) h += `<button class="row" data-act="newEx" data-name="${esc(q.trim())}"><span class="grow"><b>Add “${esc(q.trim())}”</b><div class="faint small">New custom exercise</div></span>${ICON.plus.replace('<svg', '<svg width="20" height="20"')}</button>`;
   if (!qq && Sheet.pickSuggested.length) h += `<div class="grp">Suggested swaps</div>` + Sheet.pickSuggested.map(n => row(library().get(keyOf(n)) || { name: n, equip: [] })).join('');
@@ -342,7 +343,7 @@ function drawDay(i) {
   sheetBody(`<button class="back" data-act="dayDone">${ICON.chevL.replace('<svg', '<svg width="18" height="18"')} All days</button>
     <div class="field"><label class="lbl" for="dn">Day name</label><input id="dn" name="dayname" value="${esc(d.name)}" autocapitalize="words"></div>
     <div class="field"><span class="lbl">Muscle groups</span><div class="chips">${GROUPS.map(g => `<button class="chip" data-act="dayGroup" data-g="${g}" aria-pressed="${(d.groups || []).includes(g)}">${g}</button>`).join('')}</div></div>
-    <div class="field"><span class="lbl">Exercises, in order</span>${(d.exercises || []).length ? `<div>${d.exercises.map((n, j) => `<div class="row" style="padding:6px 0;min-height:0"><span class="grow">${esc(n)}</span><div class="reorder"><button class="iconbtn sm" data-act="dayExMove" data-j="${j}" data-d="-1" aria-label="Move ${esc(n)} up">${ICON.up}</button><button class="iconbtn sm" data-act="dayExMove" data-j="${j}" data-d="1" aria-label="Move ${esc(n)} down">${ICON.down}</button><button class="iconbtn sm" data-act="dayExDel" data-j="${j}" aria-label="Remove ${esc(n)}">${ICON.x}</button></div></div>`).join('')}</div>` : '<p class="muted small">None yet. Add some below.</p>'}</div>
+    <div class="field"><span class="lbl">Exercises, in order</span>${(d.exercises || []).length ? `<div>${d.exercises.map((n, j) => `<div class="row" style="padding:6px 0;min-height:0"><span class="grow">${esc(n)}</span>${musBtn(n)}<div class="reorder"><button class="iconbtn sm" data-act="dayExMove" data-j="${j}" data-d="-1" aria-label="Move ${esc(n)} up">${ICON.up}</button><button class="iconbtn sm" data-act="dayExMove" data-j="${j}" data-d="1" aria-label="Move ${esc(n)} down">${ICON.down}</button><button class="iconbtn sm" data-act="dayExDel" data-j="${j}" aria-label="Remove ${esc(n)}">${ICON.x}</button></div></div>`).join('')}</div>` : '<p class="muted small">None yet. Add some below.</p>'}</div>
     <div class="field"><span class="lbl">Add exercises${(d.groups || []).length ? '' : ' (pick muscle groups first, or search)'}</span><div class="chips">${opts.map(e => `<button class="chip" data-act="dayExAdd" data-name="${esc(e.name)}">${ICON.plus.replace('<svg', '<svg width="14" height="14"')} ${esc(e.name)}</button>`).join('')}<button class="chip" data-act="dayExSearch">Search all…</button></div></div>
     <button class="btn block" data-act="dayDone">Done</button>`);
 }
