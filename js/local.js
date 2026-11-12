@@ -35,7 +35,7 @@ window.addEventListener('pagehide', () => { if (saveT) { clearTimeout(saveT); ID
 async function initStore() {
   try {
     const snap = await IDB.get('kv', 'state');
-    if (snap) { Store.settings = { ...DEFAULTS, ...(snap.settings || {}) }; for (const c of COLLS) Store.docs[c] = (snap.docs && snap.docs[c]) || {}; }
+    if (snap) { Store.settings = { ...DEFAULTS, ...(snap.settings || {}) }; if (snap.settings && snap.settings.buddy === undefined) Store.settings.buddy = true; /* buddy used to default on */ for (const c of COLLS) Store.docs[c] = (snap.docs && snap.docs[c]) || {}; }
     for (const k of await IDB.keys('photos')) { const b = await IDB.get('photos', k); if (b) Store.blobs[k] = URL.createObjectURL(b); }
     Store.mode = 'local'; Store.note = '';
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}

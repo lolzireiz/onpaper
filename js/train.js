@@ -29,6 +29,9 @@ const LIBRARY = [
   ['Hip Thrust', 'Glutes', ['barbell', 'bench']], ['Machine Hip Thrust', 'Glutes', ['hipthrust']], ['Cable Kickback', 'Glutes', ['cable']], ['Hip Abduction', 'Glutes', ['abductor']],
   ['Standing Calf Raise', 'Calves', ['calf']], ['Calf Extension', 'Calves', ['calf']], ['Dumbbell Standing Calf Raise', 'Calves', ['db']], ['Seated Calf Raise', 'Calves', ['calf']], ['Leg Press Calf Raise', 'Calves', ['legpress']], ['Smith Calf Raise', 'Calves', ['smith']],
   ['Hanging Leg Raise', 'Core', ['pullup']], ['Cable Crunch', 'Core', ['cable']], ['Plank', 'Core', []], ['Decline Sit-up', 'Core', ['bench']],
+  ['Farmer Carry', 'Core', ['db']], ['Cable Woodchop', 'Core', ['cable']], ['Pallof Press', 'Core', ['cable']], ['Dead Bug', 'Core', []],
+  ['Jump Squat', 'Quads', []], ['Lateral Bounds', 'Quads', []], ['Lateral Lunge', 'Quads', ['db']], ['Step-up', 'Quads', ['db', 'bench']],
+  ['Single-Leg RDL', 'Hamstrings', ['db']], ['Tibialis Raise', 'Calves', []],
 ].map(([name, group, equip]) => ({ name, group, equip }));
 const TEMPLATES = {
   ppl: { label: 'Push / Pull / Legs', days: [
@@ -111,7 +114,7 @@ function startCardHTML() {
       const last = p.use ? lastSessionSets(p.use) : null;
       const lastTxt = last ? `${fw(last.sets[0].w)}×${last.sets[0].r}` : '';
       const tg = tgtFor(p.use || p.name);
-      if (!p.swapped) return `<div class="row"><span class="grow">${esc(p.name)} <span class="faint small">${tg.sets}×${esc(tg.reps)}</span></span><span class="faint small rnum">${lastTxt}</span>${musBtn(p.name)}</div>`;
+      if (!p.swapped) return `<div class="row"><span class="grow">${esc(p.name)}${goalDot(p.name)} <span class="faint small">${tg.sets}×${esc(tg.reps)}</span></span><span class="faint small rnum">${lastTxt}</span>${musBtn(p.name)}</div>`;
       return `<div class="row"><span class="grow">${p.use ? `<s>${esc(p.name)}</s> → ${esc(p.use)}` : `<s>${esc(p.name)}</s>`}<div class="faint small">${p.use ? 'Swapped: not at this gym' : 'Skipped: nothing similar at this gym'}</div></span><span class="faint small rnum">${lastTxt}</span></div>`;
     }).join('')}</div>`;
   }
@@ -185,7 +188,7 @@ function exBlockHTML(w, name) {
   const prev = lastSessionSets(name, w.id), sug = !all.length ? suggestion(w, name) : null, last = all[all.length - 1];
   const pre = last ? { w: last.w, r: last.r } : sug ? sug : prev ? { w: prev.sets.filter(s => !s.warm)[0]?.w ?? prev.sets[0].w, r: prev.sets[0].r } : null;
   const step = weightStep(name), bwf = bwFactor(name), bwNow = latestWeighin()?.weight || S().lastBw || 0;
-  return `<section class="exb${done ? ' done' : ''}${UI.justDone === keyOf(name) ? ' just-done' : ''}"><header class="exb-h"><div class="grow"><h3>${done ? '<span style="color:var(--ok)">✓</span> ' : ''}${esc(name)}</h3><button class="faint small" style="text-align:left;padding:2px 0" data-act="editTarget" data-ex="${esc(name)}" aria-label="Change target for ${esc(name)}">Target <u style="text-decoration-style:dotted;text-underline-offset:3px">${t.sets} × ${esc(t.reps)}</u> · <b style="color:${done ? 'var(--ok)' : 'var(--tx2)'}">${work.length}/${t.sets} sets</b> ✎</button></div>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
+  return `<section class="exb${done ? ' done' : ''}${UI.justDone === keyOf(name) ? ' just-done' : ''}"><header class="exb-h"><div class="grow"><h3>${done ? '<span style="color:var(--ok)">✓</span> ' : ''}${esc(name)}</h3><button class="faint small" style="text-align:left;padding:2px 0" data-act="editTarget" data-ex="${esc(name)}" aria-label="Change target for ${esc(name)}">Target <u style="text-decoration-style:dotted;text-underline-offset:3px">${t.sets} × ${esc(t.reps)}</u> · <b style="color:${done ? 'var(--ok)' : 'var(--tx2)'}">${work.length}/${t.sets} sets</b> ✎</button>${exHelps(name).length ? `<div>${goalBadges(name)}</div>` : ''}</div>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
   ${prev ? `<p class="faint small">Last time (${fmtDate(prev.date)}): ${prev.sets.map(s => `${s.warm ? '<span style="opacity:.6">' : ''}${fw(s.w)}×${s.r}${s.hit === false ? '✗' : ''}${s.warm ? '</span>' : ''}`).join(', ')}</p>` : ''}
   ${sug ? `<p class="small" style="background:rgba(51,146,245,.12);color:#9cc8ff;border-radius:10px;padding:8px 10px"><b>Try ${fw(sug.w)} × ${sug.r}.</b> ${esc(sug.why)}</p>` : ''}
   ${all.length ? `<ol class="sets">${all.map((s, j) => { const rec = setRec(L, s.id); return `<li class="${UI.justSet === s.id ? 'just' : ''}"><button class="setrow" data-act="editSet" data-wid="${w.id}" data-sid="${s.id}"><span class="n">${s.warm ? 'W' : j + 1 - all.slice(0, j).filter(x => x.warm).length}</span><span class="v grow">${bwf ? `${s.w ? '+' + fw(s.w) : 'BW'} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r} <span class="faint small">≈${fw(bwf * (s.bwt || bwNow) + (s.w || 0), 0)} ${U.wu}</span>` : `${fw(s.w)} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r}`}</span>${rec?.pr ? '<span class="pr">PR</span>' : ''}${s.hit === false ? '<span class="missb">Missed</span>' : ''}${s.warm ? '<span class="baseb">Warm-up</span>' : ''}</button></li>`; }).join('')}</ol>` : ''}
@@ -337,10 +340,11 @@ function exListHTML(q) {
   const gym = Sheet.pickGym, ex = new Set(Sheet.pickExclude), qq = keyOf(q);
   const all = [...library().values()].filter(e => !ex.has(keyOf(e.name)) && (!qq || keyOf(e.name).includes(qq) || keyOf(e.group).includes(qq)));
   const avail = all.filter(e => available(e.name, gym)), missing = qq ? all.filter(e => !available(e.name, gym)) : [];
-  const row = (e, dim) => `<div class="row" style="padding:0;${dim ? 'opacity:.5' : ''}"><button class="grow" style="padding:12px 0;text-align:left" data-act="pickEx" data-name="${esc(e.name)}">${esc(e.name)}<div class="faint small">${esc(e.equip.map(q => EQ_LABEL[q]).join(', ') || (e.custom ? 'Custom' : 'No equipment'))}</div></button>${musBtn(e.name)}</div>`;
+  const row = (e, dim) => `<div class="row" style="padding:0;${dim ? 'opacity:.5' : ''}"><button class="grow" style="padding:12px 0;text-align:left" data-act="pickEx" data-name="${esc(e.name)}">${esc(e.name)}<div class="faint small">${esc(e.equip.map(q => EQ_LABEL[q]).join(', ') || (e.custom ? 'Custom' : 'No equipment'))}</div>${goalBadges(e.name)}</button>${musBtn(e.name)}</div>`;
   let h = '';
   if (qq && !library().has(qq)) h += `<button class="row" data-act="newEx" data-name="${esc(q.trim())}"><span class="grow"><b>Add “${esc(q.trim())}”</b><div class="faint small">New custom exercise</div></span>${ICON.plus.replace('<svg', '<svg width="20" height="20"')}</button>`;
   if (!qq && Sheet.pickSuggested.length) h += `<div class="grp">Suggested swaps</div>` + Sheet.pickSuggested.map(n => row(library().get(keyOf(n)) || { name: n, equip: [] })).join('');
+  if (!qq && myGoals().length) { const mine = bestForGoals(myGoals(), 8, avail, 2); if (mine.length) h += `<div class="grp">🎯 For your goals</div>` + mine.map(e => row(e)).join(''); }
   for (const g of [...GROUPS, 'Other']) { const xs = avail.filter(e => e.group === g); if (xs.length) h += `<div class="grp">${g}</div>${xs.map(e => row(e)).join('')}`; }
   if (missing.length) h += `<div class="grp">Not at ${esc(gym?.name || 'this gym')}</div>${missing.map(e => row(e, true)).join('')}`;
   return h || `<p class="muted" style="padding:16px 0">No matches.</p>`;

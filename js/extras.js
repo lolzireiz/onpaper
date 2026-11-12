@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, Apple Watch reminder, muscle diagrams. */
 
-const APP_VERSION = '3.0.1';
+const APP_VERSION = '3.1';
 const CHANGELOG = [
+  ['3.1', ['New setup survey: tell Liftprint about you, your sports and what you want to get better at. Skip it anytime, redo it from Settings.', 'Pick from 40+ sports and life goals (running, soccer, climbing, posture, a healthy back, aging well and more). Exercises that help YOUR goals get a badge in workouts, the exercise list and every guide.', 'Your goals card on Home: sets you did for each goal this week. Tap one to see every exercise that helps it.', '10 new exercises: Farmer Carry, Cable Woodchop, Pallof Press, Dead Bug, Jump Squat, Lateral Bounds, Lateral Lunge, Step-up, Single-Leg RDL and Tibialis Raise.', 'The food buddy is now optional and off for new people. Yours stays on.']],
   ['3.0.1', ['Fixed: Restore from a backup did nothing after picking the file. It now shows what is in the backup, restores it, and confirms.', 'Backups now also remember your rest-alert link, so alerts keep working after a restore.']],
   ['3.0', ['New name: On Paper is now Liftprint, with a new fingerprint-and-barbell icon. Your data stays exactly where it was.', 'Tap the ⓘ next to any exercise for a guide: what it is, what it builds, real-life examples, whether it helps your dunk, your best, and the muscles worked.', 'Rewarding animations: confetti on PRs and finished workouts, sparkles on every set, numbers counting up, smooth screen transitions.', 'Feeding your pet is now a little show: the snack flies in, they munch, cheer and fill up, with confetti when you hit a goal. Pets blink now too.']],
   ['2.5', ['Added Dumbbell Standing Calf Raise and Chin-ups.', 'Bodyweight exercises (calf raises, pull-ups, dips, push-ups, lunges and more) now estimate your total load: share of bodyweight + total dumbbell weight. PRs use that total, so getting heavier counts.', 'Turn bodyweight counting on for any exercise from its ⋯ menu during a workout.']],
@@ -64,6 +65,9 @@ const EX_MUSCLES = {
   'hip thrust': ['glutes', 'hamstrings'], 'machine hip thrust': ['glutes', 'hamstrings'], 'cable kickback': ['glutes', 'hamstrings'], 'hip abduction': ['abductors glutes'],
   'standing calf raise': ['calves'], 'dumbbell standing calf raise': ['calves'], 'chin-ups': ['lats biceps', 'upper_back forearms'], 'calf extension': ['calves'], 'seated calf raise': ['calves'], 'leg press calf raise': ['calves'], 'smith calf raise': ['calves'],
   'hanging leg raise': ['abs', 'obliques forearms'], 'cable crunch': ['abs', 'obliques'], 'plank': ['abs', 'obliques delts'], 'decline sit-up': ['abs', 'obliques'],
+  'farmer carry': ['forearms traps', 'abs obliques upper_back'], 'cable woodchop': ['obliques abs', 'delts glutes'], 'pallof press': ['obliques abs', 'delts'], 'dead bug': ['abs', 'obliques'],
+  'jump squat': ['quads glutes', 'calves hamstrings'], 'lateral bounds': ['glutes abductors quads', 'calves adductors'], 'lateral lunge': ['quads adductors glutes', 'hamstrings abductors'], 'step-up': ['quads glutes', 'hamstrings calves'],
+  'single-leg rdl': ['hamstrings glutes', 'lower_back abductors forearms'], 'tibialis raise': ['calves', ''],
 };
 const GROUP_MUSCLES = { Chest: ['chest', 'delts triceps'], Back: ['lats upper_back', 'biceps rear_delts'], Shoulders: ['delts side_delts', 'triceps'], Biceps: ['biceps', 'forearms'], Triceps: ['triceps'], Quads: ['quads', 'glutes'], Hamstrings: ['hamstrings', 'glutes'], Glutes: ['glutes', 'hamstrings'], Calves: ['calves'], Core: ['abs', 'obliques'] };
 function musclesFor(name) {
@@ -110,6 +114,12 @@ function bodySVG(view, sex, mus) {
     <ellipse cx="${bx + bw / 2}" cy="${fig.parts.reduce((m, q) => Math.max(m, q[3][1] + q[3][3]), 0) + 6}" rx="${bw * .26}" ry="14" fill="#000" opacity=".5"/>
     <g filter="url(#${u}g)" opacity=".55">${glow}</g>${paths}</svg>`;
 }
+function guideGoalsHTML(name) {
+  const mine = exHelps(name), all = exGoalIds(name), sp = exSports(name), other = all.filter(x => !mine.includes(x));
+  if (!all.length) return '';
+  return `${mine.length ? `<div class="ghelp"><b>🎯 Helps your goals</b><span class="gbadges">${mine.map(x => `<span class="gbadge"><i aria-hidden="true">${GOALS[x][0]}</i>${esc(GOALS[x][1])}</span>`).join('')}</span>${sp.length ? `<span class="small" style="color:var(--tx2)">Good for your ${sp.map(x => `${SPORT[x].e} ${esc(SPORT[x].l)}`).join(', ')}</span>` : ''}</div>` : ''}
+    ${other.length ? `<div class="field"><span class="lbl">${mine.length ? 'Also helps with' : 'Helps with'}</span><div class="guide-hero" style="margin:0">${other.map(x => `<span class="gchip">${GOALS[x][0]} ${esc(GOALS[x][1])}</span>`).join('')}</div>${!myGoals().length ? '<button class="linkbtn small" style="padding:4px 0 0;font-size:13px" data-act="editGoals">Pick your goals to see what matters for you →</button>' : ''}</div>` : ''}`;
+}
 const IRL_ICONS = [[/dunk|jump|rebound|hoop|basketball|leap/i, '🏀'], [/sprint|run|chase|bus|race|faster/i, '🏃'], [/climb|ledge|rope|tree|wall|hang|fence|loft/i, '🧗'], [/box|groceries|carry|bag|suitcase|luggage|furniture|couch|move/i, '📦'], [/boulder|rock|tire|car|trapped|stuck|heavy/i, '🪨'], [/stair|hike|hill|uphill|step/i, '🥾'], [/kid|child|baby|toddler|shoulder|dog|hug/i, '🧒'], [/door|push|shove|open/i, '🚪'], [/throw|punch|swing|ball/i, '🥊'], [/shelf|overhead|cabinet|reach|high/i, '📚'], [/posture|slouch|back pain|desk|sit/i, '🪑'], [/balance|ankle|knee|injur|fall|trip/i, '🛡️'], [/water|jug|bucket/i, '🪣']];
 const irlIcon = x => (IRL_ICONS.find(([re]) => re.test(x)) || [0, '💪'])[1];
 A.muscles = d => { Sheet.musEx = d.ex; Sheet.musView = 'both'; Sheet.musSex = S().bodyModel || 'male'; openSheet(d.ex, '', {}); drawMuscles(); };
@@ -120,7 +130,7 @@ function drawMuscles() {
   const names = set => [...set].map(m => MUSCLE_NAMES[m]).join(', ');
   const fig = (view, label) => `<div><div style="--fig-h:${v === 'both' ? '330px' : '520px'}">${bodySVG(view, sex, mus)}</div><div class="faint tiny" style="text-align:center">${label}</div></div>`;
   const L = liftByKey(keyOf(name));
-  sheetBody(`<div class="guide-hero">${lib ? `<span class="gchip">${esc(lib.group)}</span>` : ''}${lib && lib.equip.length ? `<span class="gchip">${esc(lib.equip.map(q => EQ_LABEL[q]).join(' + '))}</span>` : ''}${g && g.j ? '<span class="gchip dunk">🏀 Helps your dunk</span>' : ''}${bwFactor(name) ? `<span class="gchip">Counts ${Math.round(bwFactor(name) * 100)}% bodyweight</span>` : ''}</div>
+  sheetBody(`<div class="guide-hero">${lib ? `<span class="gchip">${esc(lib.group)}</span>` : ''}${lib && lib.equip.length ? `<span class="gchip">${esc(lib.equip.map(q => EQ_LABEL[q]).join(' + '))}</span>` : ''}${bwFactor(name) ? `<span class="gchip">Counts ${Math.round(bwFactor(name) * 100)}% bodyweight</span>` : ''}</div>${guideGoalsHTML(name)}
     ${g ? `<p style="font-size:16px;line-height:1.45">${esc(g.a)}</p>
     <div class="field"><span class="lbl">Builds</span><div class="chips">${g.i.map(x => `<span class="chip" style="pointer-events:none">${esc(x)}</span>`).join('')}</div></div>
     <div class="field"><span class="lbl">In real life, it helps you…</span><ul class="irl">${g.e.map((x, i) => `<li><i aria-hidden="true">${irlIcon(x)}</i><span>${esc(x)}</span></li>`).join('')}</ul></div>` : '<p class="muted">A custom exercise you added.</p>'}

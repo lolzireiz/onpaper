@@ -1,7 +1,10 @@
 {
- "version": "3.0.1",
+ "version": "3.1",
  "notes": [
-  "Fixed: Restore from a backup did nothing after picking the file. It now shows what is in the backup, restores it, and confirms.",
-  "Backups now also remember your rest-alert link, so alerts keep working after a restore."
+  "New setup survey: tell Liftprint about you, your sports and what you want to get better at. Skip it anytime, redo it from Settings.",
+  "Pick from 40+ sports and life goals (running, soccer, climbing, posture, a healthy back, aging well and more). Exercises that help YOUR goals get a badge in workouts, the exercise list and every guide.",
+  "Your goals card on Home: sets you did for each goal this week. Tap one to see every exercise that helps it.",
+  "10 new exercises: Farmer Carry, Cable Woodchop, Pallof Press, Dead Bug, Jump Squat, Lateral Bounds, Lateral Lunge, Step-up, Single-Leg RDL and Tibialis Raise.",
+  "The food buddy is now optional and off for new people. Yours stays on."
  ]
 }

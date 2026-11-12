@@ -6,7 +6,7 @@ Views.home = {
   render() {
     const lw = latestWeighin(), s = S(), w = activeWorkout();
     const hasAny = lw || Store.list('workouts').length || Store.list('food').length;
-    let h = '';
+    let h = s.name ? `<p class="hello">${['Good morning', 'Good afternoon', 'Good evening'][new Date().getHours() < 12 ? 0 : new Date().getHours() < 18 ? 1 : 2]}, ${esc(s.name)} 👋</p>` : '';
     if (!hasAny || !gyms().length || !splitDays().length) h += setupHTML(lw);
     const since = lw ? daysBetween(lw.date, todayStr()) : null;
     if (lw && since >= (s.nudgeDays || 3)) h += `<div class="nudge"><p>It's been <b>${since} days</b> since your last weigh-in.</p><button class="btn sm" data-act="logWeighin">Weigh in</button></div>`;
@@ -14,6 +14,7 @@ Views.home = {
     if (w) h += `<section class="card"><div class="card-h"><div><div class="eyebrow">Workout in progress</div><h2 class="lift-h" style="font-size:34px">${esc(w.dayName || 'Workout')}</h2><p class="muted small">${plural((w.sets || []).length, 'set')} · started ${fmtClock(w.startTs)}</p></div><button class="btn" data-act="resumeWorkout">Resume</button></div></section>`;
     else h += todayCardHTML(lw);
     h += `<div class="tiles">${bwTile(lw)}${weekTile()}${foodTile()}${big3Tile()}</div>`;
+    h += goalsCardHTML();
     h += insightsHTML();
     h += feedHTML();
     return h;
@@ -63,6 +64,9 @@ A.openSettings = () => {
   const s = S(), names = [...new Set([...liftList().map(L => L.name), ...Object.values(s.big3 || {})])];
   const sel = (k, label) => `<div class="field"><label class="lbl" for="b3-${k}">${label}</label><select id="b3-${k}" name="b3${k}">${names.map(n => `<option ${keyOf(n) === keyOf(s.big3?.[k]) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`;
   openSheet('Settings', `
+    <div class="field"><span class="lbl">Your goals</span>${myGoals().length ? `<div class="gbadges" style="margin:0">${myGoals().map(g => `<span class="gbadge"><i aria-hidden="true">${GOALS[g][0]}</i>${esc(GOALS[g][1])}</span>`).join('')}</div>` : '<p class="muted small" style="margin:0">None picked yet. Exercises that help your goals get a badge.</p>'}${mySports().length ? `<p class="faint small" style="margin:6px 0 0">Into: ${mySports().map(x => `${SPORT[x].e} ${esc(SPORT[x].l)}`).join(', ')}</p>` : ''}</div>
+    <div class="fields"><button class="btn ghost" data-act="editGoals">${myGoals().length ? 'Edit goals' : 'Pick goals'}</button><button class="btn ghost" data-act="startOnboarding">Redo setup</button></div>
+    <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:4px 0">
     <div class="field"><span class="lbl">Units</span><div class="seg">${chipSeg('unit', [['imperial', 'lb · in'], ['metric', 'kg · cm']], s.unit)}</div></div>
     <div class="field"><span class="lbl">Weekly gym goal (days)</span><div class="seg">${chipSeg('goal', [3, 4, 5, 6, 7].map(n => [n, n]), s.weeklyGoal)}</div></div>
     <div class="field"><span class="lbl">Default sets per exercise</span><div class="seg">${chipSeg('dsets', [2, 3, 4, 5].map(n => [n, n]), s.defaultSets || 3)}</div><p class="faint tiny">Change any single exercise by tapping its target during a workout.</p></div>
@@ -72,7 +76,7 @@ A.openSettings = () => {
     <div class="fields"><div class="field"><label class="lbl" for="st-cal">Daily calories</label><input id="st-cal" name="cal" inputmode="numeric" value="${s.calTarget}"></div><div class="field"><label class="lbl" for="st-p">Daily protein (g)</label><input id="st-p" name="prot" inputmode="numeric" value="${s.proteinTarget}"></div></div>
     ${pushSettingsHTML()}
     <div class="field"><span class="lbl">Remind me to weigh in after</span><div class="seg">${chipSeg('nudge', [[1, '1 day'], [2, '2'], [3, '3'], [5, '5'], [7, '7']], s.nudgeDays)}</div></div>
-    <div class="field"><span class="lbl">Food buddy (a pet you feed by logging food)</span><div class="seg">${chipSeg('buddy', [['on', 'On'], ['off', 'Off']], s.buddy === false ? 'off' : 'on')}</div><input name="buddyname" value="${esc(s.buddyName || 'Pebble')}" aria-label="Buddy's name" placeholder="Buddy's name" style="margin-top:6px"></div>
+    <div class="field"><span class="lbl">Food buddy (a pet you feed by logging food)</span><div class="seg">${chipSeg('buddy', [['on', 'On'], ['off', 'Off']], s.buddy === true ? 'on' : 'off')}</div><input name="buddyname" value="${esc(s.buddyName || 'Pebble')}" aria-label="Buddy's name" placeholder="Buddy's name" style="margin-top:6px"></div>
     <div class="field"><span class="lbl">Muscle diagrams show</span><div class="seg">${chipSeg('bodym', [['male', 'Male body'], ['female', 'Female body']], s.bodyModel || 'male')}</div></div>
     <div class="field"><span class="lbl">Apple Watch reminder when a workout starts</span><div class="seg">${chipSeg('watch', [['on', 'On'], ['off', 'Off']], s.watchReminder === false ? 'off' : 'on')}</div></div>
     <div class="fields three">${sel('squat', 'Squat')}${sel('bench', 'Bench')}${sel('deadlift', 'Deadlift')}</div>
@@ -123,7 +127,7 @@ async function onBackupChosen(f) {
     const parts = [[counts.workouts, 'workout'], [counts.weighins, 'weigh-in'], [counts.food, 'food entr|y|ies'], [counts.body, 'measurement']].filter(([k]) => k).map(([k, w]) => w.includes('|') ? `${k} ${w.split('|')[0]}${k === 1 ? w.split('|')[1] : w.split('|')[2]}` : plural(k, w));
     const when = String(data.exported || '').slice(0, 10);
     if (!(await ask(`Restore this backup${when ? ` from ${fmtDate(when, { rel: false })}` : ''}? It has ${parts.join(', ') || `${n} ${n === 1 ? 'entry' : 'entries'}`}. Anything already on this phone is kept; matching entries are replaced.`, { ok: 'Restore' }))) return toast('Restore cancelled.');
-    if (data.settings && typeof data.settings === 'object') Store.settings = { ...DEFAULTS, ...Store.settings, ...data.settings };
+    if (data.settings && typeof data.settings === 'object') Store.settings = { ...DEFAULTS, ...Store.settings, ...(data.settings.buddy === undefined ? { buddy: true } : {}), ...data.settings };
     for (const c of COLLS) { const m = { ...(Store.docs[c] || {}) }; for (const d of rows(c)) { const { id, ...rest } = d; m[id] = rest; } Store.docs[c] = m; }
     if (data.push && /^onpaper-[a-z0-9]{6,}$/.test(data.push.topic || '')) { lsSet(PUSH_TOPIC, data.push.topic); if (data.push.on) lsSet(PUSH_ON, '1'); }
     Store.rev++; changed();

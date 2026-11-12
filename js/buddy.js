@@ -85,7 +85,7 @@ function petSVG(kind = petKind(), mood = 'happy', size = 150) {
 const BUDDY_MSGS = ['Yum! Thanks for feeding me!', "You're doing so good today!", "That hit the spot. You're the best!", 'Mmm! Fuel for those gains!', 'Fed and happy! Proud of you.', 'Nom nom nom! Keep it up!', "You're my favorite human!", 'Delicious! Now go crush your workout!', 'Thank you! Best day ever.', 'Every meal gets you closer to that dunk!'];
 const BUDDY_PROTEIN = ["Protein goal hit! You're getting so strong!", "That's your protein for the day. Gains secured!"];
 const BUDDY_FULL = ["I'm stuffed! That's a perfect day of eating.", 'Calorie goal done! Best. Human. Ever.'];
-const buddyOn = () => S().buddy !== false;
+const buddyOn = () => S().buddy === true;
 const buddyName = () => S().buddyName || PETS[petKind()].def;
 function feedStreak() {
   const has = d => (foodDay(d).items || []).length > 0;
