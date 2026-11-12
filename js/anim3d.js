@@ -67,10 +67,16 @@ void main(){ vec3 n = normalize(vN); vec3 L = normalize(vec3(-0.45,0.65,0.62)); 
   float sh = (0.2 + 0.86*h*h*(0.55+0.45*h) + fill)*(0.55+0.45*rim); float sp = pow(max(0.0, dot(n, normalize(L+vec3(0.0,0.0,1.0)))), 40.0)*0.16;
   vec3 base = vC; float gloss = 1.0;
   if (uSkin > 0.5) { // vE = (highlight, weight on torso+thighs, weight on torso)
-    float shorts = step(0.5, vE.y)*step(uShorts.x, vR.y)*step(vR.y, uShorts.y);
-    float top = uTop.w*step(0.55, vE.z)*step(uTop.x, vR.y)*step(vR.y, uTop.y)*step(abs(vR.x), uTop.z);
+    float ax = abs(vR.x); float f = (vR.y - uTop.x)/(uTop.y - uTop.x);          // 0 at the hips, 1 at the shoulders
+    // fitted shorts: waistband just under the navel, hems a little lower on the outside of the thigh
+    float shorts = step(0.5, vE.y)*step(uShorts.x - ax*0.12, vR.y)*step(vR.y, uShorts.y - ax*0.1);
+    // sports bra: a band round the ribs, a scooped neckline, cut-in armholes and two straps over the shoulders
+    float band = step(0.56, f)*step(f, 0.8);
+    float up = clamp((f - 0.8)/0.2, 0.0, 1.0); float inner = mix(-0.01, 0.062, sqrt(up)); float outer = mix(uTop.z*0.74, 0.118, up);
+    float upper = step(0.8, f)*step(f, 1.08)*step(inner, ax)*step(ax, outer);
+    float top = uTop.w*step(0.5, vE.z)*max(band*step(ax, uTop.z*0.8), upper);
     float cl = max(shorts, top); float hi = smoothstep(0.32, 0.6, vE.x);
-    base = mix(mix(vec3(0.80,0.815,0.86), vec3(0.17,0.185,0.24), cl), mix(vec3(1.0,0.46,0.27), vec3(0.78,0.34,0.19), cl), hi); gloss = 1.0 - 0.7*cl; }
+    base = mix(mix(vec3(0.80,0.815,0.86), vec3(0.36,0.385,0.46), cl), mix(vec3(1.0,0.46,0.27), vec3(0.86,0.38,0.22), cl), hi); gloss = 1.0 - 0.75*cl; }
   vec3 c = mix(base*sh + sp*gloss, base, uFlat); gl_FragColor = vec4(c,1.0); }`;
 
 function g3Setup(cv, def, sex) {
@@ -87,7 +93,7 @@ function g3Setup(cv, def, sex) {
   for (let i = 0; i < n; i++) { let wt = 0, wl = 0; for (let k = 0; k < 4; k++) { const b = M.bi[i * 4 + k], w = M.bw[i * 4 + k] / 255; bw[i * 4 + k] = w; bi[i * 4 + k] = b; if (b === 0) wt += w; if (b === 5 || b === 6) wl += w; } ex[i * 3] = hi[i]; ex[i * 3 + 1] = wt + wl; ex[i * 3 + 2] = wt; }
   const col = new Float32Array(3), hipY = m.pel[1], fy = f => m.pel[1] + f * (m.shm[1] - m.pel[1]), top = sex === 'female';
   return { gl, pr, m, n, nIdx: M.idx.length, a: { pos: A('aPos'), nrm: A('aNrm'), col: A('aCol'), bi: A('aBi'), bw: A('aBw'), ex: A('aEx') }, u: { bones: U('uBones[0]'), vp: U('uVP'), vr: U('uVR'), skin: U('uSkin'), flat: U('uFlat'), shorts: U('uShorts'), top: U('uTop') },
-    cloth: { shorts: [hipY - 0.21, hipY + 0.1], top: [fy(0.5), fy(0.9), m.build.sw * 0.83, top ? 1 : 0] },
+    cloth: { shorts: [hipY - 0.2, hipY + 0.115], top: [m.pel[1], m.shm[1], m.build.sw, top ? 1 : 0] },
     b: { pos: buf(m.pos), nrm: buf(m.nrm), ex: buf(ex), bi: buf(bi), bw: buf(bw), idx: buf(M.idx, gl.ELEMENT_ARRAY_BUFFER), prop: gl.createBuffer() }, bones: new Float32Array(13 * 16), hl: on.size > 0 };
 }
 /* equipment + floor are rebuilt each frame as plain triangles: [x,y,z, nx,ny,nz, r,g,b] */
