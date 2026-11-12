@@ -60,7 +60,7 @@ A.saveJump = d => {
   if (!(rim > 60 && rim < 144)) return toast('Check the rim height.', { bad: true });
   const prevBest = Math.max(0, ...Store.list('jumps').filter(x => x.id !== d.id).map(x => x.rim || 0));
   put('jumps', d.id || newId(), { date: fval('date') || todayStr(), rim, vert: vert || null, note: fval('note'), ts: Date.now() }); closeSheet();
-  if (prevBest && rim > prevBest) toast(`New dunk PR: ${ftin(rim)}! 🏀`, { pr: true, ms: 3800 }); else toast('Saved');
+  if (prevBest && rim > prevBest) { toast(`New dunk PR: ${ftin(rim)}! 🏀`, { pr: true, ms: 3800 }); confetti({ n: 26, emoji: '🏀', power: 13 }); setTimeout(() => confetti({ n: 70 }), 150); } else toast('Saved');
 };
 A.delJump = d => { const j = Store.docs.jumps[d.id]; del('jumps', d.id); closeSheet(); if (j) toastUndo('Entry deleted', () => put('jumps', d.id, j)); };
 A.jumpHistory = () => { openSheet('Dunk log', Store.list('jumps').sort((a, b) => b.date.localeCompare(a.date)).map(j => `<button class="row" data-act="logJump" data-id="${j.id}"><div class="grow"><b>${ftin(j.rim)}</b>${j.vert ? ` <span class="muted small">· ${trim(j.vert, 1)}″ vertical</span>` : ''}<div class="faint small">${fmtDate(j.date)}${j.note ? ' · ' + esc(j.note) : ''}</div></div></button>`).join('')); };
@@ -139,7 +139,7 @@ A.savePR = () => {
   put('workouts', id, { date, quick: true, ts, sets: [{ id: sid, ex: name, w: lb, r, hit, ts }] });
   closeSheet();
   const rec = setRec(liftByKey(keyOf(name)), sid);
-  if (rec?.pr) toast(`PR! ${name}: ${prDesc(rec)}`, { pr: true, ms: 3800 });
+  if (rec?.pr) { toast(`PR! ${name}: ${prDesc(rec)}`, { pr: true, ms: 3800 }); celebratePR(); }
   else if (!hit) toast('Missed attempt saved. See how bodyweight compared in the lift history.', { ms: 3600 });
   else toast(rec?.baseline ? `${name} added. Future sets get compared with this one.` : 'Saved');
   if (UI.tab === 'lifts') { UI.liftKey = keyOf(name); render(); }

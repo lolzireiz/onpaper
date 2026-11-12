@@ -185,10 +185,10 @@ function exBlockHTML(w, name) {
   const prev = lastSessionSets(name, w.id), sug = !all.length ? suggestion(w, name) : null, last = all[all.length - 1];
   const pre = last ? { w: last.w, r: last.r } : sug ? sug : prev ? { w: prev.sets.filter(s => !s.warm)[0]?.w ?? prev.sets[0].w, r: prev.sets[0].r } : null;
   const step = weightStep(name), bwf = bwFactor(name), bwNow = latestWeighin()?.weight || S().lastBw || 0;
-  return `<section class="exb${done ? ' done' : ''}"><header class="exb-h"><div class="grow"><h3>${done ? '<span style="color:var(--ok)">✓</span> ' : ''}${esc(name)}</h3><button class="faint small" style="text-align:left;padding:2px 0" data-act="editTarget" data-ex="${esc(name)}" aria-label="Change target for ${esc(name)}">Target <u style="text-decoration-style:dotted;text-underline-offset:3px">${t.sets} × ${esc(t.reps)}</u> · <b style="color:${done ? 'var(--ok)' : 'var(--tx2)'}">${work.length}/${t.sets} sets</b> ✎</button></div>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
+  return `<section class="exb${done ? ' done' : ''}${UI.justDone === keyOf(name) ? ' just-done' : ''}"><header class="exb-h"><div class="grow"><h3>${done ? '<span style="color:var(--ok)">✓</span> ' : ''}${esc(name)}</h3><button class="faint small" style="text-align:left;padding:2px 0" data-act="editTarget" data-ex="${esc(name)}" aria-label="Change target for ${esc(name)}">Target <u style="text-decoration-style:dotted;text-underline-offset:3px">${t.sets} × ${esc(t.reps)}</u> · <b style="color:${done ? 'var(--ok)' : 'var(--tx2)'}">${work.length}/${t.sets} sets</b> ✎</button></div>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
   ${prev ? `<p class="faint small">Last time (${fmtDate(prev.date)}): ${prev.sets.map(s => `${s.warm ? '<span style="opacity:.6">' : ''}${fw(s.w)}×${s.r}${s.hit === false ? '✗' : ''}${s.warm ? '</span>' : ''}`).join(', ')}</p>` : ''}
   ${sug ? `<p class="small" style="background:rgba(51,146,245,.12);color:#9cc8ff;border-radius:10px;padding:8px 10px"><b>Try ${fw(sug.w)} × ${sug.r}.</b> ${esc(sug.why)}</p>` : ''}
-  ${all.length ? `<ol class="sets">${all.map((s, j) => { const rec = setRec(L, s.id); return `<li><button class="setrow" data-act="editSet" data-wid="${w.id}" data-sid="${s.id}"><span class="n">${s.warm ? 'W' : j + 1 - all.slice(0, j).filter(x => x.warm).length}</span><span class="v grow">${bwf ? `${s.w ? '+' + fw(s.w) : 'BW'} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r} <span class="faint small">≈${fw(bwf * (s.bwt || bwNow) + (s.w || 0), 0)} ${U.wu}</span>` : `${fw(s.w)} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r}`}</span>${rec?.pr ? '<span class="pr">PR</span>' : ''}${s.hit === false ? '<span class="missb">Missed</span>' : ''}${s.warm ? '<span class="baseb">Warm-up</span>' : ''}</button></li>`; }).join('')}</ol>` : ''}
+  ${all.length ? `<ol class="sets">${all.map((s, j) => { const rec = setRec(L, s.id); return `<li class="${UI.justSet === s.id ? 'just' : ''}"><button class="setrow" data-act="editSet" data-wid="${w.id}" data-sid="${s.id}"><span class="n">${s.warm ? 'W' : j + 1 - all.slice(0, j).filter(x => x.warm).length}</span><span class="v grow">${bwf ? `${s.w ? '+' + fw(s.w) : 'BW'} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r} <span class="faint small">≈${fw(bwf * (s.bwt || bwNow) + (s.w || 0), 0)} ${U.wu}</span>` : `${fw(s.w)} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r}`}</span>${rec?.pr ? '<span class="pr">PR</span>' : ''}${s.hit === false ? '<span class="missb">Missed</span>' : ''}${s.warm ? '<span class="baseb">Warm-up</span>' : ''}</button></li>`; }).join('')}</ol>` : ''}
   <div class="addset2"><div class="stepper"><button data-act="step" data-t="sw-${k}" data-d="-${step}" aria-label="Less weight">−</button><input id="sw-${k}" data-keep inputmode="decimal" value="${pre ? plain(U.w(pre.w)) : ''}" placeholder="${bwf ? '+' + U.wu : U.wu}" aria-label="${bwf ? 'Added weight (both dumbbells together)' : 'Weight'} in ${U.wu} for ${esc(name)}"><button data-act="step" data-t="sw-${k}" data-d="${step}" aria-label="More weight">+</button></div><span class="x">×</span><div class="stepper"><button data-act="step" data-t="sr-${k}" data-d="-1" aria-label="One less rep">−</button><input id="sr-${k}" data-keep inputmode="numeric" value="${pre ? pre.r : ''}" placeholder="reps" aria-label="Reps for ${esc(name)}"><button data-act="step" data-t="sr-${k}" data-d="1" aria-label="One more rep">+</button></div></div>
   ${bwf ? `<div class="bwrow"><label class="faint small" for="sb-${k}">Bodyweight</label><input id="sb-${k}" data-keep inputmode="decimal" value="${bwNow ? plain(U.w(bwNow)) : ''}" placeholder="${U.wu}" aria-label="Your bodyweight in ${U.wu}"><span class="faint small">${U.wu} · weight box = <b>both dumbbells</b> total</span><span class="est" id="est-${k}" data-f="${bwf}">${estTxt(bwf, bwNow ? U.w(bwNow) : 0, pre ? U.w(pre.w) : 0)}</span></div>` : ''}
   <div class="addset-b"><button class="missbtn" id="swu-${k}" data-act="toggle" aria-pressed="false">Warm-up</button><button class="missbtn" id="sh-${k}" data-act="toggle" aria-pressed="false">Missed</button><button class="btn" data-act="logSet" data-ex="${esc(name)}">Log set</button></div></section>`;
@@ -239,14 +239,17 @@ A.logSet = d => {
   const prev = L ? bestAtLeast(L.best, r) : null, isPR = hit && !warm && L && L.hits > 0 && eff > (prev ? prev.w : -1) + 1e-9;
   const set = { id: newId(), ex: d.ex, w: lb, r, hit, ts: Date.now() }; if (warm) set.warm = true; if (bwf) set.bwt = bwt;
   if (bwf && bwIn && Math.abs(bwt - (S().lastBw || 0)) > 0.05 && !latestWeighin()) saveSettings({ lastBw: bwt });
+  UI.justSet = set.id; clearTimeout(UI.justT); UI.justT = setTimeout(() => { UI.justSet = UI.justDone = null; }, 1200);
+  const btnEl = d && document.querySelector(`.exb [data-act=logSet][data-ex="${CSS.escape(d.ex)}"]`);
   put('workouts', w.id, { ...clone(w), sets: [...(w.sets || []), set] });
+  if (isPR) setTimeout(() => celebratePR(btnEl), 60); else sparkle(btnEl);
   if (isPR) toast(`PR! ${d.ex}: ${r === 1 ? 'new 1-rep max' : `new ${r}-rep max`}, ${bwf ? `≈${fw(eff, 0)} ${U.wu} total` : fwu(lb)}`, { pr: true, ms: 3600 });
   const base = S().restSec || 120, rest = warm ? 60 : isCompound(d.ex) ? (r <= 6 ? Math.max(base, 180) : base) : Math.max(60, Math.min(base, 90));
   const names = sessionNames(activeWorkout() || w), doneSets = n => [...(w.sets || []), set].filter(s => keyOf(s.ex) === keyOf(n) && !s.warm && s.hit !== false).length;
   const nextEx = doneSets(d.ex) >= exTarget(w, d.ex).sets ? (names.find(n => doneSets(n) < exTarget(w, n).sets) || d.ex) : d.ex;
   startRest(rest, nextEx);
   const t = exTarget(w, d.ex), doneNow = (w.sets || []).filter(s => keyOf(s.ex) === keyOf(d.ex) && !s.warm && s.hit !== false).length + (hit && !warm ? 1 : 0);
-  if (!isPR && doneNow === t.sets) toast(`${d.ex} done: ${t.sets} working sets ✓`);
+  if (doneNow === t.sets) { UI.justDone = keyOf(d.ex); scheduleRender(); if (!isPR) { toast(`${d.ex} done: ${t.sets} working sets ✓`); setTimeout(() => sparkle(btnEl, ['#3ccf82', '#9ff0c4', '#ffffff']), 120); } }
 };
 A.addExercise = () => {
   const w = activeWorkout(); if (!w) return;
@@ -284,7 +287,7 @@ A.finishWorkout = async () => {
     return;
   }
   put('workouts', w.id, { ...clone(w), endTs: Date.now() });
-  UI.session = false; A.restSkip(); releaseWake(); render(); showWorkout(w.id, true);
+  UI.session = false; A.restSkip(); releaseWake(); render(); showWorkout(w.id, true); setTimeout(() => { confetti({ n: 120 }); countUps($('#sheet')); }, 250);
 };
 A.discardWorkout = async () => {
   const w = activeWorkout(); if (!w) return;
@@ -301,7 +304,7 @@ function showWorkout(id, justFinished = false) {
   const dur = w.endTs && w.startTs ? Math.round((w.endTs - w.startTs) / 6e4) : null;
   openSheet(justFinished ? 'Workout saved' : (w.dayName || 'Workout'), `
     <p class="muted">${fmtDay(w.date)}${w.gymName ? ' · ' + esc(w.gymName) : ''}</p>
-    <div class="stats">${dur != null ? `<div class="stat"><span class="k">Time</span><span class="v">${dur}<span class="unit">min</span></span></div>` : ''}<div class="stat"><span class="k">Sets</span><span class="v">${sets.length}</span></div><div class="stat"><span class="k">Volume</span><span class="v">${trim(U.w(vol) / 1000, 1)}k<span class="unit">${U.wu}</span></span></div></div>
+    <div class="stats">${dur != null ? `<div class="stat"><span class="k">Time</span><span class="v">${dur}<span class="unit">min</span></span></div>` : ''}<div class="stat"><span class="k">Sets</span><span class="v" data-count="${sets.length}">${sets.length}</span></div><div class="stat"><span class="k">Volume</span><span class="v"><span data-count="${(U.w(vol) / 1000).toFixed(1)}" data-dp="1">${trim(U.w(vol) / 1000, 1)}</span>k<span class="unit">${U.wu}</span></span></div></div>
     ${watchSectionHTML(w, id)}
     ${prs.length ? `<div class="note" style="background:none;padding:0"><span class="pr">${prs.length} PR${prs.length > 1 ? 's' : ''}</span> ${prs.map(s => `${esc(s.ex)} ${fw(s.w)}×${s.r}`).join(', ')}</div>` : ''}
     <div>${Object.entries(groups).map(([ex, ss]) => `<div class="row" style="align-items:flex-start"><div class="grow"><b>${esc(ex)}</b><div class="muted small">${ss.map(s => `${fw(s.w)}×${s.r}${s.hit === false ? ' (missed)' : ''}${setRec(idx.get(keyOf(s.ex)), s.id)?.pr ? ' PR' : ''}`).join(' · ')}</div></div></div>`).join('') || '<p class="muted">Marked as a gym day.</p>'}</div>

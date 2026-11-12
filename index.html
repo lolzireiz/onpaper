@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<title>On Paper</title>
-<meta name="apple-mobile-web-app-title" content="On Paper">
+<title>Liftprint</title>
+<meta name="apple-mobile-web-app-title" content="Liftprint">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
@@ -313,28 +313,64 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--tx2) 50%),li
 @keyframes rc-sad{50%{transform:rotate(3deg) translateY(2px)}}
 @keyframes rc-jump{30%{transform:translateY(-14px) scale(1.04)}60%{transform:translateY(0) scale(1,.94)}}
 #buddy-pop{position:fixed;inset:0;z-index:75;display:grid;place-items:center;background:rgba(0,0,0,.55);opacity:0;transition:opacity .38s ease;-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0)}
-#buddy-pop.show{opacity:1;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
-#buddy-pop.closing{transition:opacity .32s ease-in}
-#buddy-pop[hidden]{display:none}
-.bp-card{position:relative;background:#1f1f23;border:1px solid var(--s3);border-radius:28px;padding:22px 26px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;width:min(300px,calc(100% - 48px));opacity:0;transform:translateY(34px) scale(.86);transition:transform .55s cubic-bezier(.2,1.3,.35,1),opacity .3s ease}
+#buddy-pop.show{opacity:1;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+#buddy-pop.closing{transition:opacity .34s ease-in}
+.bp-card{position:relative;background:radial-gradient(120% 80% at 50% 0%,#2a2433 0%,#1c1c21 60%);border:1px solid #3a3346;border-radius:30px;padding:16px 22px 18px;display:flex;flex-direction:column;align-items:center;gap:8px;width:min(310px,calc(100% - 40px));opacity:0;transform:translateY(40px) scale(.84);transition:transform .6s cubic-bezier(.2,1.35,.35,1),opacity .3s ease;box-shadow:0 30px 80px rgba(0,0,0,.6)}
 #buddy-pop.show .bp-card{opacity:1;transform:none}
-#buddy-pop.closing .bp-card{opacity:0;transform:translateY(18px) scale(.92);transition:transform .32s cubic-bezier(.5,0,.75,0),opacity .26s ease-in}
-.bp-rc{position:relative;width:170px;height:170px}
-.bp-rc>div{position:absolute;inset:0;transition:opacity .5s ease,transform .5s cubic-bezier(.2,1.3,.35,1)}
-.bp-rc .bp-b{opacity:0;transform:scale(.9)}
-#buddy-pop.done .bp-a{opacity:0;transform:scale(1.05)}
-#buddy-pop.done .bp-b{opacity:1;transform:none}
-.bp-msg .bp-lines{display:grid}
-.bp-lines span{grid-area:1/1;transition:opacity .4s ease,transform .4s ease}
-.bp-lines .m2{opacity:0;transform:translateY(6px)}
-#buddy-pop.done .bp-lines .m1{opacity:0;transform:translateY(-6px)}
-#buddy-pop.done .bp-lines .m2{opacity:1;transform:none}
-.bp-msg{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
-.bp-msg span{font-size:17px;font-weight:600;line-height:1.35}
-.bp-hearts{position:absolute;top:30px;left:0;right:0;height:0;opacity:0;transition:opacity .3s}
-#buddy-pop.done .bp-hearts{opacity:1}
-.bp-hearts i{position:absolute;font-style:normal;color:#ff6b8a;font-size:22px;animation:heart 1.6s ease-out forwards}
-.bp-hearts i:nth-child(1){left:28%;animation-delay:0s}.bp-hearts i:nth-child(2){left:50%;animation-delay:.2s;font-size:28px}.bp-hearts i:nth-child(3){left:68%;animation-delay:.4s}
+#buddy-pop.closing .bp-card{opacity:0;transform:translateY(22px) scale(.9);transition:transform .34s cubic-bezier(.5,0,.75,0),opacity .28s ease-in}
+.bp-stage{position:relative;width:200px;height:190px}
+.bp-glow{position:absolute;left:50%;top:52%;width:170px;height:170px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,79,109,.28),rgba(177,61,255,.12) 45%,transparent 70%);animation:glow 2.4s ease-in-out infinite}
+@keyframes glow{50%{transform:translate(-50%,-50%) scale(1.12);opacity:.75}}
+.bp-pet{position:absolute;left:15px;top:12px;width:170px;height:170px;transform-origin:50% 92%}
+.bp-pet>div{position:absolute;inset:0;opacity:0;transition:opacity .28s ease}
+.bp-pet>div.on{opacity:1}
+.bp-pet.munch{animation:munch .26s ease-in-out infinite}
+.bp-pet.joy{animation:joy .75s cubic-bezier(.2,1.4,.4,1)}
+@keyframes munch{50%{transform:scale(1.035,.965) translateY(2px)}}
+@keyframes joy{0%{transform:none}25%{transform:scale(1.08,.9) translateY(4px)}55%{transform:scale(.95,1.08) translateY(-16px)}80%{transform:scale(1.03,.97)}100%{transform:none}}
+.bp-snack{position:absolute;left:71px;top:88px;opacity:0;z-index:2;filter:drop-shadow(0 4px 6px rgba(0,0,0,.4))}
+.bp-bubble{position:absolute;right:-26px;top:-8px;max-width:190px;background:#fff;color:#141418;font-weight:750;font-size:14px;line-height:1.3;padding:7px 11px;border-radius:16px 16px 16px 4px;box-shadow:0 6px 20px rgba(0,0,0,.35);transform-origin:0% 100%;z-index:3;opacity:0}
+.bp-bubble.pop{animation:bub .45s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes bub{0%{opacity:0;transform:scale(.4)}100%{opacity:1;transform:none}}
+.bp-part{position:absolute;font-style:normal;pointer-events:none;z-index:4;line-height:1}
+.bp-name{font:800 22px/1 var(--f-display);letter-spacing:.02em}
+.bp-full{width:100%;display:flex;flex-direction:column;gap:5px;align-items:center}
+.bp-full .bar{width:100%}
+.bp-full .bar i{transition:width 1s cubic-bezier(.2,.9,.3,1)}
+.bp-streak{font-size:12px;font-weight:700;background:rgba(255,178,56,.14);color:#ffcc80;padding:4px 10px;border-radius:999px}
+.rc-eyes{transform-box:fill-box;transform-origin:center;animation:blink 4.2s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:90;pointer-events:none}
+/* screen entrances + rewards */
+#view.enter>*{animation:rise .55s cubic-bezier(.2,.9,.3,1) both;animation-delay:calc(var(--i,0) * 45ms)}
+@keyframes rise{0%{opacity:0;transform:translateY(16px) scale(.985)}100%{opacity:1;transform:none}}
+.bar i{transition:width .9s cubic-bezier(.2,.9,.3,1)}
+.sets li.just .setrow{animation:setin .7s cubic-bezier(.2,1.3,.4,1)}
+.sets li.just .n{animation:nflash 1s ease}
+@keyframes setin{0%{opacity:0;transform:translateX(-14px) scale(.96)}60%{opacity:1;transform:translateX(3px)}100%{transform:none}}
+@keyframes nflash{0%,40%{background:var(--ok);color:#000;transform:scale(1.25)}100%{transform:none}}
+.exb.just-done{animation:donepulse 1.1s ease}
+@keyframes donepulse{0%{box-shadow:0 0 0 0 rgba(60,207,130,.0)}30%{box-shadow:0 0 0 3px rgba(60,207,130,.75),0 0 30px rgba(60,207,130,.35)}100%{box-shadow:0 0 0 0 rgba(60,207,130,0)}}
+.exb.just-done h3 span{display:inline-block;animation:stamp .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes stamp{0%{transform:scale(2.4) rotate(-20deg);opacity:0}100%{transform:none;opacity:1}}
+.toast{transition:transform .45s cubic-bezier(.2,1.35,.35,1)}
+.toast.pr{overflow:hidden;font-size:15px;padding:13px 18px;box-shadow:0 10px 40px rgba(255,79,109,.45)}
+.toast.pr::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);transform:translateX(-120%);animation:shine 1.3s .25s ease}
+@keyframes shine{100%{transform:translateX(120%)}}
+.tab.bounce svg{animation:tabb .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes tabb{40%{transform:translateY(-4px) scale(1.15)}}
+.btn,.chip,.tile,.iconbtn,.missbtn,.stepper button{transition:transform .18s cubic-bezier(.2,1.4,.4,1),filter .15s,background-color .2s}
+.btn:active,.chip:active,.tile:active,.missbtn:active{transform:scale(.95)}
+.stepper button:active{transform:scale(.88)}
+.panel{transition:transform .42s cubic-bezier(.2,1.12,.3,1)}
+.big,.v{font-variant-numeric:tabular-nums}
+.guide-hero{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.gchip{font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:var(--s2);color:var(--tx2)}
+.gchip.dunk{background:linear-gradient(90deg,rgba(255,140,43,.25),rgba(255,79,109,.2));color:#ffc38a}
+.irl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.irl li{display:flex;gap:10px;align-items:flex-start;background:var(--s2);border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.35}
+.irl li i{font-style:normal;font-size:18px;line-height:1}
+.gtabs{position:sticky;top:-8px;z-index:2;background:#17171a;padding:4px 0 6px}
 @keyframes heart{0%{transform:translateY(40px) scale(.4);opacity:0}30%{opacity:1}100%{transform:translateY(-30px) scale(1.1);opacity:0}}
 @keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:none;opacity:1}}
 @keyframes fade{0%{opacity:0}}
@@ -372,7 +408,9 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--tx2) 50%),li
 <script src="js/push.js"></script>
 <script src="js/update.js"></script>
 <script src="js/home.js"></script>
+<script src="js/exinfo.js"></script>
 <script src="js/anatomy-data.js"></script>
+<script src="js/fx.js"></script>
 <script src="js/extras.js"></script>
 <script src="js/buddy.js"></script>
 <script src="js/app.js"></script>

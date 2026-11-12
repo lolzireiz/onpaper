@@ -14,7 +14,7 @@ const petKind = () => PETS[S().pet] ? S().pet : 'raccoon';
 function petEyes(mood) {
   if (mood === 'happy' || mood === 'stuffed') return `<path d="M69 93 Q78 81 87 93" stroke="#141418" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M113 93 Q122 81 131 93" stroke="#141418" stroke-width="5" fill="none" stroke-linecap="round"/>`;
   if (mood === 'eating') return `<path d="M69 90 Q78 97 87 90" stroke="#141418" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M113 90 Q122 97 131 90" stroke="#141418" stroke-width="5" fill="none" stroke-linecap="round"/>`;
-  return `<circle cx="78" cy="90" r="10.5" fill="#141418"/><circle cx="122" cy="90" r="10.5" fill="#141418"/><circle cx="81.8" cy="85.6" r="3.8" fill="#fff"/><circle cx="125.8" cy="85.6" r="3.8" fill="#fff"/><circle cx="74.6" cy="94.4" r="1.7" fill="#fff"/><circle cx="118.6" cy="94.4" r="1.7" fill="#fff"/>`;
+  return `<g class="rc-eyes"><circle cx="78" cy="90" r="10.5" fill="#141418"/><circle cx="122" cy="90" r="10.5" fill="#141418"/><circle cx="81.8" cy="85.6" r="3.8" fill="#fff"/><circle cx="125.8" cy="85.6" r="3.8" fill="#fff"/><circle cx="74.6" cy="94.4" r="1.7" fill="#fff"/><circle cx="118.6" cy="94.4" r="1.7" fill="#fff"/></g>`;
 }
 const petBrows = (mood, c = '#2b2b33') => mood === 'hungry' ? `<path d="M67 76 L86 70" stroke="${c}" stroke-width="4" stroke-linecap="round"/><path d="M133 76 L114 70" stroke="${c}" stroke-width="4" stroke-linecap="round"/>` : '';
 const petBlush = (o = .55) => `<ellipse cx="61" cy="113" rx="9.5" ry="6" fill="#ff8fab" opacity="${o}"/><ellipse cx="139" cy="113" rx="9.5" ry="6" fill="#ff8fab" opacity="${o}"/>`;
@@ -116,25 +116,44 @@ A.setPet = d => {
   saveSettings({ pet: d.k, buddyName: custom ? S().buddyName : '' });
   closeSheet(); toast(`Say hi to ${custom ? S().buddyName : PETS[d.k].def}!`);
 };
+const SNACK_COL = { cookie: '#f2b84b', fish: '#7cc4ff', carrot: '#ff8c2b', berry: '#ff4d6d' };
 function feedBuddy(before, after) {
   if (!buddyOn()) return;
-  const t = after, s = S();
-  let msg = Math.random() < 0.18 ? PETS[petKind()].noise : BUDDY_MSGS[Math.floor(Math.random() * BUDDY_MSGS.length)];
-  if (before.p < s.proteinTarget && t.p >= s.proteinTarget) msg = BUDDY_PROTEIN[Math.floor(Math.random() * BUDDY_PROTEIN.length)];
-  else if (before.cal < s.calTarget && t.cal >= s.calTarget) msg = BUDDY_FULL[Math.floor(Math.random() * BUDDY_FULL.length)];
-  const L = $('#buddy-pop'), kind = petKind();
-  clearTimeout(feedBuddy.t1); clearTimeout(feedBuddy.t2); clearTimeout(feedBuddy.t3);
-  L.classList.remove('show', 'done', 'closing');
-  L.innerHTML = `<div class="bp-card" role="status"><div class="bp-rc"><div class="bp-a">${petSVG(kind, 'eating', 170)}</div><div class="bp-b">${petSVG(kind, 'happy', 170)}</div></div><div class="bp-msg"><b>${esc(buddyName())}</b><span class="bp-lines"><span class="m1">Nom nom nom…</span><span class="m2">${esc(msg)}</span></span></div><div class="bp-hearts" aria-hidden="true"><i>♥</i><i>♥</i><i>♥</i></div></div>`;
+  const s = S(), kind = petKind(), snack = (PET_ART[kind] || PET_ART.raccoon).snack, name = buddyName();
+  let msg = Math.random() < 0.18 ? PETS[kind].noise : BUDDY_MSGS[Math.floor(Math.random() * BUDDY_MSGS.length)], goal = false;
+  if (before.p < s.proteinTarget && after.p >= s.proteinTarget) { msg = BUDDY_PROTEIN[Math.floor(Math.random() * BUDDY_PROTEIN.length)]; goal = true; }
+  else if (before.cal < s.calTarget && after.cal >= s.calTarget) { msg = BUDDY_FULL[Math.floor(Math.random() * BUDDY_FULL.length)]; goal = true; }
+  const p0 = Math.round(clamp(before.cal / (s.calTarget || 1) * 100, 0, 100)), p1 = Math.round(clamp(after.cal / (s.calTarget || 1) * 100, 0, 100)), st = feedStreak();
+  const L = $('#buddy-pop'); feedBuddy.timers = (feedBuddy.timers || []); feedBuddy.timers.forEach(clearTimeout); feedBuddy.timers = [];
+  const T = (fn, ms) => feedBuddy.timers.push(setTimeout(fn, ms));
+  L.classList.remove('show', 'closing');
+  L.innerHTML = `<div class="bp-card" role="status" aria-label="${esc(name)} ate">
+    <div class="bp-stage"><div class="bp-glow"></div>
+      <div class="bp-pet"><div class="bp-a on">${petSVG(kind, 'content', 170)}</div><div class="bp-b">${petSVG(kind, 'eating', 170)}</div><div class="bp-c">${petSVG(kind, 'happy', 170)}</div></div>
+      <div class="bp-snack"><svg viewBox="78 118 46 40" width="58" height="50" aria-hidden="true">${SNACKS[snack]}</svg></div>
+      <div class="bp-bubble" id="bp-bub"><span id="bp-say">Ooh, food!</span></div>
+    </div>
+    <b class="bp-name">${esc(name)}</b>
+    <div class="bp-full"><div class="bar" style="height:10px"><i id="bp-bar" style="width:${p0}%;background:var(--grad)"></i></div><span class="faint tiny" id="bp-pct">Fullness ${p0}%</span></div>
+    ${st > 1 ? `<span class="bp-streak">🔥 ${st}-day feeding streak</span>` : ''}</div>`;
   L.hidden = false; void L.offsetWidth; requestAnimationFrame(() => L.classList.add('show'));
-  const close = () => {
-    clearTimeout(feedBuddy.t1); clearTimeout(feedBuddy.t2); if (!L.classList.contains('show')) return;
-    L.classList.add('closing'); L.classList.remove('show');
-    feedBuddy.t3 = setTimeout(() => { L.hidden = true; L.classList.remove('closing', 'done'); }, 340);
-  };
-  L.onclick = close;
-  feedBuddy.t1 = setTimeout(() => L.classList.add('done'), 1500);
-  feedBuddy.t2 = setTimeout(close, 5400);
+  const reduced = REDUCED(), stage = $('.bp-stage', L), pet = $('.bp-pet', L), snackEl = $('.bp-snack', L), bub = $('#bp-bub', L);
+  const face = k => $$('.bp-pet > div', L).forEach(d => d.classList.toggle('on', d.classList.contains(k)));
+  const say = (t, type) => { const el = $('#bp-say', L); if (!el) return; bub.classList.remove('pop'); void bub.offsetWidth; bub.classList.add('pop'); if (!type || reduced) { el.textContent = t; return; } el.textContent = ''; let i = 0; const iv = setInterval(() => { el.textContent = t.slice(0, ++i); if (i >= t.length) clearInterval(iv); }, 22); feedBuddy.timers.push(iv); };
+  const burst = (chars, n, opts) => { for (let i = 0; i < n; i++) { const d = document.createElement('i'); d.className = 'bp-part'; d.textContent = chars[i % chars.length]; d.style.color = opts.color || '#ff6b8a'; d.style.left = opts.x + 'px'; d.style.top = opts.y + 'px'; d.style.fontSize = (opts.size || 18) + Math.random() * 8 + 'px'; stage.appendChild(d);
+      const a = opts.angle + (Math.random() - .5) * opts.spread, v = opts.dist * (.6 + Math.random() * .6);
+      d.animate([{ transform: 'translate(-50%,-50%) scale(.3)', opacity: 0 }, { transform: `translate(calc(-50% + ${Math.cos(a) * v * .5}px), calc(-50% + ${Math.sin(a) * v * .5}px)) scale(1)`, opacity: 1, offset: .3 }, { transform: `translate(calc(-50% + ${Math.cos(a) * v}px), calc(-50% + ${Math.sin(a) * v + (opts.fall || 0)}px)) scale(.8) rotate(${(Math.random() - .5) * 60}deg)`, opacity: 0 }], { duration: opts.dur || 900, easing: 'cubic-bezier(.2,.8,.3,1)', delay: i * (opts.stagger || 30), fill: 'both' }).onfinish = () => d.remove(); } };
+  if (reduced) { snackEl.remove(); face('bp-c'); say(msg); $('#bp-bar', L).style.width = p1 + '%'; $('#bp-pct', L).textContent = `Fullness ${p1}%`; }
+  else {
+    T(() => { say('Ooh, food!'); snackEl.style.opacity = 1; snackEl.animate([{ transform: 'translate(118px,118px) rotate(50deg) scale(1.25)' }, { transform: 'translate(70px,-30px) rotate(-20deg) scale(1.1)', offset: .55 }, { transform: 'translate(0,0) rotate(-6deg) scale(.55)' }], { duration: 650, easing: 'cubic-bezier(.3,.1,.3,1)', fill: 'forwards' }).onfinish = () => { snackEl.style.opacity = 0; }; }, 380);
+    T(() => { face('bp-b'); pet.classList.add('munch'); say('Nom nom nom…'); burst(['●'], 9, { x: 100, y: 112, color: SNACK_COL[snack], size: 6, angle: Math.PI / 2, spread: 2.6, dist: 46, fall: 30, dur: 700, stagger: 18 }); }, 1040);
+    T(() => burst(['●'], 6, { x: 100, y: 112, color: SNACK_COL[snack], size: 5, angle: Math.PI / 2, spread: 2.4, dist: 40, fall: 26, dur: 650, stagger: 20 }), 1500);
+    T(() => { pet.classList.remove('munch'); face('bp-c'); pet.classList.add('joy'); say(msg, true); burst(['♥', '♥', '✦'], 8, { x: 100, y: 70, color: '#ff6b8a', size: 16, angle: -Math.PI / 2, spread: 2.2, dist: 80, dur: 1300, stagger: 45 });
+      const bar = $('#bp-bar', L), pct = $('#bp-pct', L); if (bar) bar.style.width = p1 + '%'; const t0 = performance.now(); const tick = t => { const k = Math.min(1, (t - t0) / 900); if (pct) pct.textContent = `Fullness ${Math.round(p0 + (p1 - p0) * (1 - Math.pow(1 - k, 3)))}%`; if (k < 1) requestAnimationFrame(tick); }; requestAnimationFrame(tick);
+      if (goal) T(() => confetti({ y: innerHeight * .3, n: 110 }), 250); }, 2250);
+  }
+  const close = () => { feedBuddy.timers.forEach(clearTimeout); if (!L.classList.contains('show')) return; L.classList.add('closing'); L.classList.remove('show'); feedBuddy.timers.push(setTimeout(() => { L.hidden = true; L.classList.remove('closing'); L.innerHTML = ''; }, 360)); };
+  L.onclick = close; T(close, 6400);
 }
 A.renameBuddy = () => {
   openSheet('Rename your buddy', `<div style="display:grid;place-items:center">${petSVG(petKind(), 'happy', 120)}</div><div class="field"><label class="lbl" for="bd-n">Name</label><input id="bd-n" name="bname" maxlength="24" value="${esc(buddyName())}" autocapitalize="words" autocomplete="off"></div><button class="btn block" data-act="saveBuddyName">Save name</button>`, { onMount(L) { setTimeout(() => { const i = $('#bd-n', L); if (i) { i.focus(); i.select(); } }, 280); } });

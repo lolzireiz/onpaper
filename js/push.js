@@ -58,7 +58,7 @@ function pushSettingsHTML() {
 A.copyTopic = async () => { try { await navigator.clipboard.writeText(pushTopic()); toast('Topic copied'); } catch (e) { toast('Press and hold the topic to copy it.'); } };
 A.testPush = async (d, el) => {
   const out = $('#push-test'); el.disabled = true; out.innerHTML = '<span class="thinking">Sending…</span>';
-  try { await pushSend({ title: 'On Paper test ✅', body: 'Rest alerts are working. You can lock your phone between sets now.', tag: 'white_check_mark' }); out.innerHTML = '<span style="color:var(--ok)">Sent!</span> <span class="faint">It should pop up in a few seconds. Nothing? Check the topic in ntfy matches exactly and that ntfy notifications are allowed.</span>'; }
+  try { await pushSend({ title: 'Liftprint test ✅', body: 'Rest alerts are working. You can lock your phone between sets now.', tag: 'white_check_mark' }); out.innerHTML = '<span style="color:var(--ok)">Sent!</span> <span class="faint">It should pop up in a few seconds. Nothing? Check the topic in ntfy matches exactly and that ntfy notifications are allowed.</span>'; }
   catch (e) { out.innerHTML = `<span style="color:var(--miss)">Couldn't send. Check your connection.</span>`; }
   el.disabled = false;
 };

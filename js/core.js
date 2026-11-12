@@ -1,5 +1,5 @@
 'use strict';
-/* On Paper: core utilities, data store, shared stats, UI primitives and charts. */
+/* Liftprint: core utilities, data store, shared stats, UI primitives and charts. */
 
 /* ---------- small utilities ---------- */
 const $ = (s, el = document) => el.querySelector(s);
@@ -264,6 +264,7 @@ function render() {
   $$('.tab').forEach(t => t.setAttribute('aria-current', t.dataset.tab === UI.tab ? 'page' : 'false'));
   $('#banner').innerHTML = (typeof updBannerHTML === 'function' ? updBannerHTML() : '') + (Store.note ? `<div class="banner">${esc(Store.note)}</div>` : '');
   mountCharts();
+  if (typeof fxEnter === 'function') fxEnter(view);
 }
 
 /* ---------- events ---------- */

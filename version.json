@@ -1,8 +1,9 @@
 {
- "version": "2.5",
+ "version": "3.0",
  "notes": [
-  "Added Dumbbell Standing Calf Raise and Chin-ups.",
-  "Bodyweight exercises (calf raises, pull-ups, dips, push-ups, lunges and more) now estimate your total load: share of bodyweight + total dumbbell weight. PRs use that total, so getting heavier counts.",
-  "Turn bodyweight counting on for any exercise from its \u22ef menu during a workout."
+  "New name: On Paper is now Liftprint, with a new fingerprint-and-barbell icon. Your data stays exactly where it was.",
+  "Tap the \u24d8 next to any exercise for a guide: what it is, what it builds, real-life examples, whether it helps your dunk, your best, and the muscles worked.",
+  "Rewarding animations: confetti on PRs and finished workouts, sparkles on every set, numbers counting up, smooth screen transitions.",
+  "Feeding your pet is now a little show: the snack flies in, they munch, cheer and fill up, with confetti when you hit a goal. Pets blink now too."
  ]
 }

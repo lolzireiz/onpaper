@@ -2,7 +2,7 @@
 /* Home dashboard + settings. */
 
 Views.home = {
-  title() { return '<span class="wordmark">on<i>paper</i></span>'; },
+  title() { return '<span class="wordmark">lift<i>print</i></span>'; },
   render() {
     const lw = latestWeighin(), s = S(), w = activeWorkout();
     const hasAny = lw || Store.list('workouts').length || Store.list('food').length;
@@ -32,7 +32,7 @@ function setupHTML(lw) {
 function bwTile(lw) {
   const all = weighins(), from = addDays(todayStr(), -30), recent = all.filter(w => w.date >= from);
   const rate = weeklyRate(all);
-  return `<button class="tile" data-act="goTab" data-tab="body" data-sub="weight"><span class="k">Bodyweight</span>${lw ? `<span class="big md">${fw(lw.weight)}<span class="unit">${U.wu}</span></span>${spark(recent.map(w => w.weight))}<span class="sub">${rate != null ? `${signed(U.w(rate), 1)} ${U.wu}/week` : fmtDate(lw.date)}</span>` : `<span class="muted small">No weigh-ins yet</span><span class="sub">Tap to log one</span>`}</button>`;
+  return `<button class="tile" data-act="goTab" data-tab="body" data-sub="weight"><span class="k">Bodyweight</span>${lw ? `<span class="big md"><span data-count="${(+U.w(lw.weight)).toFixed(1)}" data-dp="1">${fw(lw.weight)}</span><span class="unit">${U.wu}</span></span>${spark(recent.map(w => w.weight))}<span class="sub">${rate != null ? `${signed(U.w(rate), 1)} ${U.wu}/week` : fmtDate(lw.date)}</span>` : `<span class="muted small">No weigh-ins yet</span><span class="sub">Tap to log one</span>`}</button>`;
 }
 function weekTile() {
   const st = weekStats(), t = todayStr();
@@ -41,7 +41,7 @@ function weekTile() {
 }
 function foodTile() {
   const t = foodTotals(todayStr()), s = S();
-  return `<button class="tile" data-act="goTab" data-tab="food"><span class="k">Today's food</span><span class="big md">${trim(t.cal, 0)}<span class="unit">kcal</span></span><div class="bar ${t.cal >= s.calTarget ? 'over' : ''}"><i style="width:${clamp(t.cal / s.calTarget * 100, 0, 100)}%"></i></div><div class="bar p ${t.p >= s.proteinTarget ? 'over' : ''}"><i style="width:${clamp(t.p / s.proteinTarget * 100, 0, 100)}%"></i></div><span class="sub">${trim(t.p, 0)} of ${s.proteinTarget} g protein</span></button>`;
+  return `<button class="tile" data-act="goTab" data-tab="food"><span class="k">Today's food</span><span class="big md"><span data-count="${Math.round(t.cal)}">${trim(t.cal, 0)}</span><span class="unit">kcal</span></span><div class="bar ${t.cal >= s.calTarget ? 'over' : ''}"><i style="width:${clamp(t.cal / s.calTarget * 100, 0, 100)}%"></i></div><div class="bar p ${t.p >= s.proteinTarget ? 'over' : ''}"><i style="width:${clamp(t.p / s.proteinTarget * 100, 0, 100)}%"></i></div><span class="sub">${trim(t.p, 0)} of ${s.proteinTarget} g protein</span></button>`;
 }
 function big3Tile() {
   const b = big3(), lw = latestWeighin();
@@ -101,17 +101,17 @@ A.saveSettings = () => {
   refreshCaps(); closeSheet(); toast('Settings saved');
 };
 A.exportData = () => {
-  const data = { app: 'onpaper', exported: new Date().toISOString(), settings: S(), ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
+  const data = { app: 'liftprint', exported: new Date().toISOString(), settings: S(), ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
   const blob = new Blob([JSON.stringify(data)], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
-  a.href = url; a.download = `onpaper-backup-${todayStr()}.json`; document.body.appendChild(a); a.click(); a.remove();
+  a.href = url; a.download = `liftprint-backup-${todayStr()}.json`; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Backup downloaded. Save it to Files or iCloud.');
 };
 A.importData = () => {
   const i = document.createElement('input'); i.type = 'file'; i.accept = 'application/json,.json,.txt';
   i.onchange = async () => {
     const f = i.files && i.files[0]; if (!f) return;
-    let data; try { data = JSON.parse(await f.text()); } catch (e) { return toast("That file isn't an On Paper backup.", { bad: true }); }
-    if (!data || data.app !== 'onpaper') return toast("That file isn't an On Paper backup.", { bad: true });
+    let data; try { data = JSON.parse(await f.text()); } catch (e) { return toast("That file isn't a Liftprint backup.", { bad: true }); }
+    if (!data || !['onpaper', 'liftprint'].includes(data.app)) return toast("That file isn't a Liftprint backup.", { bad: true });
     const n = COLLS.reduce((a, c) => a + (Array.isArray(data[c]) ? data[c].length : 0), 0);
     if (!(await ask(`Restore ${n} entries from ${String(data.exported || '').slice(0, 10) || 'this backup'}? Entries already on this phone are kept; matching ones are replaced.`, { ok: 'Restore' }))) return;
     if (data.settings) Store.settings = { ...Store.settings, ...data.settings };

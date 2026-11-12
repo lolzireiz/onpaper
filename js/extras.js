@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, Apple Watch reminder, muscle diagrams. */
 
-const APP_VERSION = '2.5';
+const APP_VERSION = '3.0';
 const CHANGELOG = [
+  ['3.0', ['New name: On Paper is now Liftprint, with a new fingerprint-and-barbell icon. Your data stays exactly where it was.', 'Tap the ⓘ next to any exercise for a guide: what it is, what it builds, real-life examples, whether it helps your dunk, your best, and the muscles worked.', 'Rewarding animations: confetti on PRs and finished workouts, sparkles on every set, numbers counting up, smooth screen transitions.', 'Feeding your pet is now a little show: the snack flies in, they munch, cheer and fill up, with confetti when you hit a goal. Pets blink now too.']],
   ['2.5', ['Added Dumbbell Standing Calf Raise and Chin-ups.', 'Bodyweight exercises (calf raises, pull-ups, dips, push-ups, lunges and more) now estimate your total load: share of bodyweight + total dumbbell weight. PRs use that total, so getting heavier counts.', 'Turn bodyweight counting on for any exercise from its ⋯ menu during a workout.']],
   ['2.4', ['Update status: the app tells you the moment a new version is live, with a one-tap Update button (also in Settings).', 'Updates now load right away instead of up to 10 minutes later.']],
   ['2.3.1', ['Added Calf Extension to the exercise list.']],
@@ -31,13 +32,13 @@ const lastBackup = () => { try { return localStorage.getItem('onpaper.lastBackup
 const hasData = () => COLLS.some(c => Store.list(c).length);
 function backupDue() { const lb = lastBackup(); return hasData() && (!lb || daysBetween(lb, todayStr()) >= 7); }
 A.backupNow = async () => {
-  const data = { app: 'onpaper', version: APP_VERSION, exported: new Date().toISOString(), settings: S(), ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
-  const name = `onpaper-backup-${todayStr()}.json`, json = JSON.stringify(data);
+  const data = { app: 'liftprint', version: APP_VERSION, exported: new Date().toISOString(), settings: S(), ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
+  const name = `liftprint-backup-${todayStr()}.json`, json = JSON.stringify(data);
   const mark = () => { try { localStorage.setItem('onpaper.lastBackup', todayStr()); } catch (e) {} changed(); };
   try {
     const file = new File([json], name, { type: 'application/json' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'On Paper backup' });
+      await navigator.share({ files: [file], title: 'Liftprint backup' });
       mark(); closeSheet(); toast('Backup saved. Nice.'); return;
     }
   } catch (e) { if (e && e.name === 'AbortError') return; }
@@ -108,19 +109,27 @@ function bodySVG(view, sex, mus) {
     <ellipse cx="${bx + bw / 2}" cy="${fig.parts.reduce((m, q) => Math.max(m, q[3][1] + q[3][3]), 0) + 6}" rx="${bw * .26}" ry="14" fill="#000" opacity=".5"/>
     <g filter="url(#${u}g)" opacity=".55">${glow}</g>${paths}</svg>`;
 }
+const IRL_ICONS = [[/dunk|jump|rebound|hoop|basketball|leap/i, '🏀'], [/sprint|run|chase|bus|race|faster/i, '🏃'], [/climb|ledge|rope|tree|wall|hang|fence|loft/i, '🧗'], [/box|groceries|carry|bag|suitcase|luggage|furniture|couch|move/i, '📦'], [/boulder|rock|tire|car|trapped|stuck|heavy/i, '🪨'], [/stair|hike|hill|uphill|step/i, '🥾'], [/kid|child|baby|toddler|shoulder|dog|hug/i, '🧒'], [/door|push|shove|open/i, '🚪'], [/throw|punch|swing|ball/i, '🥊'], [/shelf|overhead|cabinet|reach|high/i, '📚'], [/posture|slouch|back pain|desk|sit/i, '🪑'], [/balance|ankle|knee|injur|fall|trip/i, '🛡️'], [/water|jug|bucket/i, '🪣']];
+const irlIcon = x => (IRL_ICONS.find(([re]) => re.test(x)) || [0, '💪'])[1];
 A.muscles = d => { Sheet.musEx = d.ex; Sheet.musView = 'both'; Sheet.musSex = S().bodyModel || 'male'; openSheet(d.ex, '', {}); drawMuscles(); };
 A.musSex = d => { Sheet.musSex = d.s; drawMuscles(); };
 A.musView = d => { Sheet.musView = d.v; drawMuscles(); };
 function drawMuscles() {
-  const mus = musclesFor(Sheet.musEx), sex = Sheet.musSex, v = Sheet.musView || 'both';
-  if (!mus) return sheetBody(`<p class="muted">No muscle map for this custom exercise yet. Ask Claude to add it.</p>`);
+  const name = Sheet.musEx, mus = musclesFor(name), sex = Sheet.musSex, v = Sheet.musView || 'both', g = exGuide(name), lib = library().get(keyOf(name));
   const names = set => [...set].map(m => MUSCLE_NAMES[m]).join(', ');
   const fig = (view, label) => `<div><div style="--fig-h:${v === 'both' ? '330px' : '520px'}">${bodySVG(view, sex, mus)}</div><div class="faint tiny" style="text-align:center">${label}</div></div>`;
-  sheetBody(`<div class="seg">${[['male', 'Male'], ['female', 'Female']].map(([k, l]) => `<button data-act="musSex" data-s="${k}" aria-pressed="${sex === k}">${l}</button>`).join('')}</div>
+  const L = liftByKey(keyOf(name));
+  sheetBody(`<div class="guide-hero">${lib ? `<span class="gchip">${esc(lib.group)}</span>` : ''}${lib && lib.equip.length ? `<span class="gchip">${esc(lib.equip.map(q => EQ_LABEL[q]).join(' + '))}</span>` : ''}${g && g.j ? '<span class="gchip dunk">🏀 Helps your dunk</span>' : ''}${bwFactor(name) ? `<span class="gchip">Counts ${Math.round(bwFactor(name) * 100)}% bodyweight</span>` : ''}</div>
+    ${g ? `<p style="font-size:16px;line-height:1.45">${esc(g.a)}</p>
+    <div class="field"><span class="lbl">Builds</span><div class="chips">${g.i.map(x => `<span class="chip" style="pointer-events:none">${esc(x)}</span>`).join('')}</div></div>
+    <div class="field"><span class="lbl">In real life, it helps you…</span><ul class="irl">${g.e.map((x, i) => `<li><i aria-hidden="true">${irlIcon(x)}</i><span>${esc(x)}</span></li>`).join('')}</ul></div>` : '<p class="muted">A custom exercise you added.</p>'}
+    ${L && L.e1 ? `<button class="row" data-act="openLift" data-key="${esc(L.key)}" style="background:var(--s2);border-radius:12px;padding:10px 12px;border:0"><div class="grow"><b>Your best</b><div class="faint small">${L.bwf ? loadTxt(L.heavy) : fw(L.heavy.w)} × ${L.heavy.r} · est. 1RM ${fw(L.e1, 0)} ${U.wu} · ${L.prs} PRs</div></div>${ICON.chevR.replace('<svg', '<svg width="18" height="18"')}</button>` : ''}
+    ${mus ? `<div class="field" style="margin-top:4px"><span class="lbl">Muscles worked</span></div>
+    <div class="seg">${[['male', 'Male'], ['female', 'Female']].map(([k, l]) => `<button data-act="musSex" data-s="${k}" aria-pressed="${sex === k}">${l}</button>`).join('')}</div>
     <div style="display:grid;grid-template-columns:${v === 'both' ? '1fr 1fr' : '1fr'};gap:6px">${v !== 'back' ? fig('front', 'Front') : ''}${v !== 'front' ? fig('back', 'Back') : ''}</div>
     <div class="chips" style="justify-content:center">${[['both', 'Both'], ['front', 'Front'], ['back', 'Back']].map(([k, l]) => `<button class="chip" data-act="musView" data-v="${k}" aria-pressed="${v === k}">${l}</button>`).join('')}</div>
     <div class="legend" style="justify-content:center"><span><i style="background:#f0302e;box-shadow:0 0 8px #ff2a2a"></i>Main muscles</span><span><i style="background:#8c2d33"></i>Helping muscles</span></div>
-    <p><b>Works:</b> <span class="muted">${esc(names(mus.p))}</span>${mus.s.size ? `<br><b>Helps:</b> <span class="muted">${esc(names(mus.s))}</span>` : ''}</p>`);
+    <p><b>Works:</b> <span class="muted">${esc(names(mus.p))}</span>${mus.s.size ? `<br><b>Helps:</b> <span class="muted">${esc(names(mus.s))}</span>` : ''}</p>` : ''}`);
 }
-const BODY_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.5" r="2"/><path d="M5 8.5h14M12 8.5v6M12 14.5l-3 6.5M12 14.5l3 6.5"/></svg>`;
-const musBtn = name => `<button class="iconbtn sm" data-act="muscles" data-ex="${esc(name)}" aria-label="Muscles worked by ${esc(name)}" style="color:var(--tx2)">${BODY_ICON}</button>`;
+const BODY_ICON = `<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M12 11v6"/><circle cx="12" cy="7.6" r=".9" fill="currentColor" stroke="none"/></svg>`;
+const musBtn = name => `<button class="iconbtn sm" data-act="muscles" data-ex="${esc(name)}" aria-label="About ${esc(name)} and muscles worked" style="color:var(--tx2)">${BODY_ICON}</button>`;

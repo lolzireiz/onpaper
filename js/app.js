@@ -3,7 +3,8 @@
 
 const TABS = [['home', 'Home'], ['train', 'Train'], ['food', 'Food'], ['lifts', 'Lifts'], ['body', 'Body']];
 $('#tabs').innerHTML = TABS.map(([k, l]) => `<button class="tab" data-act="tab" data-tab="${k}" aria-label="${l}">${ICON[k]}<span>${l}</span></button>`).join('');
-A.tab = d => {
+A.tab = (d, el) => {
+  if (el) { el.classList.remove('bounce'); void el.offsetWidth; el.classList.add('bounce'); }
   if (UI.tab === d.tab) { // tapping the current tab goes back to its top level
     if (d.tab === 'lifts') UI.liftKey = null;
     $('#view').scrollTo({ top: 0, behavior: 'smooth' });

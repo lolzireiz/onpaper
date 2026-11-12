@@ -70,7 +70,7 @@ A.saveWeighin = d => {
   if (bf != null && (bf < 2 || bf > 70)) return toast('Body fat % should be between 2 and 70.', { bad: true });
   const id = d.id || newId(), old = Store.docs.weighins[id];
   put('weighins', id, { date: fval('date') || todayStr(), time: fval('time') || null, weight: U.toLb(v), meal: picked($('#sheet'), 'meal'), bf: bf || null, ts: old?.ts || Date.now() });
-  closeSheet(); toast(d.id ? 'Weigh-in updated' : `Logged ${trim(v, 1)} ${U.wu}`);
+  closeSheet(); toast(d.id ? 'Weigh-in updated' : `Logged ${trim(v, 1)} ${U.wu}`); if (!d.id) sparkle(null, ['#3392f5', '#3ccf82', '#ffffff']);
 };
 A.deleteWeighin = d => { const w = Store.docs.weighins[d.id]; del('weighins', d.id); closeSheet(); if (w) toastUndo('Weigh-in deleted', () => put('weighins', d.id, w)); };
 
