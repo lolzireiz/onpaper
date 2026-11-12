@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '3.8.1';
+const APP_VERSION = '3.8.2';
 const CHANGELOG = [
+  ['3.8.2', ['Figures reshaped again: the male has wider shoulders, a fuller chest, defined abs and a stronger V-taper; the female has a clear hourglass with a narrower waist.', 'Chests are now plain smooth surfaces.']],
   ['3.8.1', ['More athletic figures: the male has a bigger chest, shoulders, arms, lats and legs with a stronger V-taper; the female has stronger legs, glutes and shoulders with a toned core.']],
   ['3.8', ['All-new exercise figures: realistic, detailed 3D male and female athletes (over 26,000 polygons each) with real anatomy, hands, feet and faces, replacing the simple mannequin.', 'Working muscles light up precisely: quads vs hamstrings, chest vs back, calves, glutes, abs and lower back are all separate now.', 'Hands sit flat on the floor in push-ups and planks, and bars and dumbbells sit in the palm.']],
   ['3.7.2', ['Animated figures: one smooth, continuous body. The odd lumps, creases and patchy shading are gone.']],
