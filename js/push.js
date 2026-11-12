@@ -24,10 +24,10 @@ function pushSettingsHTML() {
   return `<div class="field"><span class="lbl">Rest alerts on your lock screen &amp; Apple Watch</span><div class="seg">${chipSeg('pushon', [['on', 'On'], ['off', 'Off']], on ? 'on' : 'off')}</div></div>
     <details ${on ? '' : 'open'} class="small" style="background:var(--s2);border-radius:12px;padding:10px 12px"><summary style="font-weight:650">One-time setup (1 minute)</summary>
       <ol class="muted" style="padding-left:18px;margin:8px 0;display:flex;flex-direction:column;gap:6px">
-        <li>Install the free <b>ntfy</b> app from the App Store.</li>
-        <li>Open it, tap <b>+</b>, and subscribe to this topic (leave the server as ntfy.sh):<div style="display:flex;gap:8px;align-items:center;margin-top:6px"><code style="background:var(--s3);padding:6px 8px;border-radius:8px;font-size:13px;user-select:all;-webkit-user-select:all">${t}</code><button class="btn sm ghost" style="background:var(--s3)" data-act="copyTopic">Copy</button></div></li>
-        <li>Allow notifications when ntfy asks.</li>
-        <li>Turn this <b>On</b>, save settings, then tap <b>Send a test alert</b>.</li>
+        <li>In <b>Safari</b>, open <b>ntfy.sh/app</b>, tap <b>Share → Add to Home Screen</b>.</li>
+        <li>Open ntfy <b>from that home-screen icon</b>, tap <b>Subscribe to topic</b>, paste this topic, keep the server as ntfy.sh, and allow notifications:<div style="display:flex;gap:8px;align-items:center;margin-top:6px"><code style="background:var(--s3);padding:6px 8px;border-radius:8px;font-size:13px;user-select:all;-webkit-user-select:all">${t}</code><button class="btn sm ghost" style="background:var(--s3)" data-act="copyTopic">Copy</button></div></li>
+        <li>If you installed the ntfy App Store app, delete it. On iPhone it often only shows alerts when it's open.</li>
+        <li>Turn this <b>On</b>, save, tap <b>Send a test alert</b>, then lock your phone and wait a few seconds.</li>
       </ol>
       <p class="faint tiny">Your Watch shows the alert whenever your phone is locked or in your pocket. The topic is a random private name, so only you get these.</p></details>
     <button class="btn ghost block" data-act="testPush">Send a test alert</button><p class="small" id="push-test" aria-live="polite"></p>`;

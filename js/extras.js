@@ -1,7 +1,7 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, Apple Watch reminder, muscle diagrams. */
 
-const APP_VERSION = '2.2';
+const APP_VERSION = '2.2.1';
 const CHANGELOG = [
   ['2.2', ['Rest alerts on your lock screen and Apple Watch, even with the app closed. Set it up once in Settings (uses the free ntfy app).', 'The alert tells you which exercise is next.']],
   ['2.1', ['Watch stats on workouts: after you finish, scan your Apple Watch or Fitness summary screenshot (or type it in) to save workout type, time, active and total calories, heart rate and effort.']],
