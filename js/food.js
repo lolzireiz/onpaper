@@ -141,7 +141,7 @@ function fromAI(out, src) {
   const n = v => { const x = num(v); return x == null ? '' : Math.round(x * 10) / 10; };
   let su = String(out.serving_unit || 'serving').toLowerCase().trim(); if (su === 'grams' || su === 'gram') su = 'g'; if (su === 'milliliters' || su === 'mL') su = 'ml'; if (!UNITS.includes(su)) su = 'serving';
   const ss = num(out.serving_size) || 1;
-  return { name: String(out.name || '').slice(0, 80), serving: String(out.serving || '').slice(0, 80), servingSize: su === 'serving' ? 1 : ss, servingUnit: su, cal: n(out.cal), p: n(out.protein), c: n(out.carbs), f: n(out.fat), qty: 1, mode: src === 'label' && su !== 'serving' && su !== 'piece' ? 'amount' : 'servings', src, note: String(out.note || '').slice(0, 200), confidence: ['high', 'medium', 'low'].includes(out.confidence) ? out.confidence : '' };
+  return { name: String(out.name || '').slice(0, 80), serving: String(out.serving || '').slice(0, 80), servingSize: su === 'serving' ? 1 : ss, servingUnit: su, cal: n(out.cal), p: n(out.protein), c: n(out.carbs), f: n(out.fat), qty: 1, mode: src === 'label' && su !== 'serving' && su !== 'piece' && !/^\s*[\d./½¼¾]*\s*(tortillas?|bars?|scoops?|slices?|pieces?|cookies?|eggs?|bottles?|cans?|packets?|pouch(es)?|wraps?|buns?|muffins?|containers?|cups?|pancakes?|waffles?|links?|patty|patties|sticks?)\b/i.test(String(out.serving || '')) ? 'amount' : 'servings', src, note: String(out.note || '').slice(0, 200), confidence: ['high', 'medium', 'low'].includes(out.confidence) ? out.confidence : '' };
 }
 function aiErrorText(e) {
   switch (e?.code) {
@@ -152,6 +152,7 @@ function aiErrorText(e) {
     case 'timeout': return 'Gemini took too long to answer. Try again; a closer, well-lit photo of just the label is faster.';
     case 'offline': return "Couldn't connect to Gemini. Check your signal or Wi-Fi and try again.";
     case 'rate_limited': return "You've hit Gemini's free limit for the moment. Wait a minute and try again.";
+    case 'overloaded': return "Google's Gemini servers are overloaded right now (your key is fine). The app tried every model. Try again in a minute, or enter it manually.";
     case 'refused': return "Gemini wouldn't read that one. Enter it manually.";
     case 'invalid_json': case 'empty_completion': return "Couldn't pull numbers out of that. Try again or enter it manually.";
     default: return 'Something went wrong talking to Gemini. Try again.';
@@ -161,22 +162,23 @@ function aiWorking(title, imgUrl, label) {
   const ctl = new AbortController(); Sheet.ai = ctl;
   const body = `${imgUrl ? `<img class="prev-img" src="${imgUrl}" alt="Your photo">` : ''}<p class="thinking" id="ai-st">${label}</p><button class="btn ghost block" data-act="aiStop">Stop</button>`;
   if (Sheet.meal && !$('#sheet').hidden) { sheetTitle(title); sheetBody(body); Sheet.onClose = () => ctl.abort(); } else openSheet(title, body, { onClose: () => ctl.abort() });
-  const t0 = Date.now(); clearInterval(Sheet.aiTick);
-  Sheet.aiTick = setInterval(() => { const st = $('#ai-st'); if (!st || ctl.signal.aborted) return clearInterval(Sheet.aiTick); st.textContent = `${label} ${Math.round((Date.now() - t0) / 1000)}s`; }, 1000);
+  const t0 = Date.now(); clearInterval(Sheet.aiTick); Sheet.aiLabel = label;
+  Sheet.aiTick = setInterval(() => { const st = $('#ai-st'); if (!st || ctl.signal.aborted) return clearInterval(Sheet.aiTick); st.textContent = `${Sheet.aiLabel} ${Math.round((Date.now() - t0) / 1000)}s`; }, 1000);
   return ctl;
 }
 A.aiStop = () => { Sheet.ai?.abort(); clearInterval(Sheet.aiTick); if (Sheet.meal) drawMeal(); else closeSheet(); };
 function aiFailed(e, imgUrl) {
   clearInterval(Sheet.aiTick); const msg = aiErrorText(e); if (msg == null) return;
-  sheetBody(`${imgUrl ? `<img class="prev-img" src="${imgUrl}" alt="Your photo">` : ''}<p class="tip-line">${esc(msg)}${e && e.message ? `<br><span class="faint tiny">Details: ${esc(e.message)}</span>` : ''}</p>${imgUrl ? `<button class="btn block" data-act="foodSnap" data-inmeal="${Sheet.meal ? 1 : 0}">Try another photo</button>` : ''}<button class="btn ${imgUrl ? 'ghost' : ''} block" data-act="foodManual" data-inmeal="${Sheet.meal ? 1 : 0}">Enter manually</button>${Sheet.meal ? '<button class="linkbtn center" data-act="mealBack">Back to meal</button>' : ''}`);
+  sheetBody(`${imgUrl ? `<img class="prev-img" src="${imgUrl}" alt="Your photo">` : ''}<p class="tip-line">${esc(msg)}${e && e.message ? `<br><span class="faint tiny">Details: ${esc(e.message)}</span>` : ''}</p>${imgUrl && Sheet.lastPhoto ? `<button class="btn block" data-act="retryPhoto">Try again</button>` : ''}${imgUrl ? `<button class="btn ghost block" data-act="foodSnap" data-inmeal="${Sheet.meal ? 1 : 0}">Use a different photo</button>` : ''}<button class="btn ${imgUrl ? 'ghost' : ''} block" data-act="foodManual" data-inmeal="${Sheet.meal ? 1 : 0}">Enter manually</button>${Sheet.meal ? '<button class="linkbtn center" data-act="mealBack">Back to meal</button>' : ''}`);
 }
 A.foodSnap = d => { if (!inMeal(d)) Sheet.meal = null; const i = $('#file-food'); i.value = ''; i.click(); };
+A.retryPhoto = () => { if (Sheet.lastPhoto) onFoodPhoto(Sheet.lastPhoto); };
 async function onFoodPhoto(file) {
-  if (!file || !CAP.sample) return;
+  if (!file || !CAP.sample) return; Sheet.lastPhoto = file;
   const blob = await toJpeg(file, 1100, 0.8), url = URL.createObjectURL(blob);
   const ctl = aiWorking('Reading your photo', url, 'Reading the label…');
   try {
-    const out = await CAP.sample.json(PROMPT_PHOTO, { images: [blob], signal: ctl.signal });
+    const out = await CAP.sample.json(PROMPT_PHOTO, { images: [blob], signal: ctl.signal, onStatus: t => { Sheet.aiLabel = t; } });
     clearInterval(Sheet.aiTick); if (ctl.signal.aborted) return;
     if (!out || out.kind === 'none') return sheetBody(`<img class="prev-img" src="${url}" alt="Your photo"><p class="tip-line">${esc(out?.note || "That doesn't look like food or a nutrition label.")}</p><button class="btn block" data-act="foodSnap" data-inmeal="${Sheet.meal ? 1 : 0}">Try another photo</button><button class="btn ghost block" data-act="foodManual" data-inmeal="${Sheet.meal ? 1 : 0}">Enter manually</button>`);
     foodForm(fromAI(out, out.kind === 'label' ? 'label' : 'ai'), url, false, out.kind === 'label');
@@ -191,7 +193,7 @@ A.foodEstimate = async () => {
   const ctl = new AbortController(); Sheet.ai = ctl; Sheet.onClose = () => ctl.abort();
   sheetBody(`<p class="muted">“${esc(txt)}”</p><p class="thinking" id="ai-st">Estimating…</p><button class="btn ghost block" data-act="aiStop">Stop</button>`);
   try {
-    const out = await CAP.sample.json(promptText(txt), { signal: ctl.signal });
+    const out = await CAP.sample.json(promptText(txt), { signal: ctl.signal, onStatus: t => { const st = $('#ai-st'); if (st) st.textContent = t; } });
     if (ctl.signal.aborted) return;
     foodForm(fromAI(out || {}, 'ai'));
   } catch (e) { aiFailed(e); }

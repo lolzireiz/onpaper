@@ -1,5 +1,5 @@
 // Network first so updates show up right away; cached copy keeps the app working with no signal.
-const CACHE = 'onpaper-v2.0';
+const CACHE = 'onpaper-v2.0.1';
 self.addEventListener('install', e => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch', e => {

@@ -58,7 +58,7 @@ const LocalAssets = {
 const GEMINI_KEY = 'onpaper.geminiKey', GEMINI_MODEL = 'onpaper.geminiModel';
 const geminiKey = () => { try { return (localStorage.getItem(GEMINI_KEY) || '').replace(/[^\x21-\x7E]/g, ''); } catch (e) { return ''; } };
 const geminiModel = () => { try { const m = (localStorage.getItem(GEMINI_MODEL) || '').trim(); return m === 'gemini-flash-latest' ? '' : m; } catch (e) { return ''; } };
-const GEMINI_MODELS = ['gemini-flash-lite-latest', 'gemini-2.5-flash-lite', 'gemini-flash-latest', 'gemini-2.5-flash'];
+const GEMINI_MODELS = ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'];
 const blobB64 = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(b); });
 const Gemini = {
   workingModel: null,
@@ -68,7 +68,7 @@ const Gemini = {
     try {
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey())}`, { method: 'POST', signal: ctl.signal, headers: { 'Content-Type': 'application/json' }, body });
       const t = await r.text();
-      if (!r.ok) { let msg = t; try { msg = JSON.parse(t).error.message; } catch (e) {} throw { code: r.status === 429 ? 'rate_limited' : r.status === 404 ? 'bad_model' : /api key|API_KEY|permission/i.test(msg) ? 'bad_key' : 'upstream_error', message: `${r.status}: ${String(msg).slice(0, 220)}` }; }
+      if (!r.ok) { let msg = t; try { msg = JSON.parse(t).error.message; } catch (e) {} throw { code: r.status === 429 && !/quota|billing/i.test(msg) ? 'overloaded' : r.status === 429 ? 'rate_limited' : [500, 502, 503, 504].includes(r.status) ? 'overloaded' : r.status === 404 ? 'bad_model' : /api key|API_KEY|permission/i.test(msg) ? 'bad_key' : 'upstream_error', message: `${r.status}: ${String(msg).slice(0, 220)}` }; }
       return JSON.parse(t);
     } catch (e) {
       if (e && e.code) throw e;
@@ -77,21 +77,32 @@ const Gemini = {
       throw { code: 'offline', message: String(e && (e.message || e)).slice(0, 200) };
     } finally { clearTimeout(timer); if (signal) signal.removeEventListener('abort', onAbort); }
   },
-  async json(prompt, { images = [], signal } = {}) {
+  async json(prompt, { images = [], signal, onStatus } = {}) {
     if (!geminiKey()) throw { code: 'no_key' };
     const parts = [{ text: prompt }];
     for (const b of [].concat(images)) parts.push({ inline_data: { mime_type: b.type || 'image/jpeg', data: await blobB64(b) } });
     const body = JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.1 } });
     const custom = geminiModel(), models = custom ? [custom] : (this.workingModel ? [this.workingModel, ...GEMINI_MODELS.filter(m => m !== this.workingModel)] : GEMINI_MODELS);
-    let last;
+    const wait = ms => new Promise((res, rej) => { const t = setTimeout(res, ms); if (signal) signal.addEventListener('abort', () => { clearTimeout(t); rej({ code: 'cancelled' }); }, { once: true }); });
+    const t0 = Date.now(); let last, busy = 0;
     for (const m of models) {
-      try {
-        const j = await this.call(m, body, signal); this.workingModel = m;
-        const txt = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
-        if (!txt) throw { code: j.promptFeedback?.blockReason ? 'refused' : 'empty_completion' };
-        try { return JSON.parse(txt); } catch (e) { const mm = txt.match(/[\[{][\s\S]*[\]}]/); if (mm) { try { return JSON.parse(mm[0]); } catch (e2) {} } throw { code: 'invalid_json' }; }
-      } catch (e) { last = e; if (e.code !== 'bad_model') throw e; }
+      for (let attempt = 0; attempt < 2; attempt++) {
+        if (Date.now() - t0 > 75000) throw last || { code: 'timeout' };
+        try {
+          const j = await this.call(m, body, signal); this.workingModel = m;
+          const txt = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+          if (!txt) throw { code: j.promptFeedback?.blockReason ? 'refused' : 'empty_completion' };
+          try { return JSON.parse(txt); } catch (e) { const mm = txt.match(/[\[{][\s\S]*[\]}]/); if (mm) { try { return JSON.parse(mm[0]); } catch (e2) {} } throw { code: 'invalid_json' }; }
+        } catch (e) {
+          last = e;
+          if (e.code === 'overloaded') { busy++; if (onStatus) onStatus(`Gemini is busy, ${attempt === 0 ? 'retrying' : 'trying another model'}…`); if (attempt === 0) { await wait(1200); continue; } break; }
+          if (e.code === 'bad_model') break;
+          throw e;
+        }
+      }
+      if (this.workingModel === m) this.workingModel = null;
     }
+    if (last && last.code === 'overloaded') last.message = `${last.message} (tried ${models.length} models, ${busy} busy answers)`;
     throw last;
   },
 };
