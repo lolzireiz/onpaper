@@ -1,10 +1,11 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, Apple Watch reminder, muscle diagrams. */
 
-const APP_VERSION = '2.0.1';
+const APP_VERSION = '2.0.2';
 const CHANGELOG = [
-  ['2.0.1', ['Label scanning now retries automatically and switches Gemini models when Google\'s servers are busy, plus a one-tap "Try again".']],
-  ['2.0', ['Realistic anatomy diagrams with real muscle shapes, shading and fibers. Tap Front/Back to zoom.', 'Four new buddies: a cat, bunny, penguin and axolotl. Tap "Change pet" on the Food tab.', 'Label scanning fixed: faster model, smaller photos, clear error details, and a "Test my key" button in Settings.', 'Enter food by grams: set the serving size (like 13 g), type what you ate (like 37 g), and the calories scale automatically.', 'My Foods: tick "Save to My Foods" and the product and its serving size are remembered.', 'Workouts: sets × reps targets, smart weight suggestions from last time, +/- buttons, warm-up sets (never counted as PRs), and rest times that fit the lift.', 'Home: a Today checklist and Insights (bulk pace, strength gains, stalls, protein streaks, goal weight).', 'Dunk progress tracker on the Lifts tab.', 'Undo after deleting things.']],
+  ['2.0.2', ['Smoother buddy feeding animation.', 'Cleaner scanning messages.']],
+  ['2.0.1', ['Label scanning keeps trying automatically when it\'s slow, plus a one-tap "Try again".']],
+  ['2.0', ['Realistic anatomy diagrams with real muscle shapes, shading and fibers. Tap Front/Back to zoom.', 'Four new buddies: a cat, bunny, penguin and axolotl. Tap "Change pet" on the Food tab.', 'Label scanning fixed: faster, with a "Test my key" button in Settings.', 'Enter food by grams: set the serving size (like 13 g), type what you ate (like 37 g), and the calories scale automatically.', 'My Foods: tick "Save to My Foods" and the product and its serving size are remembered.', 'Workouts: sets × reps targets, smart weight suggestions from last time, +/- buttons, warm-up sets (never counted as PRs), and rest times that fit the lift.', 'Home: a Today checklist and Insights (bulk pace, strength gains, stalls, protein streaks, goal weight).', 'Dunk progress tracker on the Lifts tab.', 'Undo after deleting things.']],
   ['1.2.2', ['Slimmer, better-proportioned arms on the female diagram.', 'Tap the pencil next to your food buddy\'s name to rename them.']],
   ['1.2.1', ['Fixed the arms on the female muscle diagram.']],
   ['1.2', ['Meet Pebble, your raccoon food buddy! Log food to feed them and they\'ll say something nice. Rename or turn them off in Settings.', 'Much better muscle diagrams for both the male and female figures.']],

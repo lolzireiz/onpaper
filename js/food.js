@@ -1,5 +1,5 @@
 'use strict';
-/* Food: calories + protein. Real serving sizes (eat 37 g of a 13 g serving), My Foods, meals, label scanning with Gemini. */
+/* Food: calories + protein. Real serving sizes (eat 37 g of a 13 g serving), My Foods, meals, label scanning. */
 
 const UNITS = ['g', 'ml', 'oz', 'cup', 'tbsp', 'tsp', 'piece', 'serving'];
 const foodDay = date => Store.docs.food[date] || { date, items: [] };
@@ -37,7 +37,7 @@ Views.food = {
     const rec = recentFoods();
     if (rec.length) h += `<div class="field"><span class="lbl">Add again (same amount as last time)</span><div class="chips scroll">${rec.map((it, i) => `<button class="chip" data-act="foodAgain" data-i="${i}">${esc(it.name)} <span class="faint">${trim((it.cal || 0) * (it.qty || 1), 0)}</span></button>`).join('')}</div></div>`;
     h += `<section class="card flush"><h2 class="sec-t" style="padding-top:14px">${date === todayStr() ? "Today's" : 'This day’s'} food</h2>${items.length ? items.slice().sort((a, b) => (b.ts || 0) - (a.ts || 0)).map(it => `<button class="row" data-act="foodEdit" data-id="${it.id}"><div class="grow"><b>${esc(it.name)}</b><div class="faint small">${esc(eatenLabel(it))}${it.ts ? ' · ' + fmtClock(it.ts) : ''}${it.src === 'label' ? ' · label' : it.src === 'ai' ? ' · estimate' : it.src === 'meal' ? ' · meal' : ''}</div></div><div class="rnum"><b>${trim((it.cal || 0) * (it.qty || 1), 0)}</b> <span class="faint small">kcal</span><div class="faint tiny">${trim((it.p || 0) * (it.qty || 1), 0)} g protein</div></div></button>`).join('') : '<p class="muted small" style="padding:4px 0 16px">Nothing logged yet.</p>'}</section>`;
-    if (!ai) h += `<p class="faint small">Want label scanning? <button class="linkbtn" data-act="openSettings">Add your free Gemini key</button> in Settings.</p>`;
+    if (!ai) h += `<p class="faint small">Want label scanning? <button class="linkbtn" data-act="openSettings">Add your free AI key</button> in Settings.</p>`;
     return h;
   },
 };
@@ -146,16 +146,16 @@ function fromAI(out, src) {
 function aiErrorText(e) {
   switch (e?.code) {
     case 'cancelled': return null;
-    case 'no_key': return 'Add your Gemini key in Settings to scan labels.';
-    case 'bad_key': return 'Google rejected the API key. Re-copy it from aistudio.google.com and use "Test my key" in Settings.';
-    case 'bad_model': return "None of the Gemini models answered. Clear the model under Advanced in Settings.";
-    case 'timeout': return 'Gemini took too long to answer. Try again; a closer, well-lit photo of just the label is faster.';
-    case 'offline': return "Couldn't connect to Gemini. Check your signal or Wi-Fi and try again.";
-    case 'rate_limited': return "You've hit Gemini's free limit for the moment. Wait a minute and try again.";
-    case 'overloaded': return "Google's Gemini servers are overloaded right now (your key is fine). The app tried every model. Try again in a minute, or enter it manually.";
-    case 'refused': return "Gemini wouldn't read that one. Enter it manually.";
+    case 'no_key': return 'Add your AI key in Settings to scan labels.';
+    case 'bad_key': return 'Your AI key was rejected. Re-copy it and use "Test my key" in Settings.';
+    case 'bad_model': return "The scanner couldn't find a model to use. Clear the model under Advanced in Settings.";
+    case 'timeout': return 'That took too long. Try again; a close, well-lit photo of just the label reads fastest.';
+    case 'offline': return "Couldn't connect. Check your signal or Wi-Fi and try again.";
+    case 'rate_limited': return "You've hit the free scanning limit for the moment. Wait a minute and try again.";
+    case 'overloaded': return "The scanner is really busy right now. Try again in a minute, or enter it manually.";
+    case 'refused': return "The scanner couldn't read that one. Enter it manually.";
     case 'invalid_json': case 'empty_completion': return "Couldn't pull numbers out of that. Try again or enter it manually.";
-    default: return 'Something went wrong talking to Gemini. Try again.';
+    default: return 'Something went wrong while scanning. Try again.';
   }
 }
 function aiWorking(title, imgUrl, label) {
@@ -169,7 +169,7 @@ function aiWorking(title, imgUrl, label) {
 A.aiStop = () => { Sheet.ai?.abort(); clearInterval(Sheet.aiTick); if (Sheet.meal) drawMeal(); else closeSheet(); };
 function aiFailed(e, imgUrl) {
   clearInterval(Sheet.aiTick); const msg = aiErrorText(e); if (msg == null) return;
-  sheetBody(`${imgUrl ? `<img class="prev-img" src="${imgUrl}" alt="Your photo">` : ''}<p class="tip-line">${esc(msg)}${e && e.message ? `<br><span class="faint tiny">Details: ${esc(e.message)}</span>` : ''}</p>${imgUrl && Sheet.lastPhoto ? `<button class="btn block" data-act="retryPhoto">Try again</button>` : ''}${imgUrl ? `<button class="btn ghost block" data-act="foodSnap" data-inmeal="${Sheet.meal ? 1 : 0}">Use a different photo</button>` : ''}<button class="btn ${imgUrl ? 'ghost' : ''} block" data-act="foodManual" data-inmeal="${Sheet.meal ? 1 : 0}">Enter manually</button>${Sheet.meal ? '<button class="linkbtn center" data-act="mealBack">Back to meal</button>' : ''}`);
+  sheetBody(`${imgUrl ? `<img class="prev-img" src="${imgUrl}" alt="Your photo">` : ''}<p class="tip-line">${esc(msg)}${e && e.message ? `<br><span class="faint tiny">${esc(errCode(e))}</span>` : ''}</p>${imgUrl && Sheet.lastPhoto ? `<button class="btn block" data-act="retryPhoto">Try again</button>` : ''}${imgUrl ? `<button class="btn ghost block" data-act="foodSnap" data-inmeal="${Sheet.meal ? 1 : 0}">Use a different photo</button>` : ''}<button class="btn ${imgUrl ? 'ghost' : ''} block" data-act="foodManual" data-inmeal="${Sheet.meal ? 1 : 0}">Enter manually</button>${Sheet.meal ? '<button class="linkbtn center" data-act="mealBack">Back to meal</button>' : ''}`);
 }
 A.foodSnap = d => { if (!inMeal(d)) Sheet.meal = null; const i = $('#file-food'); i.value = ''; i.click(); };
 A.retryPhoto = () => { if (Sheet.lastPhoto) onFoodPhoto(Sheet.lastPhoto); };
@@ -186,7 +186,7 @@ async function onFoodPhoto(file) {
 }
 A.foodDescribe = d => {
   if (!inMeal(d)) Sheet.meal = null;
-  (Sheet.meal ? (t, b) => { sheetTitle(t); sheetBody(b); } : openSheet)('Describe what you ate', `<div class="field"><label class="lbl" for="fd-txt">What and how much</label><textarea id="fd-txt" name="txt" placeholder="e.g. Chipotle bowl with double chicken, white rice, black beans, cheese and mild salsa"></textarea></div><button class="btn block" data-act="foodEstimate">${ICON.spark} Estimate</button>${Sheet.meal ? '<button class="linkbtn center" data-act="mealBack">Back to meal</button>' : ''}<p class="faint small">Gemini estimates from typical portions and published nutrition info. Check the numbers before adding.</p>`, { onMount(L) { setTimeout(() => $('#fd-txt', L)?.focus(), 280); } });
+  (Sheet.meal ? (t, b) => { sheetTitle(t); sheetBody(b); } : openSheet)('Describe what you ate', `<div class="field"><label class="lbl" for="fd-txt">What and how much</label><textarea id="fd-txt" name="txt" placeholder="e.g. Chipotle bowl with double chicken, white rice, black beans, cheese and mild salsa"></textarea></div><button class="btn block" data-act="foodEstimate">${ICON.spark} Estimate</button>${Sheet.meal ? '<button class="linkbtn center" data-act="mealBack">Back to meal</button>' : ''}<p class="faint small">Estimates use typical portions and published nutrition info. Check the numbers before adding.</p>`, { onMount(L) { setTimeout(() => $('#fd-txt', L)?.focus(), 280); } });
 };
 A.foodEstimate = async () => {
   const txt = fval('txt'); if (!txt) return toast('Describe the food first.', { bad: true });

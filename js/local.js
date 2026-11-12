@@ -95,7 +95,7 @@ const Gemini = {
           try { return JSON.parse(txt); } catch (e) { const mm = txt.match(/[\[{][\s\S]*[\]}]/); if (mm) { try { return JSON.parse(mm[0]); } catch (e2) {} } throw { code: 'invalid_json' }; }
         } catch (e) {
           last = e;
-          if (e.code === 'overloaded') { busy++; if (onStatus) onStatus(`Gemini is busy, ${attempt === 0 ? 'retrying' : 'trying another model'}…`); if (attempt === 0) { await wait(1200); continue; } break; }
+          if (e.code === 'overloaded') { busy++; if (onStatus) onStatus('Taking longer than usual…'); if (attempt === 0) { await wait(1200); continue; } break; }
           if (e.code === 'bad_model') break;
           throw e;
         }
@@ -106,6 +106,7 @@ const Gemini = {
     throw last;
   },
 };
+const errCode = e => { const m = String(e && e.message || '').match(/^(\d{3})/); return m ? `Error ${m[1]}` : (e && e.code ? `Error: ${e.code}` : ''); };
 function refreshCaps() { CAP.assets = LocalAssets; CAP.sample = geminiKey() ? Gemini : null; CAP.sampleImages = !!CAP.sample; }
 A.testGemini = async (d, el) => {
   const keyIn = $('#st-gk'); if (keyIn) { try { localStorage.setItem(GEMINI_KEY, keyIn.value.trim()); } catch (e) {} refreshCaps(); }
@@ -113,7 +114,7 @@ A.testGemini = async (d, el) => {
   if (!geminiKey()) { out.textContent = 'Paste your key first.'; return; }
   el.disabled = true; out.innerHTML = '<span class="thinking">Testing…</span>';
   const t0 = Date.now();
-  try { await Gemini.json('Reply with only this JSON: {"ok": true}'); out.innerHTML = `<span style="color:var(--ok)">✓ Works!</span> <span class="faint">${esc(Gemini.workingModel)} answered in ${((Date.now() - t0) / 1000).toFixed(1)}s.</span>`; }
-  catch (e) { out.innerHTML = `<span style="color:var(--miss)">✗ ${esc(aiErrorText(e) || 'Stopped')}</span>${e.message ? `<br><span class="faint">${esc(e.message)}</span>` : ''}`; }
+  try { await Gemini.json('Reply with only this JSON: {"ok": true}'); out.innerHTML = `<span style="color:var(--ok)">✓ Works!</span> <span class="faint">Answered in ${((Date.now() - t0) / 1000).toFixed(1)}s.</span>`; }
+  catch (e) { out.innerHTML = `<span style="color:var(--miss)">✗ ${esc(aiErrorText(e) || 'Stopped')}</span>${e.message ? `<br><span class="faint tiny">${esc(errCode(e))}</span>` : ''}`; }
   el.disabled = false;
 };

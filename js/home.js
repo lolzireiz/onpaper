@@ -75,9 +75,9 @@ A.openSettings = () => {
     <div class="fields three">${sel('squat', 'Squat')}${sel('bench', 'Bench')}${sel('deadlift', 'Deadlift')}</div>
     <p class="faint small" style="margin-top:-6px">Which of your lifts count toward the Big 3 total.</p>
     <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:4px 0">
-    <div class="field"><label class="lbl" for="st-gk">Gemini API key (for label scanning)</label><input id="st-gk" name="gkey" type="password" autocomplete="off" value="${esc(geminiKey())}" placeholder="Paste your key from aistudio.google.com"></div>
+    <div class="field"><label class="lbl" for="st-gk">AI key (for label scanning)</label><input id="st-gk" name="gkey" type="password" autocomplete="off" value="${esc(geminiKey())}" placeholder="Paste your key from aistudio.google.com"></div>
     <div class="btnrow"><button class="btn ghost" data-act="testGemini">Test my key</button><a class="btn ghost" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Get a free key</a></div><p class="small" id="gk-test" aria-live="polite"></p>
-    <details><summary class="faint small">Advanced: Gemini model</summary><input id="st-gm" name="gmodel" autocomplete="off" autocapitalize="off" value="${esc(geminiModel())}" placeholder="Automatic (fastest available)" style="margin-top:6px"></details>
+    <details><summary class="faint small">Advanced: model</summary><input id="st-gm" name="gmodel" autocomplete="off" autocapitalize="off" value="${esc(geminiModel())}" placeholder="Automatic (fastest available)" style="margin-top:6px"></details>
     <p class="faint small" style="margin-top:-6px">Your key is saved only on this phone and only sent to Google.</p>
     <button class="btn block" data-act="saveSettings">Save settings</button>
     <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:4px 0">

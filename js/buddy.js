@@ -122,12 +122,19 @@ function feedBuddy(before, after) {
   let msg = Math.random() < 0.18 ? PETS[petKind()].noise : BUDDY_MSGS[Math.floor(Math.random() * BUDDY_MSGS.length)];
   if (before.p < s.proteinTarget && t.p >= s.proteinTarget) msg = BUDDY_PROTEIN[Math.floor(Math.random() * BUDDY_PROTEIN.length)];
   else if (before.cal < s.calTarget && t.cal >= s.calTarget) msg = BUDDY_FULL[Math.floor(Math.random() * BUDDY_FULL.length)];
-  const L = $('#buddy-pop');
-  L.innerHTML = `<div class="bp-card" role="status"><div class="bp-rc">${petSVG(petKind(), 'eating', 170)}</div><div class="bp-msg"><b>${esc(buddyName())}</b><span>Nom nom nom…</span></div><div class="bp-hearts" aria-hidden="true"><i>♥</i><i>♥</i><i>♥</i></div></div>`;
-  L.hidden = false; L.classList.remove('done'); L.onclick = () => { L.hidden = true; };
-  clearTimeout(feedBuddy.t1); clearTimeout(feedBuddy.t2);
-  feedBuddy.t1 = setTimeout(() => { const rc = $('.bp-rc', L); if (rc) rc.innerHTML = petSVG(petKind(), 'happy', 170); const m = $('.bp-msg span', L); if (m) m.textContent = msg; L.classList.add('done'); }, 1500);
-  feedBuddy.t2 = setTimeout(() => { L.hidden = true; L.classList.remove('done'); }, 5200);
+  const L = $('#buddy-pop'), kind = petKind();
+  clearTimeout(feedBuddy.t1); clearTimeout(feedBuddy.t2); clearTimeout(feedBuddy.t3);
+  L.classList.remove('show', 'done', 'closing');
+  L.innerHTML = `<div class="bp-card" role="status"><div class="bp-rc"><div class="bp-a">${petSVG(kind, 'eating', 170)}</div><div class="bp-b">${petSVG(kind, 'happy', 170)}</div></div><div class="bp-msg"><b>${esc(buddyName())}</b><span class="bp-lines"><span class="m1">Nom nom nom…</span><span class="m2">${esc(msg)}</span></span></div><div class="bp-hearts" aria-hidden="true"><i>♥</i><i>♥</i><i>♥</i></div></div>`;
+  L.hidden = false; void L.offsetWidth; requestAnimationFrame(() => L.classList.add('show'));
+  const close = () => {
+    clearTimeout(feedBuddy.t1); clearTimeout(feedBuddy.t2); if (!L.classList.contains('show')) return;
+    L.classList.add('closing'); L.classList.remove('show');
+    feedBuddy.t3 = setTimeout(() => { L.hidden = true; L.classList.remove('closing', 'done'); }, 340);
+  };
+  L.onclick = close;
+  feedBuddy.t1 = setTimeout(() => L.classList.add('done'), 1500);
+  feedBuddy.t2 = setTimeout(close, 5400);
 }
 A.renameBuddy = () => {
   openSheet('Rename your buddy', `<div style="display:grid;place-items:center">${petSVG(petKind(), 'happy', 120)}</div><div class="field"><label class="lbl" for="bd-n">Name</label><input id="bd-n" name="bname" maxlength="24" value="${esc(buddyName())}" autocapitalize="words" autocomplete="off"></div><button class="btn block" data-act="saveBuddyName">Save name</button>`, { onMount(L) { setTimeout(() => { const i = $('#bd-n', L); if (i) { i.focus(); i.select(); } }, 280); } });
