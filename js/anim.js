@@ -86,7 +86,7 @@ const ARCH = {
   swing: () => ({ A: AP({ p: [0, 0.8, -0.25], lean: 55, h: [0.06, 0.52, -0.16], f: [0.2, 0.06, 0] }), B: AP({ lean: -3, h: [0.06, 1.38, 0.52], f: [0.2, 0.06, 0] }), props: [{ t: 'kb' }], fast: 1, cue: ['Hinge at your hips, not a squat', 'Snap your hips forward to float the bell', 'Arms are just ropes'] }),
   backext: () => ({ A: { p: [0, 0.85, 0], lean: 112, f: [0.12, 0.12, -0.55], hl: [0.1, -0.2, 0.14] }, B: { p: [0, 0.85, 0], lean: 37, f: [0.12, 0.12, -0.55], hl: [0.1, -0.2, 0.14] }, props: [{ t: 'slab', a: [0, 0.74, 0.06], b: [0, 0.8, 0.2], w: 0.4, legs: 1 }], yaw: 62, cue: ['Hips on the pad, feet hooked', 'Lift until your body is one straight line', 'Lower slowly, don\'t swing'] }),
   slrdl: () => ({ A: AP({}), B: AP({ p: [0, 0.88, -0.1], lean: 75, fR: [0.1, 0.06, 0], fL: [-0.1, 0.76, -0.85], kpL: [0, -1, 0.2] }), props: [{ t: 'db' }], yaw: 55, cue: ['Hinge forward as your back leg lifts', 'Hips stay square to the floor', 'Stand tall and squeeze your glute'] }),
-  lunge: (o = {}) => ({ A: AP({ p: [0, 0.86, 0], fR: [0.11, 0.06, 0.38], fL: [-0.11, o.back ? 0.5 : 0.1, o.back ? -0.6 : -0.42] }), B: AP({ p: [0, 0.52, -0.02], fR: [0.11, 0.06, 0.38], fL: [-0.11, o.back ? 0.5 : 0.1, o.back ? -0.6 : -0.42] }), props: [{ t: 'db' }, ...(o.back ? [{ t: 'slab', a: [-0.4, 0.42, -0.72], b: [0.4, 0.42, -0.72], w: 0.3, legs: 1 }] : [])], yaw: 55, cue: CUE.lunge }),
+  lunge: (o = {}) => ({ A: AP({ p: [0, 0.86, 0], fR: [0.11, 0.06, 0.38], fL: [-0.11, o.back ? 0.5 : 0.1, o.back ? -0.6 : -0.42], kpL: [0, -1, 0.35] }), B: AP({ p: [0, 0.52, -0.02], fR: [0.11, 0.06, 0.38], fL: [-0.11, o.back ? 0.5 : 0.1, o.back ? -0.6 : -0.42], kpL: [0, -1, 0.35] }), props: [{ t: 'db' }, ...(o.back ? [{ t: 'slab', a: [-0.4, 0.42, -0.72], b: [0.4, 0.42, -0.72], w: 0.3, legs: 1 }] : [])], yaw: 55, cue: CUE.lunge }),
   stepup: () => ({ A: AP({ p: [0, 0.9, 0.02], fR: [0.11, 0.48, 0.38], fL: [-0.11, 0.06, -0.05] }), B: AP({ p: [0, 1.37, 0.36], fR: [0.11, 0.48, 0.38], fL: [-0.11, 0.5, 0.3] }), props: [{ t: 'db' }, { t: 'slab', a: [0, 0.4, 0.2], b: [0, 0.4, 0.62], w: 0.6, legs: 1 }], yaw: 55, cue: ['Whole foot on the box', 'Drive through that heel, don\'t push off the floor', 'Step down slowly'] }),
   latlunge: () => ({ A: AP({ hl: [0.07, -0.14, 0.2] }), B: AP({ p: [0.3, 0.62, -0.2], lean: 30, fR: [0.56, 0.06, 0], fL: [-0.13, 0.06, 0], hl: [0.07, -0.14, 0.2] }), props: [{ t: 'kb' }], alt: 1, yaw: 15, cue: ['Step wide and sit back into that hip', 'Other leg stays straight', 'Push off hard back to the middle'] }),
   bounds: () => ({ A: AP({ p: [-0.34, 0.78, 0], lean: 16, fL: [-0.38, 0.06, 0], fR: [-0.12, 0.3, -0.32] }), B: AP({ p: [0.34, 0.78, 0], lean: 16, fR: [0.38, 0.06, 0], fL: [0.12, 0.3, -0.32] }), arc: 0.16, fast: 1, yaw: 12, cue: ['Leap sideways off one leg', 'Stick the landing before you go again', 'Stay low and balanced'] }),
@@ -96,15 +96,15 @@ const ARCH = {
   fly: () => ({ A: { p: [0, 0.56, 0.22], lean: -90, f: [0.22, 0.06, 0.62], kp: [0, 1, 0.4], h: [0.62, 0.66, -0.26], ep: [0, -1, 0] }, B: { p: [0, 0.56, 0.22], lean: -90, f: [0.22, 0.06, 0.62], kp: [0, 1, 0.4], h: [0.07, 1.08, -0.26], ep: [1, -0.3, 0] }, props: [BENCH, { t: 'db' }], yaw: 40, cue: CUE.fly }),
   pecdeck: () => ({ A: { p: [0, 0.55, 0], lean: -6, f: [0.18, 0.06, 0.42], kp: [0, 1, 0.5], h: [0.56, 1.0, 0.1], ep: [0.5, -1, -0.3] }, B: { p: [0, 0.55, 0], lean: -6, f: [0.18, 0.06, 0.42], kp: [0, 1, 0.5], h: [0.06, 1.0, 0.5], ep: [1, -0.6, 0] }, props: [SEAT, BACKREST, { t: 'grips' }], yaw: 28, cue: CUE.fly }),
   cfly: () => ({ A: AP({ lean: 12, fR: [0.13, 0.06, 0.2], fL: [-0.13, 0.06, -0.2], h: [0.6, 1.3, 0.05], ep: [0.4, -0.6, -1] }), B: AP({ lean: 12, fR: [0.13, 0.06, 0.2], fL: [-0.13, 0.06, -0.2], h: [0.06, 0.96, 0.46], ep: [1, 0.2, -0.3] }), props: [{ t: 'cable2', a: [1.05, 1.9, -0.1] }], yaw: 25, cue: CUE.fly }),
-  pushup: () => ({ A: { p: [0, 0.46, -0.48], lean: 68, f: [0.1, 0.1, -1.33], h: [0.27, 0.04, 0], ep: [0.7, 0, -1] }, B: { p: [0, 0.17, -0.41], lean: 85, f: [0.1, 0.1, -1.33], h: [0.27, 0.04, 0], ep: [0.7, 0.3, -1] }, yaw: 62, cue: ['Hands under your shoulders, body in a straight line', 'Lower your chest to just above the floor', 'Push the floor away'] }),
-  plank: () => ({ A: { p: [0, 0.3, -0.45], lean: 78, f: [0.1, 0.08, -1.35], h: [0.2, 0.04, 0.36], ep: [0, -1, -0.2] }, B: { p: [0, 0.315, -0.45], lean: 78, f: [0.1, 0.08, -1.35], h: [0.2, 0.04, 0.36], ep: [0, -1, -0.2] }, yaw: 62, hold: 1, cue: CUE.plank }),
+  pushup: () => ({ A: { p: [0, 0.46, -0.48], lean: 68, f: [0.1, 0.1, -1.33], kp: [0, -1, 0], h: [0.27, 0.04, 0], ep: [0.7, 0.15, -1] }, B: { p: [0, 0.17, -0.41], lean: 85, f: [0.1, 0.1, -1.33], kp: [0, -1, 0], h: [0.27, 0.04, 0], ep: [0.7, 0.15, -1] }, yaw: 62, cue: ['Hands under your shoulders, body in a straight line', 'Lower your chest to just above the floor', 'Push the floor away'] }),
+  plank: () => ({ A: { p: [0, 0.3, -0.45], lean: 78, f: [0.1, 0.08, -1.35], kp: [0, -1, 0], h: [0.2, 0.04, 0.36], ep: [0, -1, -0.2] }, B: { p: [0, 0.315, -0.45], lean: 78, f: [0.1, 0.08, -1.35], kp: [0, -1, 0], h: [0.2, 0.04, 0.36], ep: [0, -1, -0.2] }, yaw: 62, hold: 1, cue: CUE.plank }),
   dips: () => ({ A: { p: [0, 1.16, -0.03], lean: 5, f: [0.1, 0.36, -0.3], h: [0.3, 1.05, 0], ep: [0.2, 0.3, -1] }, B: { p: [0, 0.9, -0.1], lean: 18, f: [0.1, 0.12, -0.36], h: [0.3, 1.05, 0], ep: [0.25, 0.4, -1] }, props: [{ t: 'rails', y: 1.03, x: 0.3 }], yaw: 50, cue: CUE.dip }),
   ohp: (o = {}) => { const dy = o.seat ? -0.4 : 0, base = o.seat ? { p: [0, 0.55, 0], f: [0.18, 0.06, 0.42], kp: [0, 1, 0.5] } : { p: [0, 0.95, 0], f: [0.15, 0.06, 0] };
     return { A: { ...base, hl: [0.25, -0.04, 0.14], ep: [0.6, -1, 0.3] }, B: { ...base, h: [0.21, 1.95 + dy, 0.02], ep: [1, -0.2, 0.2] }, props: [...(o.seat ? [SEAT, BACKREST] : []), ...(o.props || [{ t: 'bar' }])], cue: CUE.ohp }; },
   pullup: (o = {}) => ({ A: { p: [0, 1.07, 0], f: [0.1, 0.3, -0.25], h: [o.x || 0.32, 2.1, 0], ep: [1, 0, -0.3] }, B: { p: [0, 1.5, -0.05], lean: -6, f: [0.1, 0.72, -0.3], h: [o.x || 0.32, 2.1, 0], ep: o.x ? [0.4, -1, 0.4] : [1, -1, -0.2] }, props: [{ t: 'fixbar', y: 2.12 }], cue: CUE.pull }),
-  hlr: () => ({ A: { p: [0, 1.07, 0], f: [0.1, 0.16, 0.03], h: [0.3, 2.1, 0], ep: [1, 0, -0.3] }, B: { p: [0, 1.07, -0.04], lean: -8, f: [0.1, 1.02, 0.84], kp: [0, 1, 0], h: [0.3, 2.1, 0], ep: [1, 0, -0.3] }, props: [{ t: 'fixbar', y: 2.12 }], yaw: 60, cue: ['Hang still, no swinging', 'Lift your legs with your abs, not momentum', 'Lower slowly'] }),
+  hlr: () => ({ A: { p: [0, 1.07, 0], f: [0.1, 0.16, 0.03], kp: [0, 1, 1], h: [0.3, 2.1, 0], ep: [1, 0, -0.3] }, B: { p: [0, 1.07, -0.04], lean: -8, f: [0.1, 1.02, 0.84], kp: [0, 1, 1], h: [0.3, 2.1, 0], ep: [1, 0, -0.3] }, props: [{ t: 'fixbar', y: 2.12 }], yaw: 60, cue: ['Hang still, no swinging', 'Lift your legs with your abs, not momentum', 'Lower slowly'] }),
   pulldown: () => ({ A: { p: [0, 0.55, 0], lean: -6, f: [0.18, 0.06, 0.42], kp: [0, 1, 0.5], h: [0.38, 1.55, 0.04], ep: [1, 0, -0.2] }, B: { p: [0, 0.55, 0], lean: -14, f: [0.18, 0.06, 0.42], kp: [0, 1, 0.5], h: [0.31, 1.08, 0.14], ep: [1, -1, -0.3] }, props: [SEAT, { t: 'bar', short: 1 }, { t: 'cable', a: [0, 2.35, 0.1] }], cue: ['Lean back just a little, chest up', 'Pull the bar to your upper chest', 'Let it rise slowly to a full stretch'] }),
-  sapd: () => ({ A: AP({ lean: 20, h: [0.15, 1.6, 0.44] }), B: AP({ lean: 20, h: [0.15, 0.82, 0.22] }), props: [{ t: 'bar', short: 1 }, { t: 'cable', a: [0, 2.3, 0.85] }], yaw: 55, cue: ['Arms stay almost straight', 'Sweep the bar down to your thighs', 'Feel your lats, not your arms'] }),
+  sapd: () => ({ A: AP({ lean: 20, h: [0.15, 1.6, 0.44], ep: [1, -0.2, 0] }), B: AP({ lean: 20, h: [0.15, 0.82, 0.22], ep: [1, -0.2, 0] }), props: [{ t: 'bar', short: 1 }, { t: 'cable', a: [0, 2.3, 0.85] }], yaw: 55, cue: ['Arms stay almost straight', 'Sweep the bar down to your thighs', 'Feel your lats, not your arms'] }),
   srow: () => ({ A: { p: [0, 0.5, 0], lean: 10, f: [0.15, 0.3, 0.76], kp: [0, 1, 0.2], h: [0.13, 0.9, 0.58] }, B: { p: [0, 0.5, 0], lean: -6, f: [0.15, 0.3, 0.76], kp: [0, 1, 0.2], h: [0.16, 0.88, 0.2], ep: [0.3, -0.2, -1] }, props: [{ t: 'slab', a: [0, 0.36, -0.22], b: [0, 0.36, 0.28], w: 0.36, legs: 1 }, { t: 'slab', a: [-0.25, 0.3, 0.86], b: [0.25, 0.3, 0.86], w: 0.3 }, { t: 'cable', a: [0, 0.85, 1.4] }], yaw: 60, cue: CUE.row }),
   brow: (o = {}) => ({ A: AP({ p: [0, 0.86, -0.2], lean: 62, h: [o.x || 0.22, 0.5, 0.24], f: [0.15, 0.06, 0] }), B: AP({ p: [0, 0.86, -0.2], lean: 62, h: [(o.x || 0.22) + 0.02, 0.86, 0.05], ep: [0.4, 0.6, -1], f: [0.15, 0.06, 0] }), props: o.props || [{ t: 'bar' }], yaw: 68, cue: CUE.row }),
   facepull: () => ({ A: AP({ fR: [0.13, 0.06, 0.15], fL: [-0.13, 0.06, -0.15], h: [0.12, 1.42, 0.56] }), B: AP({ fR: [0.13, 0.06, 0.15], fL: [-0.13, 0.06, -0.15], h: [0.34, 1.5, 0.12], ep: [1, 0.3, -0.2] }), props: [{ t: 'cable', a: [0, 1.5, 1.4] }], yaw: 50, cue: ['Pull toward your face, elbows high', 'Finish with your hands by your ears', 'Squeeze your upper back'] }),
@@ -127,10 +127,10 @@ const ARCH = {
   scalf: () => ({ A: { p: [0, 0.55, 0], f: [0.13, 0.06, 0.42], kp: [0, 1, 0.5], h: [0.22, 0.66, 0.36] }, B: { p: [0, 0.55, 0], f: [0.13, 0.15, 0.42], kp: [0, 1, 0.5], h: [0.22, 0.75, 0.36] }, props: [SEAT], yaw: 62, cue: CUE.calf }),
   tib: () => ({ A: AP({ p: [0, 0.93, -0.12], lean: -6, f: [0.13, 0.06, 0.24] }), B: AP({ p: [0, 0.93, -0.12], lean: -6, f: [0.13, 0.06, 0.24], toe: 0.13 }), props: [{ t: 'wall', z: -0.3 }], yaw: 62, cue: ['Lean your back on a wall, heels out front', 'Pull your toes up toward your shins', 'Lower slowly'] }),
   crunch: () => ({ A: { p: [0, 0.52, 0], lean: 8, f: [0.12, 0.08, -0.45], kp: [0, -0.6, 1], hl: [0.13, 0.12, 0.12], ep: [1, -0.5, 0.2] }, B: { p: [0, 0.5, -0.06], lean: 78, f: [0.12, 0.08, -0.45], kp: [0, -0.6, 1], hl: [0.13, 0.12, 0.12], ep: [1, -0.5, 0.2] }, props: [{ t: 'cable', a: [0, 2.3, 0.5] }], yaw: 62, cue: ['Kneel and hold the rope by your head', 'Curl your ribs down toward your hips', 'Hips stay still'] }),
-  situp: () => ({ A: { p: [0, 0.55, 0.1], lean: -105, f: [0.14, 0.82, 0.6], kp: [0, 1, 0], hl: [0.14, 0.1, 0.1], ep: [1, -0.4, 0.2] }, B: { p: [0, 0.55, 0.1], lean: -15, f: [0.14, 0.82, 0.6], kp: [0, 1, 0], hl: [0.14, 0.1, 0.1], ep: [1, -0.4, 0.2] }, props: [{ t: 'slab', a: [0, 0.2, -0.62], b: [0, 0.52, 0.3], w: 0.34, legs: 1 }], yaw: 62, cue: CUE.core }),
+  situp: () => ({ A: { p: [0, 0.55, 0.1], lean: -105, f: [0.14, 0.82, 0.6], kp: [0, 1, 0], hl: [0.14, 0.1, 0.1], ep: [1, 0, 0] }, B: { p: [0, 0.55, 0.1], lean: -15, f: [0.14, 0.82, 0.6], kp: [0, 1, 0], hl: [0.14, 0.1, 0.1], ep: [1, 0, 0] }, props: [{ t: 'slab', a: [0, 0.2, -0.62], b: [0, 0.52, 0.3], w: 0.34, legs: 1 }], yaw: 62, cue: CUE.core }),
   deadbug: () => ({ A: { p: [0, 0.12, 0], lean: -90, h: [0.2, 0.66, -0.45], ep: [1, 0, 0], f: [0.1, 0.58, 0.46], kp: [0, 1, -0.2] }, B: { p: [0, 0.12, 0], lean: -90, hR: [0.2, 0.16, -1.02], hL: [-0.2, 0.66, -0.45], epR: [1, 0.5, 0], epL: [-1, 0, 0], fR: [0.1, 0.58, 0.46], fL: [-0.1, 0.17, 0.9], kp: [0, 1, -0.2], kpL: [0, 1, -0.2], kpR: [0, 1, -0.2] }, alt: 1, yaw: 55, cue: ['Lower back pressed into the floor', 'Reach opposite arm and leg out slowly', 'Switch sides without arching'] }),
   pallof: () => ({ A: AP({ f: [0.2, 0.06, 0], h: [0.05, 1.2, 0.18], ep: [0.6, -1, -0.2] }), B: AP({ f: [0.2, 0.06, 0], h: [0.05, 1.2, 0.56], ep: [0.6, -1, -0.2] }), props: [{ t: 'cable', a: [1.3, 1.2, 0.1] }], yaw: 35, cue: ['Stand side-on to the cable', 'Press straight out and don\'t let it twist you', 'Bring it back to your chest slowly'] }),
-  chop: () => ({ A: AP({ f: [0.22, 0.06, 0], hR: [0.5, 1.7, 0.15], hL: [0.4, 1.68, 0.2] }), B: AP({ p: [0, 0.86, -0.06], lean: 18, f: [0.22, 0.06, 0], hR: [-0.3, 0.7, 0.3], hL: [-0.42, 0.7, 0.25] }), props: [{ t: 'cable', a: [1.3, 2.2, 0] }], yaw: 20, cue: ['Turn from your hips, arms stay long', 'Chop down across your body', 'Control it back up'] }),
+  chop: () => ({ A: AP({ f: [0.22, 0.06, 0], hR: [0.5, 1.7, 0.15], hL: [0.4, 1.68, 0.2], epR: [0.3, -1, -0.3], epL: [-0.3, -1, -0.3] }), B: AP({ p: [0, 0.86, -0.06], lean: 18, f: [0.22, 0.06, 0], hR: [-0.3, 0.7, 0.3], hL: [-0.42, 0.7, 0.25], epR: [0.3, -1, -0.3], epL: [-0.3, -1, -0.3] }), props: [{ t: 'cable', a: [1.3, 2.2, 0] }], yaw: 20, cue: ['Turn from your hips, arms stay long', 'Chop down across your body', 'Control it back up'] }),
   carry: () => ({ A: AP({ p: [0, 0.92, 0], fR: [0.11, 0.06, 0.3], fL: [-0.11, 0.13, -0.3] }), B: AP({ p: [0, 0.92, 0], fR: [0.11, 0.13, -0.3], fL: [-0.11, 0.06, 0.3] }), props: [{ t: 'db' }], arc: 0.03, yaw: 55, cue: CUE.carry }),
 };
 const BAR = [{ t: 'bar' }], DB = [{ t: 'db' }], NONE = [];
@@ -162,64 +162,98 @@ function animDef(name) {
   return { ...d, a, b, hl, c, r, yaw: d.yaw == null ? 38 : d.yaw };
 }
 
-/* ---------- drawing ---------- */
-const mixHex = (c1, c2, t) => { const p = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)), a = p(c1), b = p(c2); return `rgb(${a.map((x, i) => Math.round(x + (b[i] - x) * t)).join(',')})`; };
+/* ---------- drawing ----------
+   A tiny software renderer: every limb is a capsule drawn pixel by pixel into a depth buffer with soft lighting,
+   so parts overlap and pass through each other correctly instead of whole limbs swapping order. */
 function animPose(def, t, cycle) {
   let b = def.b; if (def.alt && cycle % 2) b = animMirror(def.b);
   let q = animLerp(def.a, b, t);
   if (def.arc) { const k = Math.sin(Math.PI * t) * def.arc; q.p = V.add(q.p, [0, k, 0]); q.fR = V.add(q.fR, [0, k * (t < 0.5 ? 0.4 : 1), 0]); q.fL = V.add(q.fL, [0, k * (t < 0.5 ? 1 : 0.4), 0]); }
   return q;
 }
+const AL = (() => { const l = Math.hypot(0.45, 0.65, 0.62); return [-0.45 / l, -0.65 / l, 0.62 / l]; })();   // light: up-left, toward the viewer
+const AC = { body: [198, 202, 216], skin: [226, 229, 238], on: [255, 118, 72], bar: [158, 164, 180], dark: [74, 78, 96], pad: [50, 53, 68], wall: [30, 32, 42], cable: [120, 126, 142] };
+function rasterCapsule(R, ax, ay, az, bx, by, bz, r, rw, c) {
+  const W = R.W, H = R.H, zb = R.zb, px = R.px, e = r + 1;
+  const x0 = Math.max(0, Math.floor(Math.min(ax, bx) - e)), x1 = Math.min(W - 1, Math.ceil(Math.max(ax, bx) + e)), y0 = Math.max(0, Math.floor(Math.min(ay, by) - e)), y1 = Math.min(H - 1, Math.ceil(Math.max(ay, by) + e));
+  const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy, dz = bz - az, e2 = e * e, c0 = c[0], c1 = c[1], c2 = c[2];
+  for (let y = y0; y <= y1; y++) {
+    const py = y + 0.5 - ay;
+    for (let x = x0; x <= x1; x++) {
+      const pxx = x + 0.5 - ax; let t = l2 > 1e-6 ? (pxx * dx + py * dy) / l2 : 0; t = t < 0 ? 0 : t > 1 ? 1 : t;
+      const ox = pxx - t * dx, oy = py - t * dy, d2 = ox * ox + oy * oy; if (d2 > e2) continue;
+      const d = Math.sqrt(d2); let cov = r + 0.5 - d; if (cov <= 0) continue; if (cov > 1) cov = 1;
+      const nn = d < r ? d / r : 1, nz = Math.sqrt(1 - nn * nn), z = az + dz * t + nz * rw, i = y * W + x;
+      if (z < zb[i]) continue;
+      const inv = d > 1e-6 ? nn / d : 0, nx = ox * inv, ny = oy * inv;
+      let diff = nx * AL[0] + ny * AL[1] + nz * AL[2]; if (diff < 0) diff = 0;
+      const rim = nz * 2.4, sh = (0.36 + 0.7 * diff) * (0.5 + 0.5 * (rim > 1 ? 1 : rim)), sp = diff > 0.93 ? (diff - 0.93) * 420 : 0, j = i * 4;
+      const r0 = c0 * sh + sp, g0 = c1 * sh + sp, b0 = c2 * sh + sp;
+      if (cov >= 0.999) { px[j] = r0; px[j + 1] = g0; px[j + 2] = b0; px[j + 3] = 255; zb[i] = z; }
+      else { const a0 = px[j + 3] / 255, k = 1 - cov, oa = cov + a0 * k; px[j] = (r0 * cov + px[j] * a0 * k) / oa; px[j + 1] = (g0 * cov + px[j + 1] * a0 * k) / oa; px[j + 2] = (b0 * cov + px[j + 2] * a0 * k) / oa; px[j + 3] = oa * 255; if (cov > 0.5) zb[i] = z; }
+    }
+  }
+}
+function rasterTri(R, A, B, C, c, sh) {
+  const W = R.W, H = R.H, zb = R.zb, px = R.px, area = (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]); if (Math.abs(area) < 1e-6) return;
+  const x0 = Math.max(0, Math.floor(Math.min(A[0], B[0], C[0]))), x1 = Math.min(W - 1, Math.ceil(Math.max(A[0], B[0], C[0]))), y0 = Math.max(0, Math.floor(Math.min(A[1], B[1], C[1]))), y1 = Math.min(H - 1, Math.ceil(Math.max(A[1], B[1], C[1])));
+  const r0 = c[0] * sh, g0 = c[1] * sh, b0 = c[2] * sh;
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const qx = x + 0.5, qy = y + 0.5;
+    const w0 = ((B[0] - qx) * (C[1] - qy) - (B[1] - qy) * (C[0] - qx)) / area, w1 = ((C[0] - qx) * (A[1] - qy) - (C[1] - qy) * (A[0] - qx)) / area, w2 = 1 - w0 - w1;
+    if (w0 < 0 || w1 < 0 || w2 < 0) continue;
+    const z = w0 * A[2] + w1 * B[2] + w2 * C[2], i = y * W + x; if (z < zb[i]) continue;
+    const j = i * 4; px[j] = r0; px[j + 1] = g0; px[j + 2] = b0; px[j + 3] = 255; zb[i] = z;
+  }
+}
 function animDraw(cv, def, t, yawDeg, cycle = 0) {
   const ctx = cv.getContext('2d'), W = cv.width, H = cv.height, S = Math.min(W, H * 1.12) / (2 * def.r) * 0.96, q = animPose(def, t, cycle), J = animJoints(q);
   const ya = yawDeg * Math.PI / 180, pa = 11 * Math.PI / 180, cy = Math.cos(ya), sy = Math.sin(ya), cp = Math.cos(pa), sp = Math.sin(pa);
   const P = pt => { const x = pt[0] - def.c[0], y = pt[1] - def.c[1], z = pt[2] - def.c[2], x1 = x * cy - z * sy, z1 = x * sy + z * cy, y1 = y * cp - z1 * sp, z2 = y * sp + z1 * cp; return [W / 2 + x1 * S, H * 0.52 - y1 * S, z2]; };
-  ctx.clearRect(0, 0, W, H); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.clearRect(0, 0, W, H);
   // floor
   const ring = (cx, cz, r, fill, stroke) => { ctx.beginPath(); for (let i = 0; i <= 40; i++) { const a = i / 40 * Math.PI * 2, p = P([cx + Math.cos(a) * r, 0, cz + Math.sin(a) * r]); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); } if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1.5; ctx.stroke(); } };
   ring(def.c[0], def.c[2], def.r * 0.98, 'rgba(255,255,255,.035)', 'rgba(255,255,255,.09)'); ring(def.c[0], def.c[2], def.r * 0.55, null, 'rgba(255,255,255,.05)');
   ring(q.p[0], q.p[2], 0.26 + Math.max(0, 0.6 - q.p[1]) * 0.25, `rgba(0,0,0,${0.5 - Math.min(0.3, q.p[1] * 0.18)})`, null);
-  const items = [], zs = [];
-  const seg = (a, b, w, key, col) => { const A = P(a), B = P(b); items.push({ k: 'seg', A, B, w: w * S, key, col, z: (A[2] + B[2]) / 2 }); };
-  const dot = (a, r, key, col, zoff = 0) => { const A = P(a); items.push({ k: 'dot', A, r: r * S, key, col, z: A[2] + zoff }); };
+  // depth-buffered layer
+  let R = cv._r; if (!R || R.W !== W || R.H !== H) { const o = document.createElement('canvas'); o.width = W; o.height = H; const octx = o.getContext('2d'), img = octx.createImageData(W, H); R = cv._r = { W, H, o, octx, img, px: img.data, zb: new Float32Array(W * H) }; }
+  R.px.fill(0); R.zb.fill(-1e9);
+  const caps = [], quads = [];
+  const seg = (a, b, w, key, col) => { const A = P(a), B = P(b); caps.push([A, B, w / 2, col || (def.hl.has(key) ? AC.on : key === 'head' || key === 'hand' || key === 'neck' ? AC.skin : AC.body)]); };
+  const dot = (a, r, key, col) => seg(a, a, r * 2, key, col);
+  const quad = (a, b, w, col, off) => { const d = V.sub(b, a); let wd = [d[2], 0, -d[0]]; if (V.len(wd) < 1e-4) wd = [1, 0, 0]; wd = V.mul(V.norm(wd), w / 2); const o = off || [0, 0, 0]; quads.push([[V.add(a, wd), V.add(b, wd), V.sub(b, wd), V.sub(a, wd)].map(x => P(V.add(x, o))), col]); };
   for (const [s] of SIDES) {
-    seg(J['hip' + s], J['kn' + s], 0.135, 'thigh'); seg(J['kn' + s], J['an' + s], 0.1, 'shin'); seg(J['an' + s], J['toe' + s], 0.075, 'foot');
-    seg(J['sh' + s], J['el' + s], 0.092, 'upper'); seg(J['el' + s], J['ha' + s], 0.076, 'fore'); dot(J['ha' + s], 0.048, 'hand'); dot(J['sh' + s], 0.066, 'sho', null, 0.01);
+    seg(J['hip' + s], J['kn' + s], 0.135, 'thigh'); seg(J['kn' + s], J['an' + s], 0.1, 'shin'); seg(J['an' + s], J['toe' + s], 0.078, 'foot');
+    seg(J['sh' + s], J['el' + s], 0.094, 'upper'); seg(J['el' + s], J['ha' + s], 0.078, 'fore'); dot(J['ha' + s], 0.047, 'hand'); dot(J['sh' + s], 0.062, 'sho');
+    seg(J['sh' + s], J['hip' + s], 0.15, 'torso');
   }
-  seg(J.hipL, J.hipR, 0.17, 'hip'); seg(J.neck, J.head, 0.085, 'neck'); dot(J.head, 0.108, 'head');
-  { const pts = [J.shL, J.shR, J.hipR, J.hipL].map(P); items.push({ k: 'poly', pts, w: 0.12 * S, key: 'torso', z: pts.reduce((a, p) => a + p[2], 0) / 4 }); }
-  const quad = (a, b, w, col, off) => { const d = V.sub(b, a); let wd = [d[2], 0, -d[0]]; if (V.len(wd) < 1e-4) wd = [1, 0, 0]; wd = V.mul(V.norm(wd), w / 2); const o = off || [0, 0, 0]; const pts = [V.add(a, wd), V.add(b, wd), V.sub(b, wd), V.sub(a, wd)].map(x => P(V.add(x, o))); items.push({ k: 'quad', pts, col, z: pts.reduce((m, x) => m + x[2], 0) / 4 - 0.12 }); };
+  seg(J.hipL, J.hipR, 0.175, 'hip'); seg(J.shL, J.shR, 0.15, 'torso'); seg(J.pelvis, V.lerp(J.pelvis, J.neck, 0.86), 0.23, 'torso'); seg(J.chest, V.lerp(J.pelvis, J.neck, 0.84), 0.27, 'torso');
+  seg(J.neck, J.head, 0.085, 'neck'); dot(J.head, 0.108, 'head');
   // equipment
-  const mid = V.mul(V.add(J.haR, J.haL), 0.5), PROP = '#8d93a6', DARK = '#3a3d4a';
+  const mid = V.mul(V.add(J.haR, J.haL), 0.5);
+  const tris = [];
+  const plate = (x, y, z, rad) => { const n = 18, c = P([x, y, z]), ring = []; for (let i = 0; i < n; i++) { const an = i / n * Math.PI * 2; ring.push([x, y + Math.cos(an) * rad, z + Math.sin(an) * rad]); }
+    const pr = ring.map(P), face = 0.55 + 0.45 * Math.abs(sy); for (let i = 0; i < n; i++) { tris.push([c, pr[i], pr[(i + 1) % n], AC.dark, face]); seg(ring[i], ring[(i + 1) % n], 0.05, 'prop', AC.dark); } dot([x, y, z], 0.045, 'prop', AC.bar); };
+  const barbell = (cx, y, z) => { seg([cx - 0.98, y, z], [cx + 0.98, y, z], 0.03, 'prop', AC.bar); for (const sx of [-1, 1]) plate(cx + sx * 0.83, y, z, 0.2); };
   for (const pr of def.props || []) {
-    if (pr.t === 'bar') { const half = pr.short ? Math.max(0.3, Math.abs(J.haR[0] - J.haL[0]) / 2 + 0.12) : 0.98, a = [mid[0] - half, mid[1], mid[2]], b = [mid[0] + half, mid[1], mid[2]]; seg(a, b, 0.032, 'prop', PROP); if (!pr.short) for (const sx of [-1, 1]) { seg([mid[0] + sx * 0.76, mid[1], mid[2]], [mid[0] + sx * 0.9, mid[1], mid[2]], 0.42, 'prop', DARK); items[items.length - 1].butt = 1; } }
-    else if (pr.t === 'barhip') { const c = V.add(q.p, [0, 0.13, 0.06]); seg([-0.98, c[1], c[2]], [0.98, c[1], c[2]], 0.032, 'prop', PROP); for (const sx of [-1, 1]) { seg([sx * 0.76, c[1], c[2]], [sx * 0.9, c[1], c[2]], 0.42, 'prop', DARK); items[items.length - 1].butt = 1; } }
-    else if (pr.t === 'db') for (const [s] of SIDES) { const h = J['ha' + s]; seg([h[0], h[1], h[2] - 0.12], [h[0], h[1], h[2] + 0.12], 0.035, 'prop', PROP); for (const dz of [-0.12, 0.12]) dot([h[0], h[1], h[2] + dz], 0.062, 'prop', DARK); }
-    else if (pr.t === 'kb') { dot([mid[0], mid[1] - 0.1, mid[2]], 0.1, 'prop', DARK); }
-    else if (pr.t === 'grips') for (const [s] of SIDES) { const h = J['ha' + s]; seg([h[0], h[1] - 0.09, h[2]], [h[0], h[1] + 0.09, h[2]], 0.035, 'prop', PROP); }
-    else if (pr.t === 'slab') { quad(pr.a, pr.b, pr.w, '#2f3240'); if (pr.legs) for (const e of [pr.a, pr.b]) seg(e, [e[0], 0, e[2]], 0.035, 'prop', DARK); }
-    else if (pr.t === 'fixbar') seg([-0.6, pr.y, 0], [0.6, pr.y, 0], 0.035, 'prop', PROP);
-    else if (pr.t === 'rails') { if (pr.cross) seg([-pr.x - 0.15, pr.y, pr.z], [pr.x + 0.15, pr.y, pr.z], 0.035, 'prop', PROP); else for (const sx of [-1, 1]) { seg([sx * pr.x, pr.y, -0.35], [sx * pr.x, pr.y, 0.35], 0.035, 'prop', PROP); seg([sx * pr.x, pr.y, -0.35], [sx * pr.x, 0, -0.35], 0.03, 'prop', DARK); } }
-    else if (pr.t === 'cable') { const to = pr.to ? J[pr.to] : mid; seg(pr.a, to, 0.012, 'prop', '#6f7587'); if (pr.a[1] < 2) seg([pr.a[0], 0, pr.a[2]], [pr.a[0], Math.max(pr.a[1], 0.3), pr.a[2]], 0.04, 'prop', DARK); else seg([pr.a[0] - 0.25, pr.a[1], pr.a[2]], [pr.a[0] + 0.25, pr.a[1], pr.a[2]], 0.045, 'prop', DARK); }
-    else if (pr.t === 'cable2') for (const [s, sx] of SIDES) { const a = [pr.a[0] * sx, pr.a[1], pr.a[2]]; seg(a, J['ha' + s], 0.012, 'prop', '#6f7587'); seg([a[0], 0, a[2]], a, 0.04, 'prop', DARK); }
-    else if (pr.t === 'plate') { const f = V.mul(V.add(J.toeR, J.toeL), 0.5), an = V.mul(V.add(J.anR, J.anL), 0.5), n = V.norm(V.sub(f, an)); quad(V.add(an, V.mul(n, -0.22)), V.add(an, V.mul(n, 0.4)), 0.6, '#2f3240', [0, -0.045, 0.045]); }
-    else if (pr.t === 'wall') quad([0, 0, pr.z], [0, 1.75, pr.z], 1.0, '#1d1f28');
+    if (pr.t === 'bar') { if (pr.short) { const half = Math.max(0.3, Math.abs(J.haR[0] - J.haL[0]) / 2 + 0.12); seg([mid[0] - half, mid[1], mid[2]], [mid[0] + half, mid[1], mid[2]], 0.03, 'prop', AC.bar); } else barbell(mid[0], mid[1], mid[2]); }
+    else if (pr.t === 'barhip') { const c = V.add(q.p, [0, 0.13, 0.06]); barbell(0, c[1], c[2]); }
+    else if (pr.t === 'db') for (const [s] of SIDES) { const h = J['ha' + s]; seg([h[0], h[1], h[2] - 0.12], [h[0], h[1], h[2] + 0.12], 0.034, 'prop', AC.bar); for (const dz of [-0.12, 0.12]) dot([h[0], h[1], h[2] + dz], 0.062, 'prop', AC.dark); }
+    else if (pr.t === 'kb') { dot([mid[0], mid[1] - 0.1, mid[2]], 0.1, 'prop', AC.dark); seg([mid[0] - 0.05, mid[1], mid[2]], [mid[0] + 0.05, mid[1], mid[2]], 0.03, 'prop', AC.bar); }
+    else if (pr.t === 'grips') for (const [s] of SIDES) { const h = J['ha' + s]; seg([h[0], h[1] - 0.09, h[2]], [h[0], h[1] + 0.09, h[2]], 0.034, 'prop', AC.bar); }
+    else if (pr.t === 'slab') { quad(pr.a, pr.b, pr.w, AC.pad); if (pr.legs) for (const e of [pr.a, pr.b]) seg([e[0], e[1] - 0.03, e[2]], [e[0], 0, e[2]], 0.035, 'prop', AC.dark); }
+    else if (pr.t === 'fixbar') seg([-0.6, pr.y, 0], [0.6, pr.y, 0], 0.034, 'prop', AC.bar);
+    else if (pr.t === 'rails') { if (pr.cross) seg([-pr.x - 0.15, pr.y, pr.z], [pr.x + 0.15, pr.y, pr.z], 0.034, 'prop', AC.bar); else for (const sx of [-1, 1]) { seg([sx * pr.x, pr.y, -0.35], [sx * pr.x, pr.y, 0.35], 0.034, 'prop', AC.bar); seg([sx * pr.x, pr.y, -0.35], [sx * pr.x, 0, -0.35], 0.03, 'prop', AC.dark); } }
+    else if (pr.t === 'cable') { const to = pr.to ? J[pr.to] : mid; seg(pr.a, to, 0.014, 'prop', AC.cable); if (pr.a[1] < 2) seg([pr.a[0], 0, pr.a[2]], [pr.a[0], Math.max(pr.a[1], 0.3), pr.a[2]], 0.04, 'prop', AC.dark); else seg([pr.a[0] - 0.25, pr.a[1], pr.a[2]], [pr.a[0] + 0.25, pr.a[1], pr.a[2]], 0.045, 'prop', AC.dark); }
+    else if (pr.t === 'cable2') for (const [s, sx] of SIDES) { const a = [pr.a[0] * sx, pr.a[1], pr.a[2]]; seg(a, J['ha' + s], 0.014, 'prop', AC.cable); seg([a[0], 0, a[2]], a, 0.04, 'prop', AC.dark); }
+    else if (pr.t === 'plate') { const f = V.mul(V.add(J.toeR, J.toeL), 0.5), an = V.mul(V.add(J.anR, J.anL), 0.5), n = V.norm(V.sub(f, an)); quad(V.add(an, V.mul(n, -0.22)), V.add(an, V.mul(n, 0.4)), 0.6, AC.pad, [0, -0.05, 0.05]); }
+    else if (pr.t === 'wall') quad([0, 0, pr.z - 0.09], [0, 1.75, pr.z - 0.09], 1.0, AC.wall);
   }
-  for (const it of items) zs.push(it.z); const zmin = Math.min(...zs), zr = (Math.max(...zs) - zmin) || 1;
-  items.sort((a, b) => a.z - b.z);
-  const OUT = '#08080a';
-  for (const it of items) {
-    const f = (it.z - zmin) / zr, on = def.hl.has(it.key);
-    const col = it.col || (on ? mixHex('#b9405f', '#ff8f4d', f) : it.key === 'head' || it.key === 'hand' || it.key === 'neck' ? mixHex('#8a8fa0', '#e9ebf2', f) : mixHex('#767b8d', '#d2d5df', f));
-    if (it.k === 'seg') {
-ctx.lineCap = it.butt ? 'butt' : 'round';
-      ctx.beginPath(); ctx.moveTo(it.A[0], it.A[1]); ctx.lineTo(it.B[0], it.B[1]); ctx.lineWidth = it.w + (it.key === 'prop' ? 2 : 5); ctx.strokeStyle = OUT; ctx.stroke(); ctx.lineWidth = it.w; ctx.strokeStyle = col; ctx.stroke();
-    } else if (it.k === 'quad') { ctx.beginPath(); it.pts.forEach((p0, i) => i ? ctx.lineTo(p0[0], p0[1]) : ctx.moveTo(p0[0], p0[1])); ctx.closePath(); ctx.lineWidth = 5; ctx.strokeStyle = OUT; ctx.stroke(); ctx.fillStyle = it.col; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.stroke();
-    } else if (it.k === 'dot') { ctx.beginPath(); ctx.arc(it.A[0], it.A[1], it.r + 2.5, 0, 7); ctx.fillStyle = OUT; ctx.fill(); ctx.beginPath(); ctx.arc(it.A[0], it.A[1], it.r, 0, 7); ctx.fillStyle = col; ctx.fill();
-      if (it.key === 'head') { ctx.beginPath(); ctx.arc(it.A[0] - it.r * 0.3, it.A[1] - it.r * 0.3, it.r * 0.45, 0, 7); ctx.fillStyle = 'rgba(255,255,255,.14)'; ctx.fill(); }
-    } else { const path = () => { ctx.beginPath(); it.pts.forEach((p0, i) => i ? ctx.lineTo(p0[0], p0[1]) : ctx.moveTo(p0[0], p0[1])); ctx.closePath(); };
-      path(); ctx.lineWidth = it.w + 5; ctx.strokeStyle = OUT; ctx.stroke(); path(); ctx.lineWidth = it.w; ctx.strokeStyle = col; ctx.stroke(); ctx.fillStyle = col; ctx.fill(); }
-  }
+  for (const [pts, col] of quads) { const n = [(pts[1][1] - pts[0][1]) * (pts[3][2] - pts[0][2]) - (pts[1][2] - pts[0][2]) * (pts[3][1] - pts[0][1]), 0, 0], up = Math.min(1, Math.abs((pts[1][0] - pts[0][0]) * (pts[3][1] - pts[0][1]) - (pts[1][1] - pts[0][1]) * (pts[3][0] - pts[0][0])) / (S * S * 0.25 + 1)), sh = 0.8 + 0.35 * up; rasterTri(R, pts[0], pts[1], pts[2], col, sh); rasterTri(R, pts[0], pts[2], pts[3], col, sh); }
+  for (const [A, B, C, col, sh] of tris) rasterTri(R, A, B, C, col, sh);
+  caps.sort((a, b) => (a[0][2] + a[1][2]) - (b[0][2] + b[1][2]));
+  for (const [A, B, rw, col] of caps) rasterCapsule(R, A[0], A[1], A[2], B[0], B[1], B[2], Math.max(0.6, rw * S), rw, col);
+  R.octx.putImageData(R.img, 0, 0); ctx.drawImage(R.o, 0, 0);
 }
 
 /* ---------- player ---------- */
@@ -236,7 +270,7 @@ function animHTML(name) {
 function mountAnim(root) {
   const cv = root && root.querySelector('.anim-cv'); if (!cv || cv._on) return; cv._on = 1;
   const def = animDef(cv.dataset.ex); if (!def) return;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2.5), fit = () => { const r = cv.getBoundingClientRect(); if (r.width) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); } };
+  const dpr = Math.min(window.devicePixelRatio || 1, 2), fit = () => { const r = cv.getBoundingClientRect(); if (r.width) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); } };
   fit();
   let yaw = def.yaw, drag = null, t0 = performance.now(), still = REDUCED();
   const frame = now => {

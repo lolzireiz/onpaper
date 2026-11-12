@@ -1,8 +1,7 @@
 {
- "version": "3.4",
+ "version": "3.5",
  "notes": [
-  "Log food in cups, tablespoons, teaspoons, fl oz, oz or lb, with one-tap fractions (\u00bc, \u2153, \u00bd, \u2154, \u00be, 1\u00bd).",
-  "Label in grams but you used a spoon? Add what the serving \"also equals\" (like 2 tbsp) and log in either. Scanning a label fills this in when the label shows both.",
-  "The app converts between cups, spoons, ml and fl oz, and between g, oz and lb."
+  "Exercise animations redrawn in true 3D: smooth shading, no hard outlines, and limbs now overlap correctly instead of popping in front of each other.",
+  "Fixed the Bulgarian Split Squat back leg, plus smaller joint glitches in push-ups, sit-ups, pulldowns and leg raises."
  ]
 }
