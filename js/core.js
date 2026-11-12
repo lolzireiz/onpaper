@@ -55,7 +55,7 @@ const fw = (lb, dp = 1) => lb === 0 ? 'BW' : trim(U.w(lb), dp);
 const fwu = (lb, dp = 1) => lb === 0 ? 'Bodyweight' : `${trim(U.w(lb), dp)} ${U.wu}`;
 
 /* ---------- data store ---------- */
-const COLLS = ['weighins', 'workouts', 'body', 'photos', 'food', 'gyms', 'myfoods', 'jumps', 'skills'];
+const COLLS = ['weighins', 'workouts', 'body', 'photos', 'food', 'gyms', 'myfoods', 'jumps', 'skills', 'acts'];
 const DEFAULTS = {
   unit: 'imperial', weeklyGoal: 4, restSec: 120, calTarget: 2500, proteinTarget: 160, nudgeDays: 3,
   activeGym: null, split: null, defaultSets: 3, exTargets: {}, bodyModel: 'male', watchReminder: true, customEx: [], buddy: false, goals: [], sports: [], big3: { squat: 'Squat', bench: 'Bench Press', deadlift: 'Deadlift' },
@@ -232,7 +232,7 @@ function activeWorkout() {
   return Store.list('workouts').filter(w => !w.quick && !w.marked && !w.endTs && w.startTs && now - w.startTs < 16 * 36e5)
     .sort((a, b) => b.startTs - a.startTs)[0] || null;
 }
-const gymDays = () => Store.cached('gymdays', () => { const s = new Set(); for (const w of Store.list('workouts')) if ((w.sets || []).length || w.marked) s.add(w.date); return s; });
+const gymDays = () => Store.cached('gymdays', () => { const s = new Set(); for (const w of Store.list('workouts')) if ((w.sets || []).length || w.marked) s.add(w.date); for (const a of Store.list('acts')) s.add(a.date); return s; });
 const weekStart = s => { const d = parseDate(s); return addDays(s, -((d.getDay() + 6) % 7)); };
 function weekStats() {
   const days = gymDays(), goal = S().weeklyGoal || 4, wk0 = weekStart(todayStr());

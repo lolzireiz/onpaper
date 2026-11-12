@@ -25,10 +25,11 @@ function watchSectionHTML(w, id) {
 
 A.watchScan = d => { Sheet.watchId = d.id; const i = $('#file-watch'); i.value = ''; i.click(); };
 const PROMPT_WATCH = `This is a screenshot of a workout summary from a smartwatch or fitness app (any brand: Apple, Garmin, Fitbit, Samsung, Whoop, Polar, Coros, etc.). Read the values exactly as shown.
-Reply with only JSON: {"type": "workout type as shown, e.g. Traditional Strength Training", "duration_seconds": 0, "active_cal": 0, "total_cal": 0, "avg_hr": 0, "max_hr": 0, "effort": 0, "note": ""}
+Reply with only JSON: {"type": "workout type as shown, e.g. Traditional Strength Training or Outdoor Run or Basketball", "duration_seconds": 0, "distance": 0, "distance_unit": "mi", "active_cal": 0, "total_cal": 0, "avg_hr": 0, "max_hr": 0, "effort": 0, "note": ""}
 - duration_seconds: the workout time / duration (e.g. 1:02:15 is 3735). Not elapsed time if both are shown.
 - active_cal: active calories (kcal). total_cal: total calories (kcal).
 - avg_hr: average heart rate in BPM. max_hr: the highest heart rate if shown, otherwise null.
+- distance: the distance covered if shown, with distance_unit "mi", "km" or "m"; otherwise null for both.
 - effort: an effort / exertion rating from 1 to 10 if shown, otherwise null.
 Use null for anything that isn't shown. "note" is one short sentence about anything unclear, or "".
 If the image is not a workout summary, reply {"type": null, "note": "<what you see instead>"}.`;
@@ -41,7 +42,7 @@ async function onWatchPhoto(file) {
     clearInterval(Sheet.aiTick); if (ctl.signal.aborted) return;
     if (!o || !o.type && !o.active_cal && !o.duration_seconds) return sheetBody(`<img class="prev-img" src="${url}" alt="Your screenshot"><p class="tip-line">${esc(o?.note || "That doesn't look like a workout summary.")}</p><button class="btn block" data-act="watchScan" data-id="${id}">Try another screenshot</button><button class="btn ghost block" data-act="watchForm" data-id="${id}">Type it in</button>`);
     const n = v => { const x = num(v); return x != null && x > 0 ? x : null; };
-    watchForm(id, { type: o.type || '', duration: n(o.duration_seconds), activeCal: n(o.active_cal), totalCal: n(o.total_cal), avgHr: n(o.avg_hr), maxHr: n(o.max_hr), effort: n(o.effort) ? clamp(Math.round(o.effort), 1, 10) : null, src: 'scan', note: o.note || '' }, url);
+    (id === 'act' ? actFromScan : watchForm)(id, { type: o.type || '', dist: n(o.distance), distUnit: o.distance_unit || '', duration: n(o.duration_seconds), activeCal: n(o.active_cal), totalCal: n(o.total_cal), avgHr: n(o.avg_hr), maxHr: n(o.max_hr), effort: n(o.effort) ? clamp(Math.round(o.effort), 1, 10) : null, src: 'scan', note: o.note || '' }, url);
   } catch (e) {
     clearInterval(Sheet.aiTick); const msg = aiErrorText(e); if (msg == null) return;
     sheetBody(`<img class="prev-img" src="${url}" alt="Your screenshot"><p class="tip-line">${esc(msg)}${e && e.message ? `<br><span class="faint tiny">${esc(errCode(e))}</span>` : ''}</p><button class="btn block" data-act="watchRetry">Try again</button><button class="btn ghost block" data-act="watchForm" data-id="${id}">Type it in</button>`);
@@ -49,7 +50,7 @@ async function onWatchPhoto(file) {
   }
 }
 A.watchRetry = () => { if (Sheet.watchFile) onWatchPhoto(Sheet.watchFile); };
-A.watchForm = d => watchForm(d.id);
+A.watchForm = d => d.id === 'act' ? actForm({ type: 'run', date: todayStr() }) : watchForm(d.id);
 function watchForm(id, vals, imgUrl) {
   const w = Store.docs.workouts[id]; if (!w) return;
   const x = vals || w.watch || { type: 'Traditional Strength Training' }; Sheet.watchId = id; Sheet.watchSrc = x.src || 'manual';

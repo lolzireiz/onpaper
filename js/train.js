@@ -98,7 +98,7 @@ Views.train = {
 function overviewHTML() {
   const w = activeWorkout();
   let h = w ? `<section class="card"><div class="card-h"><div><div class="eyebrow">In progress</div><h2 class="lift-h" style="font-size:34px">${esc(w.dayName || 'Workout')}</h2><p class="muted small">${esc(w.gymName || 'No gym')} · started ${fmtClock(w.startTs)} · ${plural((w.sets || []).length, 'set')}</p></div><button class="btn" data-act="resumeWorkout">Resume</button></div></section>` : startCardHTML();
-  return h + weekCardHTML() + splitCardHTML() + gymsCardHTML() + recentWorkoutsHTML();
+  return h + actsCardHTML() + weekCardHTML() + splitCardHTML() + gymsCardHTML() + recentWorkoutsHTML();
 }
 function startCardHTML() {
   const days = splitDays(), gs = gyms(), nd = nextDay();
@@ -133,7 +133,7 @@ function weekCardHTML() {
   return `<section class="card"><div class="cal-top"><div class="stat"><span class="k">This week</span><span class="big">${st.cur}<span class="unit">of ${st.goal} days</span></span></div><div class="stat" style="text-align:right"><span class="k">Week streak</span><span class="big">${st.streak}</span></div></div>
   <div class="cal-nav"><button class="iconbtn sm" data-act="calMove" data-d="-1" aria-label="Previous month">${ICON.chevL}</button><b>${MONTH[mo - 1]} ${y}</b><button class="iconbtn sm" data-act="calMove" data-d="1" aria-label="Next month">${ICON.chevR}</button></div>
   <div class="cal">${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => `<div class="cal-h">${d}</div>`).join('')}${cells}</div>
-  <p class="faint small">${plural(count, 'gym day')} in ${MONTH[mo - 1]}. A week counts toward your streak when you hit ${st.goal} days. Tap a day to see it or mark it.</p></section>`;
+  <p class="faint small">${plural(count, 'active day')} in ${MONTH[mo - 1]}. Workouts and sports both count. A week counts toward your streak when you hit ${st.goal} days. Tap a day to see it or add to it.</p></section>`;
 }
 function splitCardHTML() {
   const days = splitDays();
@@ -335,12 +335,14 @@ A.deleteWorkout = d => {
 };
 A.calMove = d => { const m = UI.calMonth || todayStr().slice(0, 7); const [y, mo] = m.split('-').map(Number); const dt = new Date(y, mo - 1 + (+d.d), 1); UI.calMonth = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}`; render(); };
 A.calDay = d => {
-  const ws = Store.list('workouts').filter(w => w.date === d.date && ((w.sets || []).length || w.marked));
-  if (ws.length === 1 && !ws[0].marked) return showWorkout(ws[0].id);
+  const ws = Store.list('workouts').filter(w => w.date === d.date && ((w.sets || []).length || w.marked)), as = actsList().filter(a => a.date === d.date);
+  if (ws.length === 1 && !ws[0].marked && !as.length) return showWorkout(ws[0].id);
   const future = d.date > todayStr();
   openSheet(fmtDay(d.date), `${ws.map(w => w.marked ? `<div class="row"><div class="grow"><b>Gym day</b><div class="faint small">Marked without sets</div></div><button class="linkbtn danger" data-act="unmarkDay" data-id="${w.id}">Remove</button></div>` : `<button class="row" data-act="showWorkout" data-id="${w.id}"><div class="grow"><b>${esc(w.dayName || 'Workout')}</b><div class="faint small">${plural(w.sets.length, 'set')}</div></div></button>`).join('')}
-  ${!ws.length ? `<p class="muted">${future ? "This day hasn't happened yet." : 'No workout logged on this day.'}</p>` : ''}
-  ${!future && !ws.some(w => w.marked) ? `<button class="btn block ${ws.length ? 'ghost' : ''}" data-act="markDay" data-date="${d.date}">Mark as a gym day</button>` : ''}`);
+  ${as.length ? `<div class="actlist">${as.map(actRowHTML).join('')}</div>` : ''}
+  ${!ws.length && !as.length ? `<p class="muted">${future ? "This day hasn't happened yet." : 'Nothing logged on this day.'}</p>` : ''}
+  ${future ? '' : `<button class="btn block ${ws.length || as.length ? 'ghost' : ''}" data-act="actPick" data-date="${d.date}">Log a sport or cardio session</button>`}
+  ${!future && !ws.some(w => w.marked) ? `<button class="btn block ghost" data-act="markDay" data-date="${d.date}">Mark as a gym day</button>` : ''}`);
 };
 A.markDay = d => { put('workouts', newId(), { date: d.date, marked: true, sets: [], ts: Date.now() }); closeSheet(); toast(`${fmtDate(d.date)} marked as a gym day`); };
 A.unmarkDay = d => { del('workouts', d.id); closeSheet(); };

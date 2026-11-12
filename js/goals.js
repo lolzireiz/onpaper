@@ -127,11 +127,12 @@ const wantsDunk = () => !S().onboarded || !myGoals().length || myGoals().include
 function goalSetsThisWeek() {
   const since = addDays(todayStr(), -6), cnt = {};
   for (const w of Store.list('workouts')) if (w.date >= since) for (const s of w.sets || []) if (!s.warm && s.hit !== false) for (const g of exHelps(s.ex)) cnt[g] = (cnt[g] || 0) + 1;
+  const mine = new Set(myGoals()); for (const a of Store.list('acts')) if (a.date >= since) for (const g of actOf(a).g) if (mine.has(g)) cnt[g] = (cnt[g] || 0) + 1;
   return cnt;
 }
 A.goalsSheet = () => {
   const g = myGoals(), cnt = goalSetsThisWeek(), max = Math.max(1, ...g.map(x => cnt[x] || 0));
-  openSheet('Goals this week', `<p class="muted small" style="margin:0">Work sets from the last 7 days that helped each goal. Tap one for exercises.</p>
+  openSheet('Goals this week', `<p class="muted small" style="margin:0">Work sets and sport sessions from the last 7 days that helped each goal. Tap one for exercises.</p>
     <div class="goalrows">${g.map(x => `<button class="goalrow" data-act="goalExercises" data-g="${x}"><span class="ge" aria-hidden="true">${GOALS[x][0]}</span><span class="grow"><span class="gl">${esc(GOALS[x][1])}</span><span class="gbar"><i style="width:${(cnt[x] || 0) / max * 100}%"></i></span></span><span class="gn${cnt[x] ? '' : ' zero'}">${cnt[x] || 0}</span>${ICON.chevR.replace('<svg', '<svg width="16" height="16" style="color:var(--tx3)"')}</button>`).join('')}</div>
     <button class="btn ghost block" data-act="editGoals">Edit goals</button>`, { onMount(L) { if (!REDUCED()) $$('.gbar i', L).forEach((b, i) => b.animate([{ width: '0%' }, { width: b.style.width }], { duration: 600, delay: 120 + i * 40, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' })); } });
 };

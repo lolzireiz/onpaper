@@ -82,7 +82,7 @@ A.openSettings = () => {
     <div class="field"><span class="lbl">Muscle diagrams show</span><div class="seg">${chipSeg('bodym', [['male', 'Male body'], ['female', 'Female body']], s.bodyModel || 'male')}</div></div>
     </div></details>
     <details class="sset"><summary><span class="si" aria-hidden="true">🏋️</span><span class="grow"><b>Workouts</b><span class="faint small">Weekly goal, sets, rest, Big 3</span></span></summary><div class="sset-b">
-    <div class="field"><span class="lbl">Weekly gym goal (days)</span><div class="seg">${chipSeg('goal', [3, 4, 5, 6, 7].map(n => [n, n]), s.weeklyGoal)}</div></div>
+    <div class="field"><span class="lbl">Weekly goal (active days: workouts and sports)</span><div class="seg">${chipSeg('goal', [3, 4, 5, 6, 7].map(n => [n, n]), s.weeklyGoal)}</div></div>
     <div class="field"><span class="lbl">Default sets per exercise</span><div class="seg">${chipSeg('dsets', [2, 3, 4, 5].map(n => [n, n]), s.defaultSets || 3)}</div><p class="faint tiny">Change any single exercise by tapping its target during a workout.</p></div>
     <div class="field"><span class="lbl">Default rest between sets</span><div class="seg">${chipSeg('rest', [[60, '1:00'], [90, '1:30'], [120, '2:00'], [180, '3:00'], [240, '4:00']], s.restSec)}</div></div>
     <div class="field"><span class="lbl">Remind me to start my watch workout</span><div class="seg">${chipSeg('watch', [['on', 'On'], ['off', 'Off']], s.watchReminder === false ? 'off' : 'on')}</div></div>
@@ -143,7 +143,7 @@ async function onBackupChosen(f) {
     const rows = c => { const v = data[c]; if (Array.isArray(v)) return v.filter(d => d && d.id); if (v && typeof v === 'object') return Object.entries(v).map(([id, d]) => ({ ...d, id })); return []; };
     const counts = Object.fromEntries(COLLS.map(c => [c, rows(c).length])), n = COLLS.reduce((a, c) => a + counts[c], 0);
     const nPhotos = data.photoFiles && typeof data.photoFiles === 'object' ? Object.keys(data.photoFiles).length : 0;
-    const parts = [[counts.workouts, 'workout'], [counts.weighins, 'weigh-in'], [counts.food, 'food entr|y|ies'], [counts.body, 'measurement'], [nPhotos, 'photo']].filter(([k]) => k).map(([k, w]) => w.includes('|') ? `${k} ${w.split('|')[0]}${k === 1 ? w.split('|')[1] : w.split('|')[2]}` : plural(k, w));
+    const parts = [[counts.workouts, 'workout'], [counts.weighins, 'weigh-in'], [counts.food, 'food entr|y|ies'], [counts.body, 'measurement'], [counts.acts, 'sport session||s'], [nPhotos, 'photo']].filter(([k]) => k).map(([k, w]) => w.includes('|') ? `${k} ${w.split('|')[0]}${k === 1 ? w.split('|')[1] : w.split('|')[2]}` : plural(k, w));
     const when = String(data.exported || '').slice(0, 10);
     if (!(await ask(`Restore this backup${when ? ` from ${fmtDate(when, { rel: false })}` : ''}? It has ${parts.join(', ') || `${n} ${n === 1 ? 'entry' : 'entries'}`}. Anything already on this phone is kept; matching entries are replaced.`, { ok: 'Restore' }))) return toast('Restore cancelled.');
     if (data.settings && typeof data.settings === 'object') Store.settings = { ...DEFAULTS, ...Store.settings, ...(data.settings.buddy === undefined ? { buddy: true } : {}), ...data.settings };
@@ -163,14 +163,14 @@ async function onBackupChosen(f) {
 
 function todayCardHTML(lw) {
   const t = todayStr(), wiToday = weighins().filter(w => w.date === t).pop(), nd = nextDay(), g = activeGym();
-  const trained = Store.list('workouts').filter(w => w.date === t && ((w.sets || []).length || w.marked));
+  const trained = Store.list('workouts').filter(w => w.date === t && ((w.sets || []).length || w.marked)), actsT = actsList().filter(a => a.date === t);
   const ft = foodTotals(t), s = S();
   const row = (ok, title, sub, btn) => `<div class="row" style="padding:10px 0;min-height:0"><span style="flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;${ok ? 'background:var(--ok);color:#000' : 'border:2px solid var(--s3)'};font-weight:900;font-size:13px">${ok ? '✓' : ''}</span><div class="grow"><b>${title}</b><div class="faint small">${sub}</div></div>${btn || ''}</div>`;
   const plan = nd ? planFor(nd, g).map(p => p.use).filter(Boolean) : [], mg = myGoals(), hits = mg.filter(x => plan.some(n => exHelps(n).includes(x)));
-  const doneN = [!!wiToday, trained.length > 0, ft.p >= s.proteinTarget].filter(Boolean).length;
+  const doneN = [!!wiToday, trained.length + actsT.length > 0, ft.p >= s.proteinTarget].filter(Boolean).length;
   let h = `<section class="card" style="gap:4px"><div class="card-h"><h2 class="sec-t">Today</h2><span class="today-prog${doneN === 3 ? ' all' : ''}">${doneN === 3 ? 'All done ✓' : `${doneN} of 3 done`}</span></div>`;
   h += row(!!wiToday, 'Weigh-in', wiToday ? `${fwu(wiToday.weight)}${wiToday.time ? ' at ' + fmtTime(wiToday.time) : ''}${wiToday.meal ? ' · ' + mealLabel(wiToday.meal) : ''}` : 'Best first thing in the morning', wiToday ? '' : `<button class="btn sm" data-act="logWeighin">Log</button>`);
-  if (trained.length) h += row(true, 'Workout', trained.map(w => w.marked ? 'Gym day' : `${esc(w.dayName || 'Workout')} · ${plural(w.sets.filter(x => !x.warm).length, 'set')}`).join(', '), '');
+  if (trained.length + actsT.length) h += row(true, trained.length ? 'Workout' : 'Active today', [...trained.map(w => w.marked ? 'Gym day' : `${esc(w.dayName || 'Workout')} · ${plural(w.sets.filter(x => !x.warm).length, 'set')}`), ...actsT.map(a => `${actOf(a).e} ${esc(actName(a))}${a.duration ? ' · ' + durTxt(a.duration) : ''}`)].join(', '), trained.length ? '' : (nd ? `<button class="btn sm ghost" data-act="startFromHome">Lift too</button>` : ''));
   else h += row(false, nd ? `Up next: ${esc(nd.name)}` : 'Workout', nd ? esc(plan.slice(0, 4).join(' · ')) + (plan.length > 4 ? ` +${plan.length - 4}` : '') + (hits.length ? `<span class="gline">🎯 ${hits.length === 1 ? `Hits ${GOALS[hits[0]][0]} ${esc(GOALS[hits[0]][1])}` : `Hits ${hits.length} of your goals <span class="gem">${hits.slice(0, 5).map(x => GOALS[x][0]).join('')}</span>`}</span>` : '') : 'Set up your split for a daily plan', nd ? `<button class="btn sm" data-act="startFromHome">Start</button>` : `<button class="btn sm ghost" data-act="editSplit">Set up</button>`);
   h += row(ft.p >= s.proteinTarget, `Protein ${trim(ft.p, 0)} / ${s.proteinTarget} g`, (ft.p >= s.proteinTarget ? 'Goal hit. Nice.' : `${trim(s.proteinTarget - ft.p, 0)} g to go · ${trim(Math.max(0, s.calTarget - ft.cal), 0)} kcal left`) + `<span class="pbar" aria-hidden="true"><i style="width:${clamp(ft.p / (s.proteinTarget || 1) * 100, 0, 100)}%"></i></span>`, `<button class="btn sm ghost" data-act="goTab" data-tab="food">Food</button>`);
   return h + '</section>';
