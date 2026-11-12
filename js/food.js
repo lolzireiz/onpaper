@@ -1,7 +1,39 @@
 'use strict';
 /* Food: calories + protein. Real serving sizes (eat 37 g of a 13 g serving), My Foods, meals, label scanning. */
 
-const UNITS = ['g', 'ml', 'oz', 'cup', 'tbsp', 'tsp', 'piece', 'serving'];
+const UNITS = ['g', 'oz', 'lb', 'ml', 'tsp', 'tbsp', 'cup', 'fl oz', 'piece', 'serving'];
+/* kitchen conversions: weight in grams, volume in ml (US cup / tbsp / tsp) */
+const U_WT = { g: 1, oz: 28.3495, lb: 453.592 }, U_VOL = { ml: 1, tsp: 4.92892, tbsp: 14.7868, 'fl oz': 29.5735, cup: 236.588 };
+const unitFam = u => U_WT[u] ? U_WT : U_VOL[u] ? U_VOL : null;
+const FRACS = [['¼', 0.25], ['⅓', 1 / 3], ['½', 0.5], ['⅔', 2 / 3], ['¾', 0.75]];
+/* "1/4", "1 1/2", "1½", "0.75", "2,5" → number */
+function parseAmt(v) {
+  let t = String(v == null ? '' : v).trim(); if (!t) return null;
+  for (const [ch, x] of [...FRACS, ['⅛', 0.125], ['⅜', 0.375], ['⅝', 0.625], ['⅞', 0.875]]) t = t.replace(ch, ' ' + x + ' ');
+  t = t.replace(',', '.').replace(/\s+/g, ' ').trim();
+  let m = t.match(/^(\d+)\s*\/\s*(\d+)$/); if (m) return +m[2] ? +m[1] / +m[2] : null;
+  m = t.match(/^(\d+(?:\.\d+)?)\s+(\d+)\s*\/\s*(\d+)$/); if (m) return +m[3] ? +m[1] + +m[2] / +m[3] : null;
+  m = t.match(/^(\d+(?:\.\d+)?)\s+(0?\.\d+)$/); if (m) return +m[1] + +m[2];
+  const n = parseFloat(t); return Number.isFinite(n) ? n : null;
+}
+/* 0.25 → "¼", 1.5 → "1½", 37 → "37" */
+function fracTxt(n) { if (n == null || !Number.isFinite(+n)) return ''; n = +n; const w = Math.floor(n + 1e-6), r = n - w, f = FRACS.find(x => Math.abs(x[1] - r) < 0.012); return f ? `${w || ''}${f[0]}` : trim(n, 2); }
+/* units you can eat this food in: the label's unit family, plus the "also equals" one */
+function eatUnits(su, altSize, altUnit) {
+  const out = []; const add = u => { const f = unitFam(u); if (f) Object.keys(f).forEach(k => out.includes(k) || out.push(k)); else if (u === 'piece' && !out.includes('piece')) out.push('piece'); };
+  add(su); if (altSize > 0) add(altUnit);
+  return out;
+}
+/* servings in `amount unit` of a food whose label serving is ss su (and optionally also altSize altUnit) */
+function servingsIn(amount, unit, ss, su, altSize, altUnit) {
+  if (amount == null) return null;
+  const f = unitFam(unit);
+  if (ss > 0 && unit === su) return amount / ss;
+  if (f && ss > 0 && f[su]) return amount * f[unit] / (ss * f[su]);
+  if (altSize > 0 && unit === altUnit) return amount / altSize;
+  if (f && altSize > 0 && f[altUnit]) return amount * f[unit] / (altSize * f[altUnit]);
+  return null;
+}
 const foodDay = date => Store.docs.food[date] || { date, items: [] };
 function foodTotals(date) {
   const t = { cal: 0, p: 0, c: 0, f: 0 };
@@ -16,8 +48,8 @@ function recentFoods() {
   });
 }
 const myFoods = () => Store.list('myfoods').sort((a, b) => (b.lastUsed || b.ts || 0) - (a.lastUsed || a.ts || 0));
-const servingLabel = it => it.serving || (it.servingSize ? `${trim(it.servingSize, 2)} ${it.servingUnit || 'g'}` : '1 serving');
-const eatenLabel = it => it.mode === 'amount' && it.amount ? `${trim(it.amount, 1)} ${it.servingUnit} · ${trim(it.qty, 2)} servings` : `${trim(it.qty || 1, 2)} × ${servingLabel(it)}`;
+const servingLabel = it => it.serving || (it.servingSize ? `${fracTxt(it.servingSize)} ${it.servingUnit || 'g'}` : '1 serving');
+const eatenLabel = it => it.mode === 'amount' && it.amount ? `${fracTxt(it.amount)} ${it.amountUnit || it.servingUnit} · ${trim(it.qty, 2)} servings` : `${fracTxt(it.qty || 1)} × ${servingLabel(it)}`;
 const macroBar = (label, val, target, unit, cls = '') => {
   const pct = target ? clamp(val / target * 100, 0, 100) : 0;
   return `<div class="macro"><div class="t"><span class="muted">${label}</span><span><b>${trim(val, 0)}</b> <span class="faint">/ ${trim(target, 0)} ${unit}</span></span></div><div class="bar ${cls} ${val >= target ? 'over' : ''}" role="progressbar" aria-label="${label}" aria-valuenow="${Math.round(val)}" aria-valuemax="${target}"><i style="width:${pct}%"></i></div></div>`;
@@ -45,7 +77,7 @@ A.foodDay = d => { const cur = UI.foodDate || todayStr(), nx = addDays(cur, +d.d
 const inMeal = d => d && d.inmeal === '1';
 A.foodManual = d => { if (!inMeal(d)) Sheet.meal = null; foodForm({ name: '', servingSize: 1, servingUnit: 'serving', cal: '', p: '', c: '', f: '', qty: 1, mode: 'servings', src: 'manual' }); };
 A.foodAgain = d => { const it = recentFoods()[+d.i]; if (!it) return; if (Sheet.meal && inMeal(d)) { Sheet.meal.parts.push({ ...clone(it), id: newId() }); return drawMeal(); } addFoodItem({ ...clone(it), id: newId(), ts: Date.now() }); toast(`Added ${it.name}`); };
-A.useMyFood = d => { const f = Store.docs.myfoods[d.id]; if (!f) return; if (!inMeal(d)) Sheet.meal = null; foodForm({ ...clone(f), id: undefined, myId: d.id, qty: 1, amount: '', mode: (f.servingUnit && !['serving', 'piece'].includes(f.servingUnit)) ? 'amount' : 'servings', src: 'mine' }, null, false, true); };
+A.useMyFood = d => { const f = Store.docs.myfoods[d.id]; if (!f) return; if (!inMeal(d)) Sheet.meal = null; foodForm({ ...clone(f), id: undefined, myId: d.id, qty: 1, amount: '', amountUnit: null, mode: (f.servingUnit && !['serving', 'piece'].includes(f.servingUnit)) ? 'amount' : 'servings', src: 'mine' }, null, false, true); };
 A.foodEdit = d => { Sheet.meal = null; const it = (foodDay(UI.foodDate || todayStr()).items || []).find(x => x.id === d.id); if (it) foodForm(clone(it), null, true); };
 function addFoodItem(item) {
   const date = UI.foodDate || todayStr(), isNew = !(foodDay(date).items || []).some(x => x.id === item.id), before = foodTotals(date), day = clone(foodDay(date));
@@ -60,7 +92,8 @@ function foodForm(it, imgUrl, editing = false, focusAmount = false) {
   const html = `${imgUrl ? `<img class="prev-img" src="${imgUrl}" alt="Your photo">` : ''}
     ${it.note ? `<p class="tip-line">${esc(it.note)}${it.confidence ? ` <span class="faint">(${esc(it.confidence)} confidence)</span>` : ''}</p>` : ''}
     <div class="field"><label class="lbl" for="fd-n">Food</label><input id="fd-n" name="name" value="${esc(it.name || '')}" placeholder="e.g. PB2 peanut butter powder" autocapitalize="sentences"></div>
-    <div class="field"><span class="lbl">Serving size (from the label)</span><div class="fields"><input id="fd-ss" name="ssize" inputmode="decimal" value="${it.servingSize ?? ''}" placeholder="13" aria-label="Serving size amount"><select id="fd-su" name="sunit" aria-label="Serving size unit">${UNITS.map(u => `<option ${u === (it.servingUnit || 'serving') ? 'selected' : ''}>${u}</option>`).join('')}</select></div></div>
+    <div class="field"><span class="lbl">Serving size (from the label)</span><div class="fields"><input id="fd-ss" name="ssize" inputmode="decimal" value="${it.servingSize ?? ''}" placeholder="13" aria-label="Serving size amount"><select id="fd-su" name="sunit" aria-label="Serving size unit">${UNITS.map(u => `<option ${u === (it.servingUnit || 'serving') ? 'selected' : ''}>${u}</option>`).join('')}</select></div>
+      <div class="alsoeq"><span class="faint small">also equals</span><input id="fd-as" inputmode="decimal" value="${it.altSize ? fracTxt(it.altSize).replace('¼', '1/4').replace('⅓', '1/3').replace('½', '1/2').replace('⅔', '2/3').replace('¾', '3/4') : ''}" placeholder="2" aria-label="Also equals amount"><select id="fd-au" aria-label="Also equals unit"><option value="">—</option>${UNITS.filter(u => u !== 'serving').map(u => `<option ${u === it.altUnit ? 'selected' : ''}>${u}</option>`).join('')}</select></div><p class="faint tiny" style="margin:4px 0 0">Optional. If the label says “2 tbsp (13 g)”, add both and you can log in spoons, cups or grams.</p></div>
     <div class="field"><span class="lbl">Per serving</span><div class="fields four"><div class="field"><label class="faint tiny" for="fd-cal">kcal</label><input id="fd-cal" name="cal" inputmode="decimal" value="${it.cal ?? ''}"></div><div class="field"><label class="faint tiny" for="fd-p">Protein g</label><input id="fd-p" name="p" inputmode="decimal" value="${it.p ?? ''}"></div><div class="field"><label class="faint tiny" for="fd-c">Carbs g</label><input id="fd-c" name="c" inputmode="decimal" value="${it.c ?? ''}"></div><div class="field"><label class="faint tiny" for="fd-f">Fat g</label><input id="fd-f" name="f" inputmode="decimal" value="${it.f ?? ''}"></div></div></div>
     <div class="field"><span class="lbl">How much did you eat?</span><div class="seg" id="fd-modes"><button data-act="foodMode" data-m="servings" aria-pressed="${Sheet.foodMode === 'servings'}">Servings</button><button data-act="foodMode" data-m="amount" aria-pressed="${Sheet.foodMode === 'amount'}" id="fd-mode-amt">By amount</button></div>
       <div id="fd-eat"></div></div>
@@ -70,29 +103,37 @@ function foodForm(it, imgUrl, editing = false, focusAmount = false) {
     ${editing ? `<button class="linkbtn danger center" data-act="foodDelete" data-id="${it.id}">Remove</button>` : ''}`;
   if ($('#sheet').hidden) openSheet(editing ? 'Edit food' : 'Add food', html); else { sheetTitle(editing ? 'Edit food' : 'Check and add'); sheetBody(html); }
   drawEat(it); const L = $('#sheet');
-  L.querySelectorAll('#fd-ss,#fd-su,#fd-cal,#fd-p,#fd-c,#fd-f').forEach(i => i.addEventListener(i.tagName === 'SELECT' ? 'change' : 'input', () => { if (i.id === 'fd-su') drawEat(); updateFoodSum(); }));
+  L.querySelectorAll('#fd-ss,#fd-su,#fd-as,#fd-au,#fd-cal,#fd-p,#fd-c,#fd-f').forEach(i => i.addEventListener(i.tagName === 'SELECT' ? 'change' : 'input', () => { if (['fd-su', 'fd-au', 'fd-as'].includes(i.id)) drawEat(); updateFoodSum(); }));
   updateFoodSum();
   if (focusAmount) setTimeout(() => $('#fd-amt')?.focus(), 300);
 }
+const FRAC_CHIPS = [['¼', '1/4'], ['⅓', '1/3'], ['½', '1/2'], ['⅔', '2/3'], ['¾', '3/4'], ['1', '1'], ['1½', '1 1/2'], ['2', '2']];
 function drawEat(it) {
-  const unit = $('#fd-su')?.value || 'serving', m = Sheet.foodMode, box = $('#fd-eat'); if (!box) return;
-  const amtOK = !['serving'].includes(unit);
-  const ab = $('#fd-mode-amt'); if (ab) { ab.textContent = amtOK ? `By ${unit === 'piece' ? 'pieces' : unit}` : 'By amount'; ab.disabled = !amtOK; ab.style.opacity = amtOK ? '' : '.4'; }
-  if (m === 'amount' && amtOK) box.innerHTML = `<div class="fields" style="margin-top:8px;align-items:center"><input id="fd-amt" inputmode="decimal" value="${it && it.amount ? it.amount : ''}" placeholder="e.g. 37" aria-label="Amount eaten in ${unit}"><span class="muted">${unit} eaten</span></div>`;
-  else { if (m === 'amount') Sheet.foodMode = 'servings'; box.innerHTML = `<div class="chips" style="margin-top:8px">${[0.5, 1, 1.5, 2, 3].map(q => `<button class="chip" data-act="foodQty" data-q="${q}">${q}</button>`).join('')}</div><input id="fd-q" inputmode="decimal" value="${it ? (it.qty ?? 1) : ($('#fd-q')?.value || 1)}" aria-label="Servings eaten" style="margin-top:8px">`; }
+  const su = $('#fd-su')?.value || 'serving', m = Sheet.foodMode, box = $('#fd-eat'); if (!box) return;
+  const units = eatUnits(su, parseAmt($('#fd-as')?.value), $('#fd-au')?.value || ''), amtOK = units.length > 0;
+  const prevU = $('#fd-eu')?.value, prevA = $('#fd-amt')?.value, prevQ = $('#fd-q')?.value;
+  const want = (it && it.amountUnit) || prevU || (units.includes(su) ? su : units[0]), eu = units.includes(want) ? want : (units.includes(su) ? su : units[0]);
+  const ab = $('#fd-mode-amt'); if (ab) { ab.textContent = 'By amount'; ab.disabled = !amtOK; ab.style.opacity = amtOK ? '' : '.4'; }
+  if (m === 'amount' && amtOK) {
+    box.innerHTML = `<div class="fields" style="margin-top:8px"><input id="fd-amt" inputmode="decimal" value="${esc(it && it.amount ? fracTxt(it.amount).replace(/[¼⅓½⅔¾]/, x => ' ' + FRAC_CHIPS.find(c => c[0] === x)[1]).trim() : (prevA || ''))}" placeholder="${unitFam(eu) && ['g', 'ml'].includes(eu) ? 'e.g. 37' : 'e.g. 1/4'}" aria-label="Amount eaten"><select id="fd-eu" aria-label="Unit eaten">${units.map(u => `<option ${u === eu ? 'selected' : ''}>${u}</option>`).join('')}</select></div>
+      <div class="chips fracs" id="fd-fr" style="margin-top:8px"${['g', 'ml'].includes(eu) ? ' hidden' : ''}>${FRAC_CHIPS.map(([l, v]) => `<button class="chip" data-act="foodFrac" data-v="${v}">${l}</button>`).join('')}</div>`;
+    $('#fd-eu').addEventListener('change', e => { $('#fd-fr').hidden = ['g', 'ml'].includes(e.target.value); $('#fd-amt').placeholder = ['g', 'ml'].includes(e.target.value) ? 'e.g. 37' : 'e.g. 1/4'; updateFoodSum(); });
+  } else { if (m === 'amount') Sheet.foodMode = 'servings'; box.innerHTML = `<div class="chips" style="margin-top:8px">${[['¼', 0.25], ['½', 0.5], ['1', 1], ['1½', 1.5], ['2', 2], ['3', 3]].map(([l, q]) => `<button class="chip" data-act="foodQty" data-q="${q}">${l}</button>`).join('')}</div><input id="fd-q" inputmode="decimal" value="${it ? (it.qty ?? 1) : (prevQ || 1)}" aria-label="Servings eaten" style="margin-top:8px">`; }
   box.querySelectorAll('input').forEach(i => i.addEventListener('input', updateFoodSum));
   $$('#fd-modes button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === Sheet.foodMode)));
 }
+A.foodFrac = (d, el) => { $$('#sheet [data-act="foodFrac"]').forEach(b => b.setAttribute('aria-pressed', String(b === el))); const i = $('#fd-amt'); if (i) i.value = d.v; updateFoodSum(); };
 function readFoodForm() {
-  const ss = num($('#fd-ss')?.value), su = $('#fd-su')?.value || 'serving', mode = Sheet.foodMode;
-  const amount = mode === 'amount' ? num($('#fd-amt')?.value) : null;
-  const qty = mode === 'amount' ? (ss > 0 && amount != null ? amount / ss : null) : num($('#fd-q')?.value);
-  return { name: fval('name'), servingSize: ss || (su === 'serving' ? 1 : null), servingUnit: su, cal: num(fval('cal')), p: num(fval('p')) || 0, c: num(fval('c')) || 0, f: num(fval('f')) || 0, mode, amount, qty: qty != null ? Math.round(qty * 1000) / 1000 : null };
+  const ss = parseAmt($('#fd-ss')?.value), su = $('#fd-su')?.value || 'serving', mode = Sheet.foodMode;
+  const altUnit = $('#fd-au')?.value || '', altSize = altUnit ? parseAmt($('#fd-as')?.value) : null;
+  const amount = mode === 'amount' ? parseAmt($('#fd-amt')?.value) : null, amountUnit = mode === 'amount' ? ($('#fd-eu')?.value || su) : null;
+  const qty = mode === 'amount' ? servingsIn(amount, amountUnit, ss, su, altSize, altUnit) : parseAmt($('#fd-q')?.value);
+  return { name: fval('name'), servingSize: ss || (su === 'serving' ? 1 : null), servingUnit: su, altSize: altSize > 0 ? altSize : null, altUnit: altSize > 0 ? altUnit : null, amountUnit, cal: num(fval('cal')), p: num(fval('p')) || 0, c: num(fval('c')) || 0, f: num(fval('f')) || 0, mode, amount, qty: qty != null ? Math.round(qty * 1000) / 1000 : null };
 }
 function updateFoodSum() {
   const v = readFoodForm(), el = $('#fd-sum'); if (!el) return;
-  if (v.cal == null || v.qty == null) { el.textContent = v.mode === 'amount' && !(v.servingSize > 0) ? 'Enter the serving size from the label so the app can scale it.' : 'Fill in calories and how much you ate.'; return; }
-  el.innerHTML = `${v.mode === 'amount' ? `${trim(v.amount, 1)} ${v.servingUnit} = <b>${trim(v.qty, 2)} servings</b> → ` : ''}<b>${trim(v.cal * v.qty, 0)} kcal</b> · ${trim(v.p * v.qty, 1)} g protein · ${trim(v.c * v.qty, 0)} g carbs · ${trim(v.f * v.qty, 0)} g fat`;
+  if (v.cal == null || v.qty == null) { el.textContent = v.mode === 'amount' && v.amount != null ? `Add the serving size in ${unitFam(v.amountUnit) === U_WT ? 'g, oz or lb' : unitFam(v.amountUnit) === U_VOL ? 'cups, spoons or ml' : v.amountUnit} so the app can scale it.` : 'Fill in calories and how much you ate.'; return; }
+  el.innerHTML = `${v.mode === 'amount' ? `${fracTxt(v.amount)} ${v.amountUnit} = <b>${trim(v.qty, 2)} servings</b> → ` : ''}<b>${trim(v.cal * v.qty, 0)} kcal</b> · ${trim(v.p * v.qty, 1)} g protein · ${trim(v.c * v.qty, 0)} g carbs · ${trim(v.f * v.qty, 0)} g fat`;
 }
 A.foodMode = d => { Sheet.foodMode = d.m; drawEat(); updateFoodSum(); if (d.m === 'amount') $('#fd-amt')?.focus(); };
 A.foodQty = (d, el) => { $$('#sheet [data-act="foodQty"]').forEach(b => b.setAttribute('aria-pressed', String(b === el))); const q = $('#fd-q'); if (q) q.value = d.q; updateFoodSum(); };
@@ -100,17 +141,16 @@ A.foodSave = () => {
   const v = readFoodForm(), it = Sheet.food || {};
   if (!v.name) return toast('Name the food.', { bad: true });
   if (v.cal == null) return toast('Enter the calories per serving.', { bad: true });
-  if (v.mode === 'amount' && !(v.servingSize > 0)) return toast('Enter the serving size from the label.', { bad: true });
   if (!(v.qty > 0)) return toast('Enter how much you ate.', { bad: true });
-  const serving = v.servingUnit === 'serving' ? (it.serving && it.serving !== '1 serving' ? it.serving : '1 serving') : `${trim(v.servingSize, 2)} ${v.servingUnit}`;
-  const base = { name: v.name, serving, servingSize: v.servingSize, servingUnit: v.servingUnit, cal: v.cal, p: v.p, c: v.c, f: v.f };
+  const serving = v.servingUnit === 'serving' ? (it.serving && it.serving !== '1 serving' ? it.serving : '1 serving') : `${fracTxt(v.servingSize)} ${v.servingUnit}${v.altSize ? ` (${fracTxt(v.altSize)} ${v.altUnit})` : ''}`;
+  const base = { name: v.name, serving, servingSize: v.servingSize, servingUnit: v.servingUnit, altSize: v.altSize, altUnit: v.altUnit, cal: v.cal, p: v.p, c: v.c, f: v.f };
   const saveBox = $('#fd-save');
   if (saveBox && saveBox.checked) {
     const ex = it.myId ? { id: it.myId } : myFoods().find(f => keyOf(f.name) === keyOf(v.name));
     const id = ex ? ex.id : newId(), old = Store.docs.myfoods[id] || {};
     put('myfoods', id, { ...old, ...base, ts: old.ts || Date.now(), lastUsed: Date.now(), uses: (old.uses || 0) + 1 });
   } else if (it.myId && Store.docs.myfoods[it.myId]) put('myfoods', it.myId, { ...Store.docs.myfoods[it.myId], lastUsed: Date.now(), uses: (Store.docs.myfoods[it.myId].uses || 0) + 1 });
-  const item = { ...base, id: it.id || newId(), qty: v.qty, mode: v.mode, amount: v.mode === 'amount' ? v.amount : null, src: it.src === 'mine' ? 'manual' : (it.src || 'manual'), ts: it.ts || Date.now() };
+  const item = { ...base, id: it.id || newId(), qty: v.qty, mode: v.mode, amount: v.mode === 'amount' ? v.amount : null, amountUnit: v.mode === 'amount' ? v.amountUnit : null, src: it.src === 'mine' ? 'manual' : (it.src || 'manual'), ts: it.ts || Date.now() };
   if (Sheet.meal) { Sheet.meal.parts.push(item); return drawMeal(); }
   addFoodItem(item); closeSheet(); toast(`${v.name}: ${trim(v.cal * v.qty, 0)} kcal added`);
 };
@@ -126,9 +166,9 @@ A.manageMyFoods = () => {
 A.delMyFood = d => { const f = Store.docs.myfoods[d.id]; del('myfoods', d.id); Sheet.drawMyFoods && Sheet.drawMyFoods(); if (f) toastUndo(`Deleted ${f.name}`, () => { put('myfoods', d.id, f); Sheet.drawMyFoods && !$('#sheet').hidden && Sheet.drawMyFoods(); }); };
 
 /* ---------- AI help (Gemini) ---------- */
-const FOOD_JSON = `{"name": "short food name", "serving": "serving size as printed, e.g. 2 tbsp (13 g)", "serving_size": 13, "serving_unit": "g", "cal": 0, "protein": 0, "carbs": 0, "fat": 0, "confidence": "high", "note": ""}`;
+const FOOD_JSON = `{"name": "short food name", "serving": "serving size as printed, e.g. 2 tbsp (13 g)", "serving_size": 13, "serving_unit": "g", "household_size": 2, "household_unit": "tbsp", "cal": 0, "protein": 0, "carbs": 0, "fat": 0, "confidence": "high", "note": ""}`;
 const PROMPT_PHOTO = `You are helping someone log food in a calorie and protein tracker. The attached photo is either (a) a Nutrition Facts label or (b) a photo of a meal or food.
-If it is a nutrition label: read the values for ONE serving exactly as printed (calories in kcal; protein, total carbohydrate and total fat in grams). "serving_size" is the serving amount as a number and "serving_unit" its unit: prefer grams ("g") or millilitres ("ml") when the label gives them in brackets, e.g. "2 tbsp (13g)" gives serving_size 13 and serving_unit "g". Use the product name if visible, otherwise a short description. Set "kind" to "label".
+If it is a nutrition label: read the values for ONE serving exactly as printed (calories in kcal; protein, total carbohydrate and total fat in grams). "serving_size" is the serving amount as a number and "serving_unit" its unit: prefer grams ("g") or millilitres ("ml") when the label gives them in brackets, e.g. "2 tbsp (13g)" gives serving_size 13 and serving_unit "g". When the label ALSO gives a household measure (cup, tbsp, tsp, fl oz, oz or pieces), put it in "household_size" (a decimal number, so 1/4 is 0.25) and "household_unit" (one of: cup, tbsp, tsp, fl oz, oz, piece); otherwise use null for both. Use the product name if visible, otherwise a short description. Set "kind" to "label".
 If it is a photo of food: identify it and estimate realistic values for the whole portion shown, with serving_size 1 and serving_unit "serving". Set "kind" to "estimate".
 "confidence" is high, medium or low. "note" is one short sentence about anything to double-check, or "".
 Reply with only JSON in this shape: {"kind": "label", ${FOOD_JSON.slice(1)}
@@ -139,9 +179,11 @@ Use typical US portions unless amounts are given. If it's a known restaurant or 
 Reply with only JSON in this shape: ${FOOD_JSON}`;
 function fromAI(out, src) {
   const n = v => { const x = num(v); return x == null ? '' : Math.round(x * 10) / 10; };
-  let su = String(out.serving_unit || 'serving').toLowerCase().trim(); if (su === 'grams' || su === 'gram') su = 'g'; if (su === 'milliliters' || su === 'mL') su = 'ml'; if (!UNITS.includes(su)) su = 'serving';
+  const normU = x => { let u = String(x || '').toLowerCase().trim().replace(/\.$/, ''); const map = { grams: 'g', gram: 'g', milliliters: 'ml', milliliter: 'ml', tablespoon: 'tbsp', tablespoons: 'tbsp', tbsps: 'tbsp', teaspoon: 'tsp', teaspoons: 'tsp', tsps: 'tsp', cups: 'cup', ounce: 'oz', ounces: 'oz', 'fluid ounce': 'fl oz', 'fluid ounces': 'fl oz', floz: 'fl oz', 'fl. oz': 'fl oz', pound: 'lb', pounds: 'lb', lbs: 'lb', pieces: 'piece', pc: 'piece' }; return map[u] || u; };
+  let su = normU(out.serving_unit || 'serving'); if (!UNITS.includes(su)) su = 'serving';
+  const hu = normU(out.household_unit), hs = parseAmt(out.household_size), alt = hs > 0 && UNITS.includes(hu) && hu !== 'serving' && hu !== su && unitFam(hu) !== unitFam(su) ? { altSize: hs, altUnit: hu } : {};
   const ss = num(out.serving_size) || 1;
-  return { name: String(out.name || '').slice(0, 80), serving: String(out.serving || '').slice(0, 80), servingSize: su === 'serving' ? 1 : ss, servingUnit: su, cal: n(out.cal), p: n(out.protein), c: n(out.carbs), f: n(out.fat), qty: 1, mode: src === 'label' && su !== 'serving' && su !== 'piece' && !/^\s*[\d./½¼¾]*\s*(tortillas?|bars?|scoops?|slices?|pieces?|cookies?|eggs?|bottles?|cans?|packets?|pouch(es)?|wraps?|buns?|muffins?|containers?|cups?|pancakes?|waffles?|links?|patty|patties|sticks?)\b/i.test(String(out.serving || '')) ? 'amount' : 'servings', src, note: String(out.note || '').slice(0, 200), confidence: ['high', 'medium', 'low'].includes(out.confidence) ? out.confidence : '' };
+  return { name: String(out.name || '').slice(0, 80), serving: String(out.serving || '').slice(0, 80), servingSize: su === 'serving' ? 1 : ss, servingUnit: su, ...alt, cal: n(out.cal), p: n(out.protein), c: n(out.carbs), f: n(out.fat), qty: 1, mode: src === 'label' && su !== 'serving' && su !== 'piece' && !/^\s*[\d./½¼¾]*\s*(tortillas?|bars?|scoops?|slices?|pieces?|cookies?|eggs?|bottles?|cans?|packets?|pouch(es)?|wraps?|buns?|muffins?|containers?|cups?|pancakes?|waffles?|links?|patty|patties|sticks?)\b/i.test(String(out.serving || '')) ? 'amount' : 'servings', src, note: String(out.note || '').slice(0, 200), confidence: ['high', 'medium', 'low'].includes(out.confidence) ? out.confidence : '' };
 }
 function aiErrorText(e) {
   switch (e?.code) {

@@ -1,10 +1,8 @@
 {
- "version": "3.3",
+ "version": "3.4",
  "notes": [
-  "Animated 3D demos: tap the \u24d8 on any exercise to watch a figure do the movement, with the working muscles lit up and three form tips. Drag to turn it around.",
-  "Starter programs: the app can now build a split from your goals, gym days and equipment. Find it in Train, or at the end of setup.",
-  "Skill trackers in Lifts: mile time, max pull-ups, vertical jump, plank hold and more, with personal bests.",
-  "Backups now include your progress photos, and you can back up in one tap right after a workout.",
-  "Reorder exercises mid-workout (\u22ef menu), the Log button shows which set you're on, and Settings is grouped into sections."
+  "Log food in cups, tablespoons, teaspoons, fl oz, oz or lb, with one-tap fractions (\u00bc, \u2153, \u00bd, \u2154, \u00be, 1\u00bd).",
+  "Label in grams but you used a spoon? Add what the serving \"also equals\" (like 2 tbsp) and log in either. Scanning a label fills this in when the label shows both.",
+  "The app converts between cups, spoons, ml and fl oz, and between g, oz and lb."
  ]
 }
