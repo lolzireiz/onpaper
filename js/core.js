@@ -55,7 +55,7 @@ const fw = (lb, dp = 1) => lb === 0 ? 'BW' : trim(U.w(lb), dp);
 const fwu = (lb, dp = 1) => lb === 0 ? 'Bodyweight' : `${trim(U.w(lb), dp)} ${U.wu}`;
 
 /* ---------- data store ---------- */
-const COLLS = ['weighins', 'workouts', 'body', 'photos', 'food', 'gyms'];
+const COLLS = ['weighins', 'workouts', 'body', 'photos', 'food', 'gyms', 'myfoods', 'jumps'];
 const DEFAULTS = {
   unit: 'imperial', weeklyGoal: 4, restSec: 120, calTarget: 2500, proteinTarget: 160, nudgeDays: 3,
   activeGym: null, split: null, bodyModel: 'male', watchReminder: true, customEx: [], big3: { squat: 'Squat', bench: 'Bench Press', deadlift: 'Deadlift' },
@@ -198,8 +198,8 @@ function liftIndex() {
       L.name = s.ex;
       const r = Math.max(1, Math.round(s.r || 1)), w = +s.w || 0;
       const prevBest = bestAtLeast(L.best, r);
-      const rec = { ...s, r, w, e1: e1rm(w, r), prevBest, bw: bwOn(s.date), hit: s.hit !== false };
-      if (rec.hit) {
+      const rec = { ...s, r, w, e1: e1rm(w, r), prevBest, bw: bwOn(s.date), hit: s.hit !== false, warm: !!s.warm };
+      if (rec.hit && !rec.warm) {
         if (!L.hits) rec.baseline = true;
         else if (w > (prevBest ? prevBest.w : -1) + 1e-9) { rec.pr = true; L.prs++; }
         L.hits++;
@@ -301,6 +301,11 @@ function ask(msg, { ok = 'OK', danger = false, cancel = 'Cancel' } = {}) {
     $('#dlg-no', L).onclick = () => done(false); $('#dlg-yes', L).onclick = () => done(true); $('.scrim', L).onclick = () => done(false);
     $('#dlg-yes', L).focus();
   });
+}
+function toastUndo(msg, undo, ms = 5000) {
+  const t = $('#toast'); t.className = 'toast'; t.innerHTML = `<span>${esc(msg)}</span><button class="toast-undo">Undo</button>`;
+  t.querySelector('button').onclick = () => { undo(); t.classList.remove('show'); setTimeout(() => toast('Restored'), 200); };
+  void t.offsetWidth; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms);
 }
 let toastT;
 function toast(msg, { pr = false, bad = false, ms = 2800 } = {}) {

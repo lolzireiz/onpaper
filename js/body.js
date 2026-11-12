@@ -72,7 +72,7 @@ A.saveWeighin = d => {
   put('weighins', id, { date: fval('date') || todayStr(), time: fval('time') || null, weight: U.toLb(v), meal: picked($('#sheet'), 'meal'), bf: bf || null, ts: old?.ts || Date.now() });
   closeSheet(); toast(d.id ? 'Weigh-in updated' : `Logged ${trim(v, 1)} ${U.wu}`);
 };
-A.deleteWeighin = async d => { if (await ask('Delete this weigh-in?', { ok: 'Delete', danger: true })) { del('weighins', d.id); closeSheet(); } };
+A.deleteWeighin = d => { const w = Store.docs.weighins[d.id]; del('weighins', d.id); closeSheet(); if (w) toastUndo('Weigh-in deleted', () => put('weighins', d.id, w)); };
 
 /* ---------- measurements ---------- */
 function measureHTML() {

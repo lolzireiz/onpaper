@@ -204,6 +204,24 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--tx2) 50%),li
 .dayrow{display:flex;align-items:center;gap:6px}
 .reorder{display:flex;gap:2px}
 
+.addset2{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center}
+.stepper{display:grid;grid-template-columns:40px 1fr 40px;background:var(--s2);border-radius:12px;overflow:hidden;min-height:48px}
+.stepper button{font-size:22px;font-weight:500;color:var(--tx2);text-align:center}
+.stepper button:active{background:var(--s3);color:var(--tx)}
+.stepper input{background:transparent;text-align:center;padding:8px 0;border-radius:0;font-weight:650;min-width:0}
+.addset-b{display:grid;grid-template-columns:auto auto 1fr;gap:8px}
+.addset-b .btn{min-height:46px}
+.exb.done{opacity:.72}
+.exb.done:focus-within{opacity:1}
+.tgt-edit{display:inline-flex;align-items:center;gap:3px;color:var(--tx3);font-size:13px}
+.tgt-edit input{width:46px;min-height:34px;padding:4px;text-align:center;font-size:15px;border-radius:8px}
+.tgt-edit input[data-f="reps"]{width:58px}
+.toast{display:flex;align-items:center;gap:12px}
+.toast-undo{color:var(--accent);font-weight:800;padding:2px 4px}
+.btn:active,.chip:active,.tile:active,.row:active{transform:scale(.985)}
+.insight{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.insight:last-child{border-bottom:0}
+.insight .ic{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--s2);font-size:16px}
 /* rest timer */
 #rest{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom));z-index:25;background:var(--s2);border:1px solid var(--s3);border-radius:999px;padding:6px 6px 6px 8px;display:flex;align-items:center;gap:6px;box-shadow:0 8px 30px rgba(0,0,0,.6)}
 #rest[hidden]{display:none}
@@ -328,6 +346,7 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--tx2) 50%),li
 <script src="js/body.js"></script>
 <script src="js/food.js"></script>
 <script src="js/home.js"></script>
+<script src="js/anatomy-data.js"></script>
 <script src="js/extras.js"></script>
 <script src="js/buddy.js"></script>
 <script src="js/app.js"></script>

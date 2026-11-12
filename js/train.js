@@ -110,7 +110,8 @@ function startCardHTML() {
     h += `<div class="plan">${plan.map(p => {
       const last = p.use ? lastSessionSets(p.use) : null;
       const lastTxt = last ? `${fw(last.sets[0].w)}×${last.sets[0].r}` : '';
-      if (!p.swapped) return `<div class="row"><span class="grow">${esc(p.name)}</span><span class="faint small rnum">${lastTxt}</span>${musBtn(p.name)}</div>`;
+      const tg = (day.targets && day.targets[keyOf(p.name)]) || defaultTarget(p.use || p.name);
+      if (!p.swapped) return `<div class="row"><span class="grow">${esc(p.name)} <span class="faint small">${tg.sets}×${esc(tg.reps)}</span></span><span class="faint small rnum">${lastTxt}</span>${musBtn(p.name)}</div>`;
       return `<div class="row"><span class="grow">${p.use ? `<s>${esc(p.name)}</s> → ${esc(p.use)}` : `<s>${esc(p.name)}</s>`}<div class="faint small">${p.use ? 'Swapped: not at this gym' : 'Skipped: nothing similar at this gym'}</div></span><span class="faint small rnum">${lastTxt}</span></div>`;
     }).join('')}</div>`;
   }
@@ -162,15 +163,35 @@ function sessionHTML(w) {
   h += `<button class="btn ghost block" data-act="addExercise">${ICON.plus} Add exercise</button><button class="linkbtn danger center" data-act="discardWorkout">Discard workout</button>`;
   return h;
 }
-function exBlockHTML(w, name) {
-  const k = slug(name), sets = (w.sets || []).filter(s => keyOf(s.ex) === keyOf(name)), L = liftByKey(keyOf(name));
-  const prev = lastSessionSets(name, w.id), lastSet = sets[sets.length - 1] || prev?.sets[0];
-  const best = L ? L.e1Set : null;
-  return `<section class="exb"><header class="exb-h"><h3 class="grow">${esc(name)}</h3>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
-  ${prev || best ? `<p class="faint small">${prev ? `Last time (${fmtDate(prev.date)}): ${prev.sets.map(s => `${fw(s.w)}×${s.r}`).join(', ')}` : ''}${prev && best ? '<br>' : ''}${best ? `Best: ${fw(best.w)}×${best.r} (est. 1RM ${fw(L.e1, 0)})` : ''}</p>` : ''}
-  ${sets.length ? `<ol class="sets">${sets.map((s, j) => { const rec = setRec(L, s.id); return `<li><button class="setrow" data-act="editSet" data-wid="${w.id}" data-sid="${s.id}"><span class="n">${j + 1}</span><span class="v grow">${fw(s.w)} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r}</span>${rec?.pr ? '<span class="pr">PR</span>' : ''}${s.hit === false ? '<span class="missb">Missed</span>' : ''}</button></li>`; }).join('')}</ol>` : ''}
-  <div class="addset"><input id="sw-${k}" data-keep inputmode="decimal" value="${lastSet ? plain(U.w(lastSet.w)) : ''}" placeholder="${U.wu}" aria-label="Weight in ${U.wu} for ${esc(name)}"><span class="x">×</span><input id="sr-${k}" data-keep inputmode="numeric" value="${lastSet ? lastSet.r : ''}" placeholder="reps" aria-label="Reps for ${esc(name)}"><button class="missbtn" id="sh-${k}" data-act="toggle" aria-pressed="false" aria-label="Mark this set as missed">Miss</button><button class="btn sm" style="min-height:46px" data-act="logSet" data-ex="${esc(name)}">Log</button></div></section>`;
+const COMPOUND = new Set(['Bench Press', 'Incline Bench Press', 'Dumbbell Bench Press', 'Incline Dumbbell Press', 'Machine Chest Press', 'Smith Incline Press', 'Dips', 'Deadlift', 'Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Seated Cable Row', 'Dumbbell Row', 'T-Bar Row', 'Chest-Supported Row', 'Overhead Press', 'Dumbbell Shoulder Press', 'Machine Shoulder Press', 'Close-Grip Bench Press', 'Squat', 'Front Squat', 'Leg Press', 'Hack Squat', 'Smith Squat', 'Bulgarian Split Squat', 'Goblet Squat', 'Walking Lunge', 'Romanian Deadlift', 'Dumbbell RDL', 'Hip Thrust', 'Machine Hip Thrust'].map(keyOf));
+const isCompound = n => COMPOUND.has(keyOf(n));
+const defaultTarget = n => isCompound(n) ? { sets: 4, reps: '5-8' } : { sets: 3, reps: '8-12' };
+const exTarget = (w, n) => (w.targets && w.targets[keyOf(n)]) || defaultTarget(n);
+const repRange = r => { const m = String(r || '').match(/(\d+)\s*[-–to]+\s*(\d+)/); if (m) return [+m[1], +m[2]]; const n = parseInt(r, 10); return n ? [n, n] : [8, 12]; };
+function weightStep(name) { const e = library().get(keyOf(name)); const lower = e && ['Quads', 'Hamstrings', 'Glutes'].includes(e.group) && !(e.equip || []).includes('db'); return U.metric ? (lower ? 5 : 2.5) : (lower ? 10 : 5); }
+function suggestion(w, name) {
+  const t = exTarget(w, name), [lo, hi] = repRange(t.reps), prev = lastSessionSets(name, w.id); if (!prev) return null;
+  const work = prev.sets.filter(s => !s.warm && s.hit !== false); if (!work.length) return null;
+  const top = Math.max(...work.map(s => s.w || 0)), at = work.filter(s => (s.w || 0) === top), best = Math.max(...at.map(s => s.r));
+  const missedTop = prev.sets.some(s => !s.warm && s.hit === false && (s.w || 0) >= top);
+  if (top > 0 && !missedTop && at.every(s => s.r >= hi)) { const nw = top + U.toLb(weightStep(name)); return { w: nw, r: lo, why: `You hit ${hi}+ reps on every set at ${fw(top)} last time, so go up to ${fw(nw)}.` }; }
+  const r = Math.min(hi, best + 1);
+  return { w: top, r, why: top ? `Stay at ${fw(top)} and aim for ${r} reps (best last time: ${best}). Hit ${hi} on every set and the app will bump the weight.` : `Aim for ${r} reps.` };
 }
+function exBlockHTML(w, name) {
+  const k = slug(name), all = (w.sets || []).filter(s => keyOf(s.ex) === keyOf(name)), L = liftByKey(keyOf(name));
+  const work = all.filter(s => !s.warm && s.hit !== false), t = exTarget(w, name), done = work.length >= t.sets;
+  const prev = lastSessionSets(name, w.id), sug = !all.length ? suggestion(w, name) : null, last = all[all.length - 1];
+  const pre = last ? { w: last.w, r: last.r } : sug ? sug : prev ? { w: prev.sets.filter(s => !s.warm)[0]?.w ?? prev.sets[0].w, r: prev.sets[0].r } : null;
+  const step = weightStep(name);
+  return `<section class="exb${done ? ' done' : ''}"><header class="exb-h"><div class="grow"><h3>${done ? '<span style="color:var(--ok)">✓</span> ' : ''}${esc(name)}</h3><div class="faint small">Target ${t.sets} × ${esc(t.reps)} · <b style="color:${done ? 'var(--ok)' : 'var(--tx2)'}">${work.length}/${t.sets} sets</b></div></div>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
+  ${prev ? `<p class="faint small">Last time (${fmtDate(prev.date)}): ${prev.sets.map(s => `${s.warm ? '<span style="opacity:.6">' : ''}${fw(s.w)}×${s.r}${s.hit === false ? '✗' : ''}${s.warm ? '</span>' : ''}`).join(', ')}</p>` : ''}
+  ${sug ? `<p class="small" style="background:rgba(51,146,245,.12);color:#9cc8ff;border-radius:10px;padding:8px 10px"><b>Try ${fw(sug.w)} × ${sug.r}.</b> ${esc(sug.why)}</p>` : ''}
+  ${all.length ? `<ol class="sets">${all.map((s, j) => { const rec = setRec(L, s.id); return `<li><button class="setrow" data-act="editSet" data-wid="${w.id}" data-sid="${s.id}"><span class="n">${s.warm ? 'W' : j + 1 - all.slice(0, j).filter(x => x.warm).length}</span><span class="v grow">${fw(s.w)} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r}</span>${rec?.pr ? '<span class="pr">PR</span>' : ''}${s.hit === false ? '<span class="missb">Missed</span>' : ''}${s.warm ? '<span class="baseb">Warm-up</span>' : ''}</button></li>`; }).join('')}</ol>` : ''}
+  <div class="addset2"><div class="stepper"><button data-act="step" data-t="sw-${k}" data-d="-${step}" aria-label="Less weight">−</button><input id="sw-${k}" data-keep inputmode="decimal" value="${pre ? plain(U.w(pre.w)) : ''}" placeholder="${U.wu}" aria-label="Weight in ${U.wu} for ${esc(name)}"><button data-act="step" data-t="sw-${k}" data-d="${step}" aria-label="More weight">+</button></div><span class="x">×</span><div class="stepper"><button data-act="step" data-t="sr-${k}" data-d="-1" aria-label="One less rep">−</button><input id="sr-${k}" data-keep inputmode="numeric" value="${pre ? pre.r : ''}" placeholder="reps" aria-label="Reps for ${esc(name)}"><button data-act="step" data-t="sr-${k}" data-d="1" aria-label="One more rep">+</button></div></div>
+  <div class="addset-b"><button class="missbtn" id="swu-${k}" data-act="toggle" aria-pressed="false">Warm-up</button><button class="missbtn" id="sh-${k}" data-act="toggle" aria-pressed="false">Missed</button><button class="btn" data-act="logSet" data-ex="${esc(name)}">Log set</button></div></section>`;
+}
+A.step = d => { const el = $('#' + d.t); if (!el) return; const v = Math.max(0, (num(el.value) || 0) + (+d.d)); el.value = plain(v, 2); };
 A.resumeWorkout = () => { UI.session = true; UI.tab = 'train'; $('#view').scrollTop = 0; wakeLock(); render(); };
 A.planDay = d => { UI.planDay = d.id; render(); };
 A.planGym = d => { UI.planGym = d.id; render(); };
@@ -178,9 +199,10 @@ A.setGym = d => saveSettings({ activeGym: d.id });
 A.startWorkout = () => {
   const days = splitDays(), gs = gyms();
   const day = days.find(d => d.id === UI.planDay) || nextDay(), gym = gs.find(g => g.id === UI.planGym) || activeGym();
-  const plan = day ? planFor(day, gym).map(p => p.use).filter(Boolean) : [];
+  const pf = day ? planFor(day, gym).filter(p => p.use) : [], plan = pf.map(p => p.use), targets = {};
+  for (const p of pf) targets[keyOf(p.use)] = (day.targets && day.targets[keyOf(p.name)]) || defaultTarget(p.use);
   const id = newId();
-  put('workouts', id, { date: todayStr(), startTs: Date.now(), gymId: gym?.id || null, gymName: gym?.name || '', dayId: day?.id || null, dayName: day?.name || 'Workout', plan, sets: [] });
+  put('workouts', id, { date: todayStr(), startTs: Date.now(), gymId: gym?.id || null, gymName: gym?.name || '', dayId: day?.id || null, dayName: day?.name || 'Workout', plan, targets, sets: [] });
   UI.session = true; UI.tab = 'train'; UI.planDay = null; $('#view').scrollTop = 0; audioCtx(); wakeLock(); render();
   if (S().watchReminder !== false) toast('⌚ Start a Strength Training workout on your Apple Watch', { ms: 5000 });
 };
@@ -188,13 +210,16 @@ A.logSet = d => {
   const w = activeWorkout(); if (!w) return;
   const k = slug(d.ex), wIn = num($('#sw-' + k)?.value), r = Math.round(num($('#sr-' + k)?.value) || 0);
   if (!r || r < 1) { toast('Enter how many reps you did.', { bad: true }); $('#sr-' + k)?.focus(); return; }
-  const hit = $('#sh-' + k)?.getAttribute('aria-pressed') !== 'true';
+  const hit = $('#sh-' + k)?.getAttribute('aria-pressed') !== 'true', warm = $('#swu-' + k)?.getAttribute('aria-pressed') === 'true';
   const lb = U.toLb(wIn || 0), L = liftByKey(keyOf(d.ex));
-  const prev = L ? bestAtLeast(L.best, r) : null, isPR = hit && L && L.hits > 0 && lb > (prev ? prev.w : -1) + 1e-9;
-  const set = { id: newId(), ex: d.ex, w: lb, r, hit, ts: Date.now() };
+  const prev = L ? bestAtLeast(L.best, r) : null, isPR = hit && !warm && L && L.hits > 0 && lb > (prev ? prev.w : -1) + 1e-9;
+  const set = { id: newId(), ex: d.ex, w: lb, r, hit, ts: Date.now() }; if (warm) set.warm = true;
   put('workouts', w.id, { ...clone(w), sets: [...(w.sets || []), set] });
   if (isPR) toast(`PR! ${d.ex}: ${r === 1 ? 'new 1-rep max' : `new ${r}-rep max`}, ${fwu(lb)}`, { pr: true, ms: 3600 });
-  startRest();
+  const base = S().restSec || 120, rest = warm ? 60 : isCompound(d.ex) ? (r <= 6 ? Math.max(base, 180) : base) : Math.max(60, Math.min(base, 90));
+  startRest(rest);
+  const t = exTarget(w, d.ex), doneNow = (w.sets || []).filter(s => keyOf(s.ex) === keyOf(d.ex) && !s.warm && s.hit !== false).length + (hit && !warm ? 1 : 0);
+  if (!isPR && doneNow === t.sets) toast(`${d.ex} done: ${t.sets} working sets ✓`);
 };
 A.addExercise = () => {
   const w = activeWorkout(); if (!w) return;
@@ -242,7 +267,7 @@ function showWorkout(id, justFinished = false) {
   const w = Store.docs.workouts[id]; if (!w) return;
   const idx = liftIndex(), sets = w.sets || [], groups = {};
   for (const s of sets) (groups[s.ex] = groups[s.ex] || []).push(s);
-  const vol = sets.filter(s => s.hit !== false).reduce((a, s) => a + (s.w || 0) * s.r, 0);
+  const vol = sets.filter(s => s.hit !== false && !s.warm).reduce((a, s) => a + (s.w || 0) * s.r, 0);
   const prs = sets.filter(s => setRec(idx.get(keyOf(s.ex)), s.id)?.pr);
   const dur = w.endTs && w.startTs ? Math.round((w.endTs - w.startTs) / 6e4) : null;
   openSheet(justFinished ? 'Workout saved' : (w.dayName || 'Workout'), `
@@ -252,9 +277,9 @@ function showWorkout(id, justFinished = false) {
     <div>${Object.entries(groups).map(([ex, ss]) => `<div class="row" style="align-items:flex-start"><div class="grow"><b>${esc(ex)}</b><div class="muted small">${ss.map(s => `${fw(s.w)}×${s.r}${s.hit === false ? ' (missed)' : ''}${setRec(idx.get(keyOf(s.ex)), s.id)?.pr ? ' PR' : ''}`).join(' · ')}</div></div></div>`).join('') || '<p class="muted">Marked as a gym day.</p>'}</div>
     <button class="linkbtn danger center" data-act="deleteWorkout" data-id="${id}">Delete this workout</button>`);
 }
-A.deleteWorkout = async d => {
-  if (!(await ask('Delete this workout and all its sets? PRs from it will be removed too.', { ok: 'Delete', danger: true }))) return;
-  del('workouts', d.id); closeSheet();
+A.deleteWorkout = d => {
+  const w = Store.docs.workouts[d.id]; if (!w) return; del('workouts', d.id); closeSheet();
+  toastUndo(`Deleted ${w.dayName || 'workout'}`, () => put('workouts', d.id, w));
 };
 A.calMove = d => { const m = UI.calMonth || todayStr().slice(0, 7); const [y, mo] = m.split('-').map(Number); const dt = new Date(y, mo - 1 + (+d.d), 1); UI.calMonth = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}`; render(); };
 A.calDay = d => {
@@ -335,7 +360,7 @@ A.splitMove = d => { const i = +d.i, j = i + (+d.d), a = Sheet.split; if (j < 0 
 A.splitDel = async d => { const day = Sheet.split[+d.i]; if (await ask(`Delete ${day.name} from your split?`, { ok: 'Delete', danger: true })) { Sheet.split.splice(+d.i, 1); drawSplit(); } };
 A.splitAdd = () => { Sheet.split.push({ id: newId(), name: `Day ${Sheet.split.length + 1}`, groups: [], exercises: [] }); drawDay(Sheet.split.length - 1); };
 A.splitDay = d => drawDay(+d.i);
-A.splitSave = () => { saveSettings({ split: { days: Sheet.split } }); closeSheet(); toast('Split saved'); };
+A.splitSave = () => { if (Sheet.di != null && $('#dn')) keepDayName(); saveSettings({ split: { days: Sheet.split } }); closeSheet(); toast('Split saved'); };
 function drawDay(i) {
   Sheet.di = i; const d = Sheet.split[i]; sheetTitle(d.name || 'Day');
   const inDay = new Set((d.exercises || []).map(keyOf));
@@ -343,11 +368,15 @@ function drawDay(i) {
   sheetBody(`<button class="back" data-act="dayDone">${ICON.chevL.replace('<svg', '<svg width="18" height="18"')} All days</button>
     <div class="field"><label class="lbl" for="dn">Day name</label><input id="dn" name="dayname" value="${esc(d.name)}" autocapitalize="words"></div>
     <div class="field"><span class="lbl">Muscle groups</span><div class="chips">${GROUPS.map(g => `<button class="chip" data-act="dayGroup" data-g="${g}" aria-pressed="${(d.groups || []).includes(g)}">${g}</button>`).join('')}</div></div>
-    <div class="field"><span class="lbl">Exercises, in order</span>${(d.exercises || []).length ? `<div>${d.exercises.map((n, j) => `<div class="row" style="padding:6px 0;min-height:0"><span class="grow">${esc(n)}</span>${musBtn(n)}<div class="reorder"><button class="iconbtn sm" data-act="dayExMove" data-j="${j}" data-d="-1" aria-label="Move ${esc(n)} up">${ICON.up}</button><button class="iconbtn sm" data-act="dayExMove" data-j="${j}" data-d="1" aria-label="Move ${esc(n)} down">${ICON.down}</button><button class="iconbtn sm" data-act="dayExDel" data-j="${j}" aria-label="Remove ${esc(n)}">${ICON.x}</button></div></div>`).join('')}</div>` : '<p class="muted small">None yet. Add some below.</p>'}</div>
+    <div class="field"><span class="lbl">Exercises, in order · sets × reps target</span>${(d.exercises || []).length ? `<div>${d.exercises.map((n, j) => `<div class="row" style="padding:6px 0;min-height:0"><span class="grow">${esc(n)}</span><span class="tgt-edit"><input class="tgt" data-j="${j}" data-f="sets" value="${((d.targets || {})[keyOf(n)] || defaultTarget(n)).sets}" inputmode="numeric" aria-label="Sets for ${esc(n)}">×<input class="tgt" data-j="${j}" data-f="reps" value="${esc(((d.targets || {})[keyOf(n)] || defaultTarget(n)).reps)}" aria-label="Reps for ${esc(n)}"></span>${musBtn(n)}<div class="reorder"><button class="iconbtn sm" data-act="dayExMove" data-j="${j}" data-d="-1" aria-label="Move ${esc(n)} up">${ICON.up}</button><button class="iconbtn sm" data-act="dayExMove" data-j="${j}" data-d="1" aria-label="Move ${esc(n)} down">${ICON.down}</button><button class="iconbtn sm" data-act="dayExDel" data-j="${j}" aria-label="Remove ${esc(n)}">${ICON.x}</button></div></div>`).join('')}</div>` : '<p class="muted small">None yet. Add some below.</p>'}</div>
     <div class="field"><span class="lbl">Add exercises${(d.groups || []).length ? '' : ' (pick muscle groups first, or search)'}</span><div class="chips">${opts.map(e => `<button class="chip" data-act="dayExAdd" data-name="${esc(e.name)}">${ICON.plus.replace('<svg', '<svg width="14" height="14"')} ${esc(e.name)}</button>`).join('')}<button class="chip" data-act="dayExSearch">Search all…</button></div></div>
     <button class="btn block" data-act="dayDone">Done</button>`);
 }
-const keepDayName = () => { const v = $('#dn')?.value.trim(); if (v && Sheet.split[Sheet.di]) Sheet.split[Sheet.di].name = v; };
+const keepDayName = () => {
+  const day = Sheet.split[Sheet.di]; if (!day) return; const v = $('#dn')?.value.trim(); if (v) day.name = v;
+  day.targets = day.targets || {};
+  $$('#sheet .tgt').forEach(i => { const n = day.exercises[+i.dataset.j]; if (!n) return; const t = day.targets[keyOf(n)] || { ...defaultTarget(n) }; if (i.dataset.f === 'sets') t.sets = clamp(Math.round(num(i.value) || t.sets), 1, 12); else t.reps = (i.value || '').trim().replace(/\s+/g, '') || t.reps; day.targets[keyOf(n)] = t; });
+};
 A.dayGroup = d => { keepDayName(); const day = Sheet.split[Sheet.di]; day.groups = day.groups || []; const i = day.groups.indexOf(d.g); if (i >= 0) day.groups.splice(i, 1); else day.groups.push(d.g); drawDay(Sheet.di); };
 A.dayExAdd = d => { keepDayName(); const day = Sheet.split[Sheet.di]; day.exercises = [...(day.exercises || []), d.name]; drawDay(Sheet.di); };
 A.dayExDel = d => { keepDayName(); Sheet.split[Sheet.di].exercises.splice(+d.j, 1); drawDay(Sheet.di); };

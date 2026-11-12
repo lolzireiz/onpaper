@@ -56,26 +56,53 @@ const LocalAssets = {
 
 /* Gemini: same .json(prompt, {images, signal}) interface the food screen uses */
 const GEMINI_KEY = 'onpaper.geminiKey', GEMINI_MODEL = 'onpaper.geminiModel';
-const geminiKey = () => { try { return localStorage.getItem(GEMINI_KEY) || ''; } catch (e) { return ''; } };
-const geminiModel = () => { try { return localStorage.getItem(GEMINI_MODEL) || 'gemini-flash-latest'; } catch (e) { return 'gemini-flash-latest'; } };
+const geminiKey = () => { try { return (localStorage.getItem(GEMINI_KEY) || '').replace(/[^\x21-\x7E]/g, ''); } catch (e) { return ''; } };
+const geminiModel = () => { try { const m = (localStorage.getItem(GEMINI_MODEL) || '').trim(); return m === 'gemini-flash-latest' ? '' : m; } catch (e) { return ''; } };
+const GEMINI_MODELS = ['gemini-flash-lite-latest', 'gemini-2.5-flash-lite', 'gemini-flash-latest', 'gemini-2.5-flash'];
 const blobB64 = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(b); });
 const Gemini = {
+  workingModel: null,
+  async call(model, body, signal) {
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort('timeout'), 50000);
+    const onAbort = () => ctl.abort('cancel'); if (signal) signal.addEventListener('abort', onAbort);
+    try {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey())}`, { method: 'POST', signal: ctl.signal, headers: { 'Content-Type': 'application/json' }, body });
+      const t = await r.text();
+      if (!r.ok) { let msg = t; try { msg = JSON.parse(t).error.message; } catch (e) {} throw { code: r.status === 429 ? 'rate_limited' : r.status === 404 ? 'bad_model' : /api key|API_KEY|permission/i.test(msg) ? 'bad_key' : 'upstream_error', message: `${r.status}: ${String(msg).slice(0, 220)}` }; }
+      return JSON.parse(t);
+    } catch (e) {
+      if (e && e.code) throw e;
+      if (signal && signal.aborted) throw { code: 'cancelled' };
+      if (ctl.signal.aborted) throw { code: 'timeout', message: 'No answer after 50 seconds.' };
+      throw { code: 'offline', message: String(e && (e.message || e)).slice(0, 200) };
+    } finally { clearTimeout(timer); if (signal) signal.removeEventListener('abort', onAbort); }
+  },
   async json(prompt, { images = [], signal } = {}) {
-    const key = geminiKey(); if (!key) throw { code: 'no_key' };
+    if (!geminiKey()) throw { code: 'no_key' };
     const parts = [{ text: prompt }];
     for (const b of [].concat(images)) parts.push({ inline_data: { mime_type: b.type || 'image/jpeg', data: await blobB64(b) } });
-    let r;
-    try {
-      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel())}:generateContent`, {
-        method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-        body: JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.2 } }),
-      });
-    } catch (e) { if (e && e.name === 'AbortError') throw { code: 'cancelled' }; throw { code: 'offline' }; }
-    if (!r.ok) { const t = await r.text().catch(() => ''); throw { code: r.status === 429 ? 'rate_limited' : (r.status === 400 || r.status === 401 || r.status === 403) && /key/i.test(t) ? 'bad_key' : r.status === 404 ? 'bad_model' : 'upstream_error', message: t.slice(0, 300) }; }
-    const j = await r.json();
-    const txt = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
-    if (!txt) throw { code: j.promptFeedback?.blockReason ? 'refused' : 'empty_completion' };
-    try { return JSON.parse(txt); } catch (e) { const m = txt.match(/[\[{][\s\S]*[\]}]/); if (m) { try { return JSON.parse(m[0]); } catch (e2) {} } throw { code: 'invalid_json' }; }
+    const body = JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.1 } });
+    const custom = geminiModel(), models = custom ? [custom] : (this.workingModel ? [this.workingModel, ...GEMINI_MODELS.filter(m => m !== this.workingModel)] : GEMINI_MODELS);
+    let last;
+    for (const m of models) {
+      try {
+        const j = await this.call(m, body, signal); this.workingModel = m;
+        const txt = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+        if (!txt) throw { code: j.promptFeedback?.blockReason ? 'refused' : 'empty_completion' };
+        try { return JSON.parse(txt); } catch (e) { const mm = txt.match(/[\[{][\s\S]*[\]}]/); if (mm) { try { return JSON.parse(mm[0]); } catch (e2) {} } throw { code: 'invalid_json' }; }
+      } catch (e) { last = e; if (e.code !== 'bad_model') throw e; }
+    }
+    throw last;
   },
 };
 function refreshCaps() { CAP.assets = LocalAssets; CAP.sample = geminiKey() ? Gemini : null; CAP.sampleImages = !!CAP.sample; }
+A.testGemini = async (d, el) => {
+  const keyIn = $('#st-gk'); if (keyIn) { try { localStorage.setItem(GEMINI_KEY, keyIn.value.trim()); } catch (e) {} refreshCaps(); }
+  const out = $('#gk-test'); if (!out) return;
+  if (!geminiKey()) { out.textContent = 'Paste your key first.'; return; }
+  el.disabled = true; out.innerHTML = '<span class="thinking">Testing…</span>';
+  const t0 = Date.now();
+  try { await Gemini.json('Reply with only this JSON: {"ok": true}'); out.innerHTML = `<span style="color:var(--ok)">✓ Works!</span> <span class="faint">${esc(Gemini.workingModel)} answered in ${((Date.now() - t0) / 1000).toFixed(1)}s.</span>`; }
+  catch (e) { out.innerHTML = `<span style="color:var(--miss)">✗ ${esc(aiErrorText(e) || 'Stopped')}</span>${e.message ? `<br><span class="faint">${esc(e.message)}</span>` : ''}`; }
+  el.disabled = false;
+};

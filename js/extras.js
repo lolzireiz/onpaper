@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, Apple Watch reminder, muscle diagrams. */
 
-const APP_VERSION = '1.2.2';
+const APP_VERSION = '2.0';
 const CHANGELOG = [
+  ['2.0', ['Realistic anatomy diagrams with real muscle shapes, shading and fibers. Tap Front/Back to zoom.', 'Four new buddies: a cat, bunny, penguin and axolotl. Tap "Change pet" on the Food tab.', 'Label scanning fixed: faster model, smaller photos, clear error details, and a "Test my key" button in Settings.', 'Enter food by grams: set the serving size (like 13 g), type what you ate (like 37 g), and the calories scale automatically.', 'My Foods: tick "Save to My Foods" and the product and its serving size are remembered.', 'Workouts: sets × reps targets, smart weight suggestions from last time, +/- buttons, warm-up sets (never counted as PRs), and rest times that fit the lift.', 'Home: a Today checklist and Insights (bulk pace, strength gains, stalls, protein streaks, goal weight).', 'Dunk progress tracker on the Lifts tab.', 'Undo after deleting things.']],
   ['1.2.2', ['Slimmer, better-proportioned arms on the female diagram.', 'Tap the pencil next to your food buddy\'s name to rename them.']],
   ['1.2.1', ['Fixed the arms on the female muscle diagram.']],
   ['1.2', ['Meet Pebble, your raccoon food buddy! Log food to feed them and they\'ll say something nice. Rename or turn them off in Settings.', 'Much better muscle diagrams for both the male and female figures.']],
@@ -61,87 +62,56 @@ function musclesFor(name) {
   return { p: new Set((m[0] || '').split(' ').filter(Boolean)), s: new Set((m[1] || '').split(' ').filter(Boolean)) };
 }
 const PRIMARY_RED = '#ff3b3b';
-/* Organic body figures: left-half shapes drawn with smooth curves, mirrored; the female figure is a warp of the same shapes. */
-function smoothPath(pts, closed = true) {
-  const n = pts.length; if (n < 3) return '';
-  const P = i => pts[closed ? (i + n) % n : Math.max(0, Math.min(n - 1, i))];
-  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
-  for (let i = 0; i < (closed ? n : n - 1); i++) {
-    const p0 = P(i - 1), p1 = P(i), p2 = P(i + 1), p3 = P(i + 2), t = 0.17;
-    d += `C${(p1[0] + (p2[0] - p0[0]) * t).toFixed(1)},${(p1[1] + (p2[1] - p0[1]) * t).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) * t).toFixed(1)},${(p2[1] - (p3[1] - p1[1]) * t).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
-  }
-  return d + (closed ? 'Z' : '');
-}
-const ARM_WARP = ([x, y]) => { const cx = 57 - Math.max(0, y - 100) * 0.08; return [cx + (x - cx) * 0.78 + 5.5, y]; };
-function femaleWarp([x, y]) {
-  const k = [[0, .92], [60, .9], [110, .86], [165, .84], [200, 1.1], [235, 1.1], [270, 1.04], [330, .97], [420, .95]];
-  let f = 1; for (let i = 1; i < k.length; i++) if (y <= k[i][0]) { const [y0, f0] = k[i - 1], [y1, f1] = k[i]; f = f0 + (f1 - f0) * (y - y0) / (y1 - y0); break; }
-  return [100 - (100 - x) * f, y];
-}
-const BODY_OUTLINE = [[100, 54], [90, 57], [80, 64], [66, 69], [56, 76], [50, 88], [48, 104], [47, 122], [45, 148], [41, 168], [39, 192], [41, 214], [36, 226], [37, 240], [45, 246], [52, 238], [54, 222], [56, 210], [58, 186], [61, 160], [63, 138], [66, 116], [70, 104], [71, 124], [74, 150], [76, 172], [73, 190], [68, 206], [65, 232], [67, 262], [71, 290], [68, 312], [69, 340], [75, 372], [77, 386], [66, 396], [70, 402], [90, 400], [92, 386], [91, 364], [93, 334], [95, 300], [97, 262], [98, 232], [100, 216]];
-const MUSCLE_SHAPES = {
-  front: {
-    traps: [[95, 58], [84, 63], [72, 69], [86, 71], [96, 66]],
-    delts: [[70, 71], [59, 77], [53, 90], [55, 104], [62, 104], [68, 92], [74, 80]],
-    side_delts: [[56, 78], [50, 90], [50, 104], [54, 100], [55, 88]],
-    chest: [[98, 80], [86, 76], [74, 80], [67, 92], [70, 106], [82, 112], [94, 110], [98, 102]],
-    biceps: [[64, 108], [56, 114], [52, 130], [54, 148], [60, 150], [64, 134], [66, 118]],
-    forearms: [[58, 156], [50, 162], [44, 182], [44, 206], [51, 208], [56, 188], [60, 168]],
-    abs: [[98.5, 116], [90, 118], [88, 140], [88, 164], [91, 186], [98.5, 194]],
-    obliques: [[86, 120], [77, 126], [75, 150], [77, 172], [83, 182], [87, 166], [86, 140]],
-    quads: [[72, 208], [67, 230], [69, 260], [76, 284], [86, 290], [93, 280], [95, 252], [92, 226], [84, 210]],
-    adductors: [[97, 218], [92, 226], [93, 248], [97, 262], [99, 244], [99, 224]],
-    calves: [[74, 300], [69, 318], [71, 344], [76, 356], [80, 336], [80, 312]],
-  },
-  back: {
-    traps: [[100, 50], [90, 58], [74, 68], [80, 76], [92, 98], [100, 118]],
-    rear_delts: [[72, 70], [60, 76], [53, 90], [55, 104], [63, 102], [70, 90], [75, 80]],
-    side_delts: [[56, 78], [50, 90], [50, 104], [54, 100], [55, 88]],
-    upper_back: [[89, 82], [79, 80], [73, 92], [78, 104], [89, 104], [92, 94]],
-    lats: [[73, 104], [71, 122], [75, 148], [86, 172], [96, 160], [96, 136], [90, 112], [82, 104]],
-    lower_back: [[98.5, 138], [92, 144], [90, 166], [93, 188], [98.5, 194]],
-    triceps: [[62, 106], [54, 112], [50, 128], [52, 146], [59, 150], [64, 136], [66, 118]],
-    forearms: [[58, 156], [50, 162], [44, 182], [44, 206], [51, 208], [56, 188], [60, 168]],
-    abductors: [[76, 188], [69, 196], [69, 210], [76, 206], [80, 196]],
-    glutes: [[99, 196], [88, 192], [76, 198], [70, 214], [74, 232], [86, 240], [96, 236], [99, 224]],
-    hamstrings: [[72, 240], [69, 262], [73, 284], [82, 292], [92, 284], [95, 260], [92, 242], [82, 238]],
-    calves: [[74, 298], [68, 316], [70, 342], [77, 360], [85, 354], [90, 330], [88, 306], [81, 296]],
-  },
-};
+/* Realistic body figures: anatomical muscle paths (see js/anatomy-data.js) with volume shading, fiber texture and glow. */
+const SLUG_MUSCLES = { chest: ['chest'], biceps: ['biceps'], triceps: ['triceps'], forearm: ['forearms'], abs: ['abs'], obliques: ['obliques'], trapezius: ['traps'], lats: ['lats'], 'upper-back': ['upper_back'], 'lower-back': ['lower_back'], gluteal: ['glutes', 'abductors'], adductors: ['adductors'], quadriceps: ['quads'], hamstring: ['hamstrings'], calves: ['calves'], tibialis: [] };
+const NON_MUSCLE = new Set(['head', 'hair', 'neck', 'hands', 'feet', 'ankles', 'knees']);
+const FIBER = { chest: 18, deltoids: 80, biceps: 86, triceps: 86, forearm: 84, abs: 90, obliques: 52, trapezius: 32, lats: 58, 'upper-back': 24, 'lower-back': 90, gluteal: 34, adductors: 80, quadriceps: 84, hamstring: 86, calves: 86, tibialis: 86 };
+let bodyUid = 0;
 function bodySVG(view, sex, mus) {
-  const f = sex === 'female', W = (pts, arm) => f ? pts.map(arm ? ARM_WARP : femaleWarp) : pts;
-  const ARM_IDS = new Set(['delts', 'side_delts', 'rear_delts', 'biceps', 'triceps', 'forearms']);
-  const outlinePts = f ? BODY_OUTLINE.map((pt, i) => (i >= 4 && i <= 21 ? ARM_WARP : femaleWarp)(pt)) : BODY_OUTLINE;
-  const mirror = d => `<g transform="translate(200 0) scale(-1 1)">${d}</g>`;
-  const fill = id => mus.p.has(id) ? PRIMARY_RED : mus.s.has(id) ? '#9b3a3f' : '#3c3c44';
-  const glow = id => mus.p.has(id) ? ' filter="url(#glow)"' : '';
-  const half = smoothPath(outlinePts, false);
-  const outline = half + ' ' + smoothPath(outlinePts.slice().reverse().map(([x, y]) => [200 - x, y]), false).replace(/^M/, 'L') + 'Z';
-  let s = `<defs><linearGradient id="skin" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#303036"/><stop offset="1" stop-color="#25252a"/></linearGradient><filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
-  if (f) s += `<path d="M78 30 Q78 2 100 2 Q122 2 122 30 Q124 52 128 66 Q114 70 100 66 Q86 70 72 66 Q76 52 78 30Z" fill="#1d1d21"/>`;
-  s += `<path d="${outline}" fill="url(#skin)" stroke="#0e0e10" stroke-width="1.2"/>`;
-  s += `<rect x="92" y="44" width="16" height="16" rx="5" fill="#2c2c31"/><ellipse cx="100" cy="30" rx="${f ? 15 : 16}" ry="${f ? 19 : 20}" fill="#2f2f35" stroke="#0e0e10" stroke-width="1.2"/>`;
-  s += f ? `<path d="M85 22 Q100 6 115 22 Q108 14 100 15 Q92 14 85 22Z" fill="#1d1d21"/>` : `<path d="M85 24 Q86 9 100 9 Q114 9 115 24 Q108 16 100 17 Q92 16 85 24Z" fill="#1d1d21"/>`;
-  const shapes = MUSCLE_SHAPES[view];
-  for (const [id, pts] of Object.entries(shapes)) {
-    let p = pts;
-    if (f && id === 'chest') p = [[98, 86], [88, 82], [77, 88], [73, 100], [78, 112], [89, 115], [98, 108]];
-    const d = `<path d="${smoothPath(W(p, ARM_IDS.has(id)))}" fill="${fill(id)}" stroke="#121215" stroke-width="1"${glow(id)}/>`;
-    s += d + mirror(d);
+  const fig = ANATOMY[sex === 'female' ? 'female' : 'male'][view], u = 'b' + (++bodyUid);
+  const [vx, , vw] = fig.vb.split(' ').map(Number), mid = vx + vw / 2;
+  const level = (slug) => {
+    const ids = slug === 'deltoids' ? (view === 'front' ? ['delts', 'side_delts'] : ['rear_delts', 'side_delts']) : (SLUG_MUSCLES[slug] || []);
+    if (ids.some(i => mus.p.has(i))) return 'p'; if (ids.some(i => mus.s.has(i))) return 's'; return 'm';
+  };
+  const angles = new Set(); let paths = '', glow = '';
+  for (const [slug, side, d, box] of fig.parts) {
+    if (slug === 'hair') { paths += `<path d="${d}" fill="#1c1c20" stroke="#0b0b0d" stroke-width="2"/>`; continue; }
+    if (NON_MUSCLE.has(slug)) { paths += `<path d="${d}" fill="url(#${u}k)" stroke="#0b0b0d" stroke-width="2.5"/>`; continue; }
+    const lv = level(slug), cx = box[0] + box[2] / 2, ang = Math.round((FIBER[slug] ?? 80) * (cx < mid ? 1 : -1));
+    angles.add(ang);
+    const el = `<path d="${d}" fill="url(#${u}${lv})" stroke="#0b0b0d" stroke-width="2.5"/><path d="${d}" fill="url(#${u}f${ang})" pointer-events="none"/>`;
+    if (lv === 'p') glow += `<path d="${d}" fill="#ff2a2a"/>`;
+    paths += el;
   }
-  if (view === 'front') { const ln = y => `<path d="M${W([[90, y]])[0][0]} ${y} Q100 ${y + 2} ${W([[110, y]])[0][0]} ${y}" stroke="#121215" stroke-width="1" fill="none"/>`; s += ln(134) + ln(152) + ln(171) + `<line x1="100" y1="116" x2="100" y2="194" stroke="#121215" stroke-width="1"/>`; }
-  else s += `<line x1="100" y1="120" x2="100" y2="194" stroke="#121215" stroke-width="1"/>`;
-  return `<svg viewBox="30 0 140 408" width="100%" style="max-height:330px" role="img" aria-label="${view} view">${s}</svg>`;
+  const rg = (id, stops) => `<radialGradient id="${u}${id}" cx=".38" cy=".3" r=".85">${stops.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join('')}</radialGradient>`;
+  const defs = `<defs>
+    ${rg('m', [[0, '#71717c'], [.55, '#45454e'], [1, '#2a2a30']])}
+    ${rg('p', [[0, '#ff8a78'], [.5, '#f0302e'], [1, '#9e1018']])}
+    ${rg('s', [[0, '#c0585a'], [.55, '#8c2d33'], [1, '#561a1f']])}
+    ${rg('k', [[0, '#55555e'], [1, '#2c2c32']])}
+    ${[...angles].map(a => `<pattern id="${u}f${a}" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(${a})"><line x1="1" y1="0" x2="1" y2="7" stroke="#000" stroke-opacity=".2" stroke-width="1.3"/><line x1="4.5" y1="0" x2="4.5" y2="7" stroke="#fff" stroke-opacity=".05" stroke-width="1"/></pattern>`).join('')}
+    <filter id="${u}g" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="14"/></filter>
+    <radialGradient id="${u}bg" cx=".5" cy=".42" r=".55"><stop offset="0" stop-color="#2a2a31" stop-opacity=".9"/><stop offset="1" stop-color="#17171a" stop-opacity="0"/></radialGradient>
+  </defs>`;
+  const [bx, by, bw, bh] = fig.vb.split(' ').map(Number);
+  return `<svg viewBox="${fig.vb}" width="100%" style="max-height:var(--fig-h,340px);display:block;margin:0 auto" role="img" aria-label="${view} view, worked muscles highlighted">${defs}
+    <ellipse cx="${bx + bw / 2}" cy="${by + bh * .45}" rx="${bw * .48}" ry="${bh * .5}" fill="url(#${u}bg)"/>
+    <ellipse cx="${bx + bw / 2}" cy="${fig.parts.reduce((m, q) => Math.max(m, q[3][1] + q[3][3]), 0) + 6}" rx="${bw * .26}" ry="14" fill="#000" opacity=".5"/>
+    <g filter="url(#${u}g)" opacity=".55">${glow}</g>${paths}</svg>`;
 }
-A.muscles = d => { Sheet.musEx = d.ex; Sheet.musSex = S().bodyModel || 'male'; openSheet(d.ex, '', {}); drawMuscles(); };
+A.muscles = d => { Sheet.musEx = d.ex; Sheet.musView = 'both'; Sheet.musSex = S().bodyModel || 'male'; openSheet(d.ex, '', {}); drawMuscles(); };
 A.musSex = d => { Sheet.musSex = d.s; drawMuscles(); };
+A.musView = d => { Sheet.musView = d.v; drawMuscles(); };
 function drawMuscles() {
-  const mus = musclesFor(Sheet.musEx), sex = Sheet.musSex;
-  if (!mus) return sheetBody(`<p class="muted">No muscle map for this custom exercise yet. Tell Claude what it is and it can be added.</p>`);
+  const mus = musclesFor(Sheet.musEx), sex = Sheet.musSex, v = Sheet.musView || 'both';
+  if (!mus) return sheetBody(`<p class="muted">No muscle map for this custom exercise yet. Ask Claude to add it.</p>`);
   const names = set => [...set].map(m => MUSCLE_NAMES[m]).join(', ');
+  const fig = (view, label) => `<div><div style="--fig-h:${v === 'both' ? '330px' : '520px'}">${bodySVG(view, sex, mus)}</div><div class="faint tiny" style="text-align:center">${label}</div></div>`;
   sheetBody(`<div class="seg">${[['male', 'Male'], ['female', 'Female']].map(([k, l]) => `<button data-act="musSex" data-s="${k}" aria-pressed="${sex === k}">${l}</button>`).join('')}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center"><div>${bodySVG('front', sex, mus)}<div class="faint tiny">Front</div></div><div>${bodySVG('back', sex, mus)}<div class="faint tiny">Back</div></div></div>
-    <div class="legend"><span><i style="background:${PRIMARY_RED}"></i>Main muscles</span><span><i style="background:#9b3a3f"></i>Helping muscles</span></div>
+    <div style="display:grid;grid-template-columns:${v === 'both' ? '1fr 1fr' : '1fr'};gap:6px">${v !== 'back' ? fig('front', 'Front') : ''}${v !== 'front' ? fig('back', 'Back') : ''}</div>
+    <div class="chips" style="justify-content:center">${[['both', 'Both'], ['front', 'Front'], ['back', 'Back']].map(([k, l]) => `<button class="chip" data-act="musView" data-v="${k}" aria-pressed="${v === k}">${l}</button>`).join('')}</div>
+    <div class="legend" style="justify-content:center"><span><i style="background:#f0302e;box-shadow:0 0 8px #ff2a2a"></i>Main muscles</span><span><i style="background:#8c2d33"></i>Helping muscles</span></div>
     <p><b>Works:</b> <span class="muted">${esc(names(mus.p))}</span>${mus.s.size ? `<br><b>Helps:</b> <span class="muted">${esc(names(mus.s))}</span>` : ''}</p>`);
 }
 const BODY_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.5" r="2"/><path d="M5 8.5h14M12 8.5v6M12 14.5l-3 6.5M12 14.5l3 6.5"/></svg>`;
