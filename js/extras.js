@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '3.8.3';
+const APP_VERSION = '3.8.4';
 const CHANGELOG = [
+  ['3.8.4', ['Figures refined: a more natural fit male build, a slimmer female with narrower shoulders and natural hips, and plain single-colour bodies with no painted clothing.']],
   ['3.8.3', ['Figures: shoulders brought back to realistic widths, and proper athletic wear (fitted shorts, and a sports bra with straps) in a softer tone instead of black bands.']],
   ['3.8.2', ['Figures reshaped again: the male has wider shoulders, a fuller chest, defined abs and a stronger V-taper; the female has a clear hourglass with a narrower waist.', 'Chests are now plain smooth surfaces.']],
   ['3.8.1', ['More athletic figures: the male has a bigger chest, shoulders, arms, lats and legs with a stronger V-taper; the female has stronger legs, glutes and shoulders with a toned core.']],

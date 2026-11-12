@@ -93,7 +93,7 @@ function g3Setup(cv, def, sex) {
   for (let i = 0; i < n; i++) { let wt = 0, wl = 0; for (let k = 0; k < 4; k++) { const b = M.bi[i * 4 + k], w = M.bw[i * 4 + k] / 255; bw[i * 4 + k] = w; bi[i * 4 + k] = b; if (b === 0) wt += w; if (b === 5 || b === 6) wl += w; } ex[i * 3] = hi[i]; ex[i * 3 + 1] = wt + wl; ex[i * 3 + 2] = wt; }
   const col = new Float32Array(3), hipY = m.pel[1], fy = f => m.pel[1] + f * (m.shm[1] - m.pel[1]), top = sex === 'female';
   return { gl, pr, m, n, nIdx: M.idx.length, a: { pos: A('aPos'), nrm: A('aNrm'), col: A('aCol'), bi: A('aBi'), bw: A('aBw'), ex: A('aEx') }, u: { bones: U('uBones[0]'), vp: U('uVP'), vr: U('uVR'), skin: U('uSkin'), flat: U('uFlat'), shorts: U('uShorts'), top: U('uTop') },
-    cloth: { shorts: [hipY - 0.2, hipY + 0.115], top: [m.pel[1], m.shm[1], m.build.sw, top ? 1 : 0] },
+    cloth: { shorts: [9, 9], top: [m.pel[1], m.shm[1], m.build.sw, 0] },   // plain single-colour figures, no painted clothing
     b: { pos: buf(m.pos), nrm: buf(m.nrm), ex: buf(ex), bi: buf(bi), bw: buf(bw), idx: buf(M.idx, gl.ELEMENT_ARRAY_BUFFER), prop: gl.createBuffer() }, bones: new Float32Array(13 * 16), hl: on.size > 0 };
 }
 /* equipment + floor are rebuilt each frame as plain triangles: [x,y,z, nx,ny,nz, r,g,b] */
