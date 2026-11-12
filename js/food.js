@@ -24,7 +24,7 @@ Views.food = {
   render() {
     const date = UI.foodDate || todayStr(), t = foodTotals(date), items = foodDay(date).items || [], s = S();
     const ai = !!CAP.sample, img = ai && CAP.sampleImages;
-    let h = `<div class="daynav"><button class="iconbtn" data-act="foodDay" data-d="-1" aria-label="Previous day">${ICON.chevL}</button><b>${date === todayStr() ? 'Today' : fmtDay(date)}</b><button class="iconbtn" data-act="foodDay" data-d="1" aria-label="Next day" ${date >= todayStr() ? 'disabled style="opacity:.3"' : ''}>${ICON.chevR}</button></div>
+    let h = buddyCardHTML() + `<div class="daynav"><button class="iconbtn" data-act="foodDay" data-d="-1" aria-label="Previous day">${ICON.chevL}</button><b>${date === todayStr() ? 'Today' : fmtDay(date)}</b><button class="iconbtn" data-act="foodDay" data-d="1" aria-label="Next day" ${date >= todayStr() ? 'disabled style="opacity:.3"' : ''}>${ICON.chevR}</button></div>
     <section class="card"><div class="card-h" style="align-items:flex-end"><div class="stat"><span class="k">Calories</span><span class="big">${trim(t.cal, 0)}<span class="unit">of ${trim(s.calTarget, 0)}</span></span></div><div class="stat" style="text-align:right"><span class="k">Protein</span><span class="v">${trim(t.p, 0)}<span class="unit">of ${trim(s.proteinTarget, 0)} g</span></span></div></div>
       ${macroBar('Calories', t.cal, s.calTarget, 'kcal')}${macroBar('Protein', t.p, s.proteinTarget, 'g', 'p')}
       <p class="faint small">${t.cal < s.calTarget ? `${trim(s.calTarget - t.cal, 0)} kcal` : 'Calories done'} and ${t.p < s.proteinTarget ? `${trim(s.proteinTarget - t.p, 0)} g protein to go` : 'protein hit'}. Carbs ${trim(t.c, 0)} g · fat ${trim(t.f, 0)} g.</p></section>
@@ -43,7 +43,7 @@ A.foodManual = d => { if (!d || d.inmeal !== '1') Sheet.meal = null; foodFormX()
 const foodFormX = () => foodForm({ name: '', serving: '', cal: '', p: '', c: '', f: '', qty: 1, src: 'manual' });
 A.foodAgain = d => { const it = recentFoods()[+d.i]; if (!it) return; if (Sheet.meal && d.inmeal === '1') { Sheet.meal.parts.push({ ...clone(it), id: newId() }); return drawMeal(); } addFoodItem({ ...clone(it), id: newId(), ts: Date.now() }); toast(`Added ${it.name}`); };
 A.foodEdit = d => { Sheet.meal = null; const it = (foodDay(UI.foodDate || todayStr()).items || []).find(x => x.id === d.id); if (it) foodForm(clone(it), null, true); };
-function addFoodItem(item) { const date = UI.foodDate || todayStr(), day = clone(foodDay(date)); day.date = date; day.items = [...(day.items || []).filter(x => x.id !== item.id), item]; put('food', date, day); }
+function addFoodItem(item) { const date = UI.foodDate || todayStr(), isNew = !(foodDay(date).items || []).some(x => x.id === item.id), before = foodTotals(date), day = clone(foodDay(date)); day.date = date; day.items = [...(day.items || []).filter(x => x.id !== item.id), item]; put('food', date, day); if (isNew) feedBuddy(before, foodTotals(date)); }
 
 function foodForm(it, imgUrl, editing = false) {
   const qtyChips = [0.5, 1, 1.5, 2, 3];

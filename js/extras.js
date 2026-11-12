@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, Apple Watch reminder, muscle diagrams. */
 
-const APP_VERSION = '1.1';
+const APP_VERSION = '1.2';
 const CHANGELOG = [
+  ['1.2', ['Meet Pebble, your raccoon food buddy! Log food to feed them and they\'ll say something nice. Rename or turn them off in Settings.', 'Much better muscle diagrams for both the male and female figures.']],
   ['1.1', ['Muscle diagrams for every exercise: tap the body icon next to an exercise to see what it works (male or female figure).', 'Back up to iCloud Drive from Settings, with a reminder when it has been a week.', 'Apple Watch reminder when you start a workout.', 'Version number in Settings, and this note after each update.']],
   ['1.0', ['First standalone version.']],
 ];
@@ -58,47 +59,74 @@ function musclesFor(name) {
   return { p: new Set((m[0] || '').split(' ').filter(Boolean)), s: new Set((m[1] || '').split(' ').filter(Boolean)) };
 }
 const PRIMARY_RED = '#ff3b3b';
-function bodySVG(view, sex, mus) {
-  const f = sex === 'female', sh = f ? 27 : 33, wa = f ? 15.5 : 19, hp = f ? 24 : 21.5;
-  const fill = id => mus.p.has(id) ? PRIMARY_RED : mus.s.has(id) ? 'rgba(255,59,59,.45)' : '#36363c';
-  const M = (id, el) => el.replace('/>', ` fill="${fill(id)}" stroke="#0b0b0c" stroke-width=".7"/>`);
-  const both = s => s + `<g transform="translate(120 0) scale(-1 1)">${s}</g>`;
-  const legC = 60 - hp * 0.52, kneeC = 60 - hp * 0.42, ankC = 60 - hp * 0.36;
-  const base = '#26262b';
-  // silhouette
-  let s = '';
-  if (f) s += `<path d="M47 18 Q60 0 73 18 L76 46 Q60 50 44 46 Z" fill="#202024"/>`;
-  s += `<ellipse cx="60" cy="19" rx="10.5" ry="12.5" fill="${base}"/><rect x="54.5" y="29" width="11" height="10" fill="${base}"/>`;
-  s += `<path d="M${60 - sh} 44 Q60 37 ${60 + sh} 44 L${60 + wa} 108 Q${60 + hp + 1} 118 ${60 + hp} 130 L${60 - hp} 130 Q${60 - hp - 1} 118 ${60 - wa} 108 Z" fill="${base}"/>`;
-  s += both(`<path d="M${60 - sh} 44 L${60 - sh - 9} 50 L${60 - sh - 13} 96 L${60 - sh - 16} 138 L${60 - sh - 8} 139 L${60 - sh - 3} 97 L${60 - sh + 4} 60 Z" fill="${base}"/><ellipse cx="${60 - sh - 12}" cy="144" rx="4.5" ry="6" fill="${base}"/>`);
-  s += both(`<path d="M${60 - hp} 126 L59 128 L${kneeC + 6} 186 L${ankC + 4} 240 L${ankC - 4} 240 L${kneeC - 7} 186 Z" fill="${base}"/><ellipse cx="${ankC}" cy="244" rx="6" ry="3.5" fill="${base}"/>`);
-  if (view === 'front') {
-    s += both(M('traps', `<ellipse cx="${60 - 9}" cy="42" rx="6" ry="2.6" transform="rotate(-12 51 42)"/>`));
-    s += both(M('delts', `<ellipse cx="${60 - sh + 1}" cy="51" rx="6.5" ry="8.5"/>`));
-    s += both(M('side_delts', `<ellipse cx="${60 - sh - 5}" cy="50" rx="3" ry="6.5"/>`));
-    s += both(M('chest', f ? `<ellipse cx="${60 - sh * 0.45}" cy="61" rx="${sh * 0.42}" ry="9"/>` : `<path d="M59 49 L${60 - sh + 6} 50 Q${60 - sh + 2} 64 ${60 - sh + 8} 70 Q50 72 59 68 Z"/>`));
-    s += both(M('biceps', `<ellipse cx="${60 - sh - 5.5}" cy="73" rx="4.6" ry="12" transform="rotate(6 ${60 - sh - 5.5} 73)"/>`));
-    s += both(M('forearms', `<ellipse cx="${60 - sh - 10}" cy="116" rx="4" ry="15" transform="rotate(8 ${60 - sh - 10} 116)"/>`));
-    s += both(M('abs', `<rect x="52.8" y="72" width="6.6" height="36" rx="3"/>`));
-    s += both(M('obliques', `<ellipse cx="${60 - wa + 3.5}" cy="92" rx="3.6" ry="13"/>`));
-    s += both(M('quads', `<ellipse cx="${legC - 1}" cy="155" rx="8.8" ry="25" transform="rotate(5 ${legC} 155)"/>`));
-    s += both(M('adductors', `<ellipse cx="${60 - 6}" cy="146" rx="3.4" ry="14" transform="rotate(-8 54 146)"/>`));
-    s += both(M('calves', `<ellipse cx="${ankC - 2.5}" cy="208" rx="3.5" ry="13"/>`));
-  } else {
-    s += M('traps', `<path d="M60 33 L${60 - sh * 0.62} 46 L60 82 L${60 + sh * 0.62} 46 Z"/>`);
-    s += both(M('rear_delts', `<ellipse cx="${60 - sh + 1}" cy="51" rx="6.5" ry="8.5"/>`));
-    s += both(M('side_delts', `<ellipse cx="${60 - sh - 5}" cy="50" rx="3" ry="6.5"/>`));
-    s += both(M('upper_back', `<ellipse cx="${60 - sh * 0.48}" cy="60" rx="${sh * 0.2}" ry="7" transform="rotate(20 ${60 - sh * 0.48} 60)"/>`));
-    s += both(M('lats', `<path d="M${60 - sh + 4} 58 Q${60 - sh + 2} 82 ${60 - wa + 1} 104 L57 96 L${60 - sh * 0.3} 70 Z"/>`));
-    s += both(M('lower_back', `<rect x="53.5" y="90" width="6" height="22" rx="3"/>`));
-    s += both(M('triceps', `<ellipse cx="${60 - sh - 5.5}" cy="74" rx="4.8" ry="13" transform="rotate(6 ${60 - sh - 5.5} 74)"/>`));
-    s += both(M('forearms', `<ellipse cx="${60 - sh - 10}" cy="116" rx="4" ry="15" transform="rotate(8 ${60 - sh - 10} 116)"/>`));
-    s += both(M('abductors', `<ellipse cx="${60 - hp + 3}" cy="122" rx="4" ry="6"/>`));
-    s += both(M('glutes', `<ellipse cx="${60 - hp * 0.47}" cy="${f ? 136 : 134}" rx="${hp * 0.47}" ry="${f ? 12 : 10.5}"/>`));
-    s += both(M('hamstrings', `<ellipse cx="${legC}" cy="165" rx="7.8" ry="20"/>`));
-    s += both(M('calves', `<ellipse cx="${ankC}" cy="205" rx="6.4" ry="15"/>`));
+/* Organic body figures: left-half shapes drawn with smooth curves, mirrored; the female figure is a warp of the same shapes. */
+function smoothPath(pts, closed = true) {
+  const n = pts.length; if (n < 3) return '';
+  const P = i => pts[closed ? (i + n) % n : Math.max(0, Math.min(n - 1, i))];
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < (closed ? n : n - 1); i++) {
+    const p0 = P(i - 1), p1 = P(i), p2 = P(i + 1), p3 = P(i + 2), t = 0.17;
+    d += `C${(p1[0] + (p2[0] - p0[0]) * t).toFixed(1)},${(p1[1] + (p2[1] - p0[1]) * t).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) * t).toFixed(1)},${(p2[1] - (p3[1] - p1[1]) * t).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
   }
-  return `<svg viewBox="0 -2 120 252" width="100%" style="max-height:300px" role="img" aria-label="${view} view">${s}</svg>`;
+  return d + (closed ? 'Z' : '');
+}
+function femaleWarp([x, y]) {
+  const k = [[0, .92], [60, .9], [110, .86], [165, .84], [200, 1.1], [235, 1.1], [270, 1.04], [330, .97], [420, .95]];
+  let f = 1; for (let i = 1; i < k.length; i++) if (y <= k[i][0]) { const [y0, f0] = k[i - 1], [y1, f1] = k[i]; f = f0 + (f1 - f0) * (y - y0) / (y1 - y0); break; }
+  return [100 - (100 - x) * f, y];
+}
+const BODY_OUTLINE = [[100, 54], [90, 57], [80, 64], [66, 69], [56, 76], [50, 88], [48, 104], [47, 122], [45, 148], [41, 168], [39, 192], [41, 214], [36, 226], [37, 240], [45, 246], [52, 238], [54, 222], [56, 210], [58, 186], [61, 160], [63, 138], [66, 116], [70, 104], [71, 124], [74, 150], [76, 172], [73, 190], [68, 206], [65, 232], [67, 262], [71, 290], [68, 312], [69, 340], [75, 372], [77, 386], [66, 396], [70, 402], [90, 400], [92, 386], [91, 364], [93, 334], [95, 300], [97, 262], [98, 232], [100, 216]];
+const MUSCLE_SHAPES = {
+  front: {
+    traps: [[95, 58], [84, 63], [72, 69], [86, 71], [96, 66]],
+    delts: [[70, 71], [59, 77], [53, 90], [55, 104], [62, 104], [68, 92], [74, 80]],
+    side_delts: [[56, 78], [50, 90], [50, 104], [54, 100], [55, 88]],
+    chest: [[98, 80], [86, 76], [74, 80], [67, 92], [70, 106], [82, 112], [94, 110], [98, 102]],
+    biceps: [[64, 108], [56, 114], [52, 130], [54, 148], [60, 150], [64, 134], [66, 118]],
+    forearms: [[58, 156], [50, 162], [44, 182], [44, 206], [51, 208], [56, 188], [60, 168]],
+    abs: [[98.5, 116], [90, 118], [88, 140], [88, 164], [91, 186], [98.5, 194]],
+    obliques: [[86, 120], [77, 126], [75, 150], [77, 172], [83, 182], [87, 166], [86, 140]],
+    quads: [[72, 208], [67, 230], [69, 260], [76, 284], [86, 290], [93, 280], [95, 252], [92, 226], [84, 210]],
+    adductors: [[97, 218], [92, 226], [93, 248], [97, 262], [99, 244], [99, 224]],
+    calves: [[74, 300], [69, 318], [71, 344], [76, 356], [80, 336], [80, 312]],
+  },
+  back: {
+    traps: [[100, 50], [90, 58], [74, 68], [80, 76], [92, 98], [100, 118]],
+    rear_delts: [[72, 70], [60, 76], [53, 90], [55, 104], [63, 102], [70, 90], [75, 80]],
+    side_delts: [[56, 78], [50, 90], [50, 104], [54, 100], [55, 88]],
+    upper_back: [[89, 82], [79, 80], [73, 92], [78, 104], [89, 104], [92, 94]],
+    lats: [[73, 104], [71, 122], [75, 148], [86, 172], [96, 160], [96, 136], [90, 112], [82, 104]],
+    lower_back: [[98.5, 138], [92, 144], [90, 166], [93, 188], [98.5, 194]],
+    triceps: [[62, 106], [54, 112], [50, 128], [52, 146], [59, 150], [64, 136], [66, 118]],
+    forearms: [[58, 156], [50, 162], [44, 182], [44, 206], [51, 208], [56, 188], [60, 168]],
+    abductors: [[76, 188], [69, 196], [69, 210], [76, 206], [80, 196]],
+    glutes: [[99, 196], [88, 192], [76, 198], [70, 214], [74, 232], [86, 240], [96, 236], [99, 224]],
+    hamstrings: [[72, 240], [69, 262], [73, 284], [82, 292], [92, 284], [95, 260], [92, 242], [82, 238]],
+    calves: [[74, 298], [68, 316], [70, 342], [77, 360], [85, 354], [90, 330], [88, 306], [81, 296]],
+  },
+};
+function bodySVG(view, sex, mus) {
+  const f = sex === 'female', W = pts => f ? pts.map(femaleWarp) : pts;
+  const mirror = d => `<g transform="translate(200 0) scale(-1 1)">${d}</g>`;
+  const fill = id => mus.p.has(id) ? PRIMARY_RED : mus.s.has(id) ? '#9b3a3f' : '#3c3c44';
+  const glow = id => mus.p.has(id) ? ' filter="url(#glow)"' : '';
+  const half = smoothPath(W(BODY_OUTLINE), false);
+  const outline = half + ' ' + smoothPath(W(BODY_OUTLINE).slice().reverse().map(([x, y]) => [200 - x, y]), false).replace(/^M/, 'L') + 'Z';
+  let s = `<defs><linearGradient id="skin" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#303036"/><stop offset="1" stop-color="#25252a"/></linearGradient><filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  if (f) s += `<path d="M78 30 Q78 2 100 2 Q122 2 122 30 Q124 52 128 66 Q114 70 100 66 Q86 70 72 66 Q76 52 78 30Z" fill="#1d1d21"/>`;
+  s += `<path d="${outline}" fill="url(#skin)" stroke="#0e0e10" stroke-width="1.2"/>`;
+  s += `<rect x="92" y="44" width="16" height="16" rx="5" fill="#2c2c31"/><ellipse cx="100" cy="30" rx="${f ? 15 : 16}" ry="${f ? 19 : 20}" fill="#2f2f35" stroke="#0e0e10" stroke-width="1.2"/>`;
+  s += f ? `<path d="M85 22 Q100 6 115 22 Q108 14 100 15 Q92 14 85 22Z" fill="#1d1d21"/>` : `<path d="M85 24 Q86 9 100 9 Q114 9 115 24 Q108 16 100 17 Q92 16 85 24Z" fill="#1d1d21"/>`;
+  const shapes = MUSCLE_SHAPES[view];
+  for (const [id, pts] of Object.entries(shapes)) {
+    let p = pts;
+    if (f && id === 'chest') p = [[98, 86], [88, 82], [77, 88], [73, 100], [78, 112], [89, 115], [98, 108]];
+    const d = `<path d="${smoothPath(W(p))}" fill="${fill(id)}" stroke="#121215" stroke-width="1"${glow(id)}/>`;
+    s += d + mirror(d);
+  }
+  if (view === 'front') { const ln = y => `<path d="M${W([[90, y]])[0][0]} ${y} Q100 ${y + 2} ${W([[110, y]])[0][0]} ${y}" stroke="#121215" stroke-width="1" fill="none"/>`; s += ln(134) + ln(152) + ln(171) + `<line x1="100" y1="116" x2="100" y2="194" stroke="#121215" stroke-width="1"/>`; }
+  else s += `<line x1="100" y1="120" x2="100" y2="194" stroke="#121215" stroke-width="1"/>`;
+  return `<svg viewBox="30 0 140 408" width="100%" style="max-height:330px" role="img" aria-label="${view} view">${s}</svg>`;
 }
 A.muscles = d => { Sheet.musEx = d.ex; Sheet.musSex = S().bodyModel || 'male'; openSheet(d.ex, '', {}); drawMuscles(); };
 A.musSex = d => { Sheet.musSex = d.s; drawMuscles(); };
@@ -108,7 +136,7 @@ function drawMuscles() {
   const names = set => [...set].map(m => MUSCLE_NAMES[m]).join(', ');
   sheetBody(`<div class="seg">${[['male', 'Male'], ['female', 'Female']].map(([k, l]) => `<button data-act="musSex" data-s="${k}" aria-pressed="${sex === k}">${l}</button>`).join('')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center"><div>${bodySVG('front', sex, mus)}<div class="faint tiny">Front</div></div><div>${bodySVG('back', sex, mus)}<div class="faint tiny">Back</div></div></div>
-    <div class="legend"><span><i style="background:${PRIMARY_RED}"></i>Main muscles</span><span><i style="background:rgba(255,59,59,.45)"></i>Helping muscles</span></div>
+    <div class="legend"><span><i style="background:${PRIMARY_RED}"></i>Main muscles</span><span><i style="background:#9b3a3f"></i>Helping muscles</span></div>
     <p><b>Works:</b> <span class="muted">${esc(names(mus.p))}</span>${mus.s.size ? `<br><b>Helps:</b> <span class="muted">${esc(names(mus.s))}</span>` : ''}</p>`);
 }
 const BODY_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.5" r="2"/><path d="M5 8.5h14M12 8.5v6M12 14.5l-3 6.5M12 14.5l3 6.5"/></svg>`;
