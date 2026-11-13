@@ -200,7 +200,7 @@ function showSummary(id) {
   const dv = st.prevVol ? (st.vol - st.prevVol) / st.prevVol * 100 : null;
   openSheet('Workout complete', `<div class="sum-hero"><div class="sum-emoji">${st.prs.length ? '🏆' : '🔥'}</div><h2 class="lift-h" style="font-size:32px;margin:0">${esc(w.dayName || 'Workout')}</h2><p class="muted small" style="margin:2px 0 0">${fmtDay(w.date)}${w.gymName ? ' · ' + esc(w.gymName) : ''}</p></div>
     <div class="sum-grid">
-      <div><span class="k">Time</span><b>${st.dur != null ? `<span data-count="${st.dur}">${st.dur}</span><small>min</small>` : '—'}</b></div>
+      <div><span class="k">Time</span><b>${st.dur > 0 ? `<span data-count="${st.dur}">${st.dur}</span><small>min</small>` : '—'}</b></div>
       <div><span class="k">Volume</span><b><span data-count="${Math.round(U.w(st.vol))}">${fmtN(U.w(st.vol))}</span><small>${U.wu}</small></b>${dv != null ? `<span class="${dv >= 0 ? 'up' : 'dn'}">${dv >= 0 ? '▲' : '▼'} ${Math.abs(Math.round(dv))}% vs last time</span>` : ''}</div>
       <div><span class="k">Work sets</span><b><span data-count="${st.sets}">${st.sets}</span></b><span class="faint tiny">${plural(st.exN, 'exercise')}</span></div>
       <div><span class="k">PRs</span><b><span data-count="${st.prs.length}">${st.prs.length}</span></b></div>
@@ -220,7 +220,7 @@ A.sumShare = async d => {
   g.fillStyle = ac; g.fillRect(80, 110, 10, 110);
   g.fillStyle = '#fff'; g.font = `800 78px ${F}`; g.fillText(fitText(g, w.dayName || 'Workout', 860), 116, 180);
   g.fillStyle = '#9a9aa6'; g.font = `500 38px ${F}`; g.fillText(fmtDay(w.date), 116, 228);
-  const tiles = [['Time', st.dur != null ? st.dur + ' min' : '—'], ['Volume', fmtN(U.w(st.vol)) + ' ' + U.wu], ['Work sets', String(st.sets)], ['PRs', String(st.prs.length)]];
+  const tiles = [["Time", st.dur > 0 ? st.dur + " min" : "—"], ['Volume', fmtN(U.w(st.vol)) + ' ' + U.wu], ['Work sets', String(st.sets)], ['PRs', String(st.prs.length)]];
   tiles.forEach(([k, v], i) => { const x = 64 + (i % 2) * 484, y = 300 + Math.floor(i / 2) * 210; g.fillStyle = '#17171c'; roundRect(g, x, y, 468, 190, 28); g.fill(); g.fillStyle = '#9a9aa6'; g.font = `600 32px ${F}`; g.fillText(k, x + 36, y + 62); g.fillStyle = '#fff'; g.font = `800 64px ${F}`; g.fillText(fitText(g, v, 400), x + 36, y + 146); });
   let y = 780; g.fillStyle = '#fff'; g.font = `700 42px ${F}`; g.fillText(st.prs.length ? 'New PRs' : 'Exercises', 80, y); y += 60;
   const lines = st.prs.length ? st.prs.slice(0, 6).map(p => [p.ex, `${p.added != null ? (p.added ? '+' + fw(p.added) : 'BW') : fw(p.w)} × ${p.r}`]) : [...new Set((w.sets || []).filter(s => !s.warm).map(s => s.ex))].slice(0, 6).map(n => [n, plural((w.sets || []).filter(s => s.ex === n && !s.warm).length, 'set')]);

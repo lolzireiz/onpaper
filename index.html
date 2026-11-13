@@ -689,6 +689,26 @@ body.ob-open .tabs{visibility:hidden}
 .more-rows{display:block;width:100%;padding:12px 0 14px}
 .toast{pointer-events:none;width:max-content;max-width:min(calc(100% - 32px),420px);text-align:center;line-height:1.3}
 .toast button{pointer-events:auto}
+
+/* ===== light theme fixes ===== */
+.sug-box{background:rgba(51,146,245,.12);color:#9cc8ff;border-radius:10px;padding:8px 10px}
+[data-theme=light] .panel{background:var(--bg)}
+[data-theme=light] .dlg{background:var(--s1)}
+[data-theme=light] .scrim{background:rgba(0,0,0,.35)}
+[data-theme=light] .chip[aria-pressed="true"]{background:var(--tx);color:#fff}
+[data-theme=light] .chip[aria-pressed="true"] .faint{color:#bbb}
+[data-theme=light] .sset-b input,[data-theme=light] .sset-b select,[data-theme=light] .sset-b .seg{background:var(--s2)}
+[data-theme=light] .sset-b .seg button[aria-pressed="true"]{background:#fff;color:var(--tx)}
+[data-theme=light] .gbadge{color:#b8430f;background:linear-gradient(90deg,rgba(255,150,50,.16),rgba(255,79,109,.12))}
+[data-theme=light] .gline,[data-theme=light] .goal-tile.on .gn,[data-theme=light] .gchip.dunk{color:#c2410c}
+[data-theme=light] .gchip.warn,[data-theme=light] .heat-skip{color:#a16207}
+[data-theme=light] .pain-bar{color:#92400e}
+[data-theme=light] .unlock-bar{color:#854d0e}
+[data-theme=light] .schip.x{color:#c62828}
+[data-theme=light] .bp-streak{color:#b45309}
+[data-theme=light] .sug-box{color:#1d5fae}
+[data-theme=light] .card,[data-theme=light] .tile{box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.lspark{flex:none;width:54px;height:22px;margin-right:4px}
 </style>
 </head>
 <body>

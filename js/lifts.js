@@ -72,7 +72,7 @@ function liftsListHTML() {
   if (!lifts.length) return `<div class="empty"><p>Nothing logged yet. Log a PR you already have (pick its real date) or start a workout. Every set gets checked for rep-max PRs.</p><button class="btn" data-act="logPR">Log a PR attempt</button></div>${big3CardHTML()}`;
   return big3CardHTML() + `<section class="card flush"><h2 class="sec-t" style="padding-top:14px">All lifts</h2>${lifts.map(L => {
     const lastPR = [...L.sets].reverse().find(s => s.pr);
-    return `<button class="row" data-act="openLift" data-key="${esc(L.key)}"><div class="ring ${lastPR && daysBetween(lastPR.date, todayStr()) <= 14 ? 'is-pr' : ''}"><span>${esc(initials(L.name))}</span></div><div class="grow"><b>${esc(L.name)}</b><div class="faint small">${L.heavy ? (L.bwf ? `Best ${loadTxt(L.heavy)} ×${L.heavy.r}` : `Heaviest ${fw(L.heavy.w)}×${L.heavy.r}`) : 'No completed sets'}${lastPR ? ` · last PR ${fmtDate(lastPR.date)}` : ''}</div></div><div class="rnum"><div style="font:700 22px/1 var(--f-display)">${L.e1 ? fw(L.e1, 0) : '—'}</div><div class="faint tiny">est. 1RM</div></div></button>`;
+    return `<button class="row" data-act="openLift" data-key="${esc(L.key)}"><div class="ring ${lastPR && daysBetween(lastPR.date, todayStr()) <= 14 ? 'is-pr' : ''}"><span>${esc(initials(L.name))}</span></div><div class="grow"><b>${esc(L.name)}</b><div class="faint small">${L.heavy ? (L.bwf ? `Best ${loadTxt(L.heavy)} ×${L.heavy.r}` : `Heaviest ${fw(L.heavy.w)}×${L.heavy.r}`) : 'No completed sets'}${lastPR ? ` · last PR ${fmtDate(lastPR.date)}` : ''}</div></div>${liftSpark(L)}<div class="rnum"><div style="font:700 22px/1 var(--f-display)">${L.e1 ? fw(L.e1, 0) : '—'}</div><div class="faint tiny">est. 1RM</div></div></button>`;
   }).join('')}</section>`;
 }
 A.openLift = d => { closeAllSheets(); UI.tab = 'lifts'; UI.liftKey = d.key; UI.liftFilter = 'key'; $('#view').scrollTop = 0; render(); };
@@ -197,3 +197,14 @@ A.renameLift = async d => {
   }
   closeSheet(); UI.liftKey = keyOf(name); toast('Lift renamed');
 };
+
+/* tiny best-so-far e1RM sparkline over the last 120 days (Strong-style) */
+function liftSpark(L) {
+  const since = addDays(todayStr(), -120), pts = []; let best = 0;
+  for (const x of L.sets) { if (x.warm || !x.hit) continue; best = Math.max(best, x.e1); if (x.date >= since) pts.push([parseDate(x.date).getTime(), best]); }
+  if (pts.length < 2) return '<span class="lspark"></span>';
+  const W = 54, H = 22, x0 = pts[0][0], x1 = pts[pts.length - 1][0] || x0 + 1, y0 = Math.min(...pts.map(p => p[1])), y1 = Math.max(...pts.map(p => p[1])), up = y1 > y0 + 0.5;
+  const X = x => 1 + (x - x0) / Math.max(1, x1 - x0) * (W - 2), Y = y => up ? H - 2 - (y - y0) / (y1 - y0) * (H - 4) : H / 2;
+  const d = pts.map((p, i) => `${i ? 'L' : 'M'}${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join('');
+  return `<svg class="lspark" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="${up ? 'var(--ok)' : 'var(--tx3)'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
