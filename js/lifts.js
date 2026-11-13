@@ -77,6 +77,7 @@ function liftsListHTML() {
 }
 A.openLift = d => { closeAllSheets(); UI.tab = 'lifts'; UI.liftKey = d.key; UI.liftFilter = 'key'; $('#view').scrollTop = 0; render(); };
 A.liftBack = () => { UI.liftKey = null; render(); };
+A.histAll = d => { UI.histAll = d.k; render(); };
 A.liftFilter = d => { UI.liftFilter = d.f; render(); };
 
 function liftDetailHTML(L) {
@@ -103,7 +104,7 @@ function liftDetailHTML(L) {
     <p class="faint small">Same dates as the chart above, so you can see whether a PR or a miss lined up with a heavier or lighter bodyweight.</p></section>
   ${repCells ? `<section class="card"><h2 class="sec-t">Rep maxes</h2><div class="repmax">${repCells}</div><p class="faint small">Your heaviest weight for each rep count. Lifting more for the same reps (or more reps at the same weight) counts as a PR.</p></section>` : ''}
   <section class="card flush"><div class="card-h" style="padding-top:12px"><h2 class="sec-t">History</h2><div class="seg" style="width:190px"><button data-act="liftFilter" data-f="key" aria-pressed="${UI.liftFilter !== 'all'}">PRs &amp; misses</button><button data-act="liftFilter" data-f="all" aria-pressed="${UI.liftFilter === 'all'}">All sets</button></div></div>
-    ${rows.length ? rows.map(s => setHistoryRow(L, s)).join('') : '<p class="muted small" style="padding:10px 0 16px">No PRs or misses yet.</p>'}</section>`;
+    ${rows.length ? rows.slice(0, UI.histAll === L.key ? 999 : 8).map(s => setHistoryRow(L, s)).join('') + (rows.length > 8 && UI.histAll !== L.key ? `<button class="linkbtn center more-rows" data-act="histAll" data-k="${esc(L.key)}">Show all ${rows.length}</button>` : '') : '<p class="muted small" style="padding:10px 0 16px">No PRs or misses yet.</p>'}</section>`;
 }
 function setHistoryRow(L, s) {
   const badge = s.warm ? '<span class="baseb">Warm-up</span>' : s.pr ? '<span class="pr">PR</span>' : s.baseline ? '<span class="baseb">First</span>' : !s.hit ? '<span class="missb">Missed</span>' : '';

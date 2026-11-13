@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '6.0';
+const APP_VERSION = '6.1';
 const CHANGELOG = [
+  ['6.1', ['🍽️ Food tab shows calories and protein as rings, with carbs and fat underneath.', '🧹 Long lists (weigh-ins, lift history, milestones) are trimmed with a “Show all”.', '⚡ Faster Today screen.', '🔔 Pop-up messages no longer cover the Finish button or wrap into tall boxes.', '📏 New users can enter their height during setup.']],
   ['6.0', ['🎬 Exercise animations polished: palms-up grip on curls, a real dip station and pull-up rig, leg press frame, solid plyo box, back-extension foot pads, low-to-high cable fly, single dumbbell for overhead extensions, ropes on rope exercises, decline sit-ups hooked in properly, and more.']],
   ['5.9', ['🏀 Dunk simulator rebuilt: a run-up, a two-foot takeoff from farther out, a real slam (ball through the net, rim flex), a court floor and a camera that follows the jump.']],
   ['5.8', ['🏀 Dunk simulator (Progress → Athlete): a figure your height jumps at a 10′ rim (or your goal rim). Slide your vertical to see where you touch, how far you are from a dunk, and how much vert you need. Your height and reach are saved.', '✨ Exercise animations load the detailed figure straight away (no more flash of the simple one).']],

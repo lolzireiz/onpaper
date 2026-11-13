@@ -494,7 +494,7 @@ function scheduleBeeps() {
 }
 function startRest(sec, next) {
   audioCtx(); Rest.total = sec || S().restSec || 120; Rest.end = Date.now() + Rest.total * 1000; Rest.next = next || ''; scheduleBeeps(); pushScheduleRest(Rest.total, Rest.next); saveRest();
-  if (!pushOn() && !lsGet('onpaper.pushHint')) { lsSet('onpaper.pushHint', '1'); setTimeout(() => toast('Want rest alerts on your lock screen & watch? Turn them on in Settings ⚙️', { ms: 5200 }), 900); }
+  if (!pushOn() && !lsGet('onpaper.pushHint')) { lsSet('onpaper.pushHint', '1'); setTimeout(() => toast('Want rest alerts on your lock screen & watch? Turn them on in You → Settings → Alerts.', { ms: 5200 }), 900); }
   startRestUI();
 }
 function startRestUI() {

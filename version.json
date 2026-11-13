@@ -1,6 +1,10 @@
 {
- "version": "6.0",
+ "version": "6.1",
  "notes": [
-  "\ud83c\udfac Exercise animations polished: palms-up grip on curls, a real dip station and pull-up rig, leg press frame, solid plyo box, back-extension foot pads, low-to-high cable fly, single dumbbell for overhead extensions, ropes on rope exercises, decline sit-ups hooked in properly, and more."
+  "\ud83c\udf7d\ufe0f Food tab shows calories and protein as rings, with carbs and fat underneath.",
+  "\ud83e\uddf9 Long lists (weigh-ins, lift history, milestones) are trimmed with a \u201cShow all\u201d.",
+  "\u26a1 Faster Today screen.",
+  "\ud83d\udd14 Pop-up messages no longer cover the Finish button or wrap into tall boxes.",
+  "\ud83d\udccf New users can enter their height during setup."
  ]
 }

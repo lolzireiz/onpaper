@@ -62,7 +62,8 @@ function readiness(date = todayStr()) {
 const ring = (pct, col, size = 56, w = 6, inner = '') => { const r = (size - w) / 2, c = 2 * Math.PI * r; return `<span class="pring" style="width:${size}px;height:${size}px"><svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--s3)" stroke-width="${w}"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - clamp(pct, 0, 100) / 100)}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg><b>${inner}</b></span>`; };
 function readinessRowHTML() {
   const r = readiness();
-  return `<button class="ready-row" data-act="readyOpen">${ring(r.score, r.col, 52, 6, r.score)}<span class="grow"><span class="eyebrow">Readiness</span><b>${r.lbl}</b><span class="faint small">${r.has ? esc(r.tip) : 'Check in: how did you sleep?'}</span></span>${r.has ? ICON.chevR.replace('<svg', '<svg width="16" height="16"') : '<span class="btn sm">Check in</span>'}</button>`;
+  if (!r.has) return `<button class="ready-row" data-act="readyOpen">${ring(r.score, 'var(--tx3)', 52, 6, '?')}<span class="grow"><span class="eyebrow">Readiness</span><b>How do you feel today?</b><span class="faint small">3 quick taps: sleep, soreness, energy</span></span><span class="btn sm">Check in</span></button>`;
+  return `<button class="ready-row" data-act="readyOpen">${ring(r.score, r.col, 52, 6, r.score)}<span class="grow"><span class="eyebrow">Readiness</span><b>${r.lbl}</b><span class="faint small">${esc(r.tip)}</span></span>${ICON.chevR.replace('<svg', '<svg width="16" height="16" style="opacity:.4"')}</button>`;
 }
 A.readyOpen = () => {
   const r = readiness(), d = r.d, mr = muscleRecovery();
@@ -101,7 +102,9 @@ function smartPlan() {
         .filter(x => x.rec >= 70).sort((a, b) => b.rec * b.need - a.rec * a.need).slice(0, 3).map(x => x.g);
       const pool = [...library().values()].filter(e => available(e.name, gym) && !painOf(e.name));
       for (const g of gs) { const opts = pool.filter(e => e.group === g); const ranked = mg.length ? [...bestForGoals(mg, 2, opts, 2), ...opts] : opts; const seen = new Set(); for (const e of ranked) { if (seen.size >= 2) break; if (!seen.has(e.name)) { seen.add(e.name); ex.push(e.name); } } }
-      name = gs.join(' & ') || 'Full body'; reason = `Your freshest muscles that need more work this week`;
+      const up = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps'], lo = ['Quads', 'Hamstrings', 'Glutes', 'Calves'];
+      name = !gs.length ? 'Full body' : gs.every(g => up.includes(g)) ? (gs.length === 1 ? gs[0] : gs.length === 2 ? gs.join(' & ') : 'Upper body') : gs.every(g => lo.includes(g) || g === 'Core') ? (gs.length === 1 ? gs[0] : 'Lower body') : 'Full body';
+      reason = `${gs.join(', ')}: your freshest muscles that need more work this week`;
     }
     ex = ex.map(n => painOf(n) ? (alternatives(n, gym, ex).find(e => !painOf(e.name))?.name || null) : n).filter(Boolean);
     const targets = {}; for (const n of ex) { const t = tgtFor(n); targets[keyOf(n)] = { sets: lighter ? Math.max(2, t.sets - 1) : t.sets, reps: t.reps }; }

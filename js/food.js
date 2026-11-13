@@ -61,11 +61,9 @@ Views.food = {
     const date = UI.foodDate || todayStr(), t = foodTotals(date), items = foodDay(date).items || [], s = S();
     const ai = !!CAP.sample, mf = myFoods();
     let h = buddyCardHTML() + `<div class="daynav"><button class="iconbtn" data-act="foodDay" data-d="-1" aria-label="Previous day">${ICON.chevL}</button><b>${date === todayStr() ? 'Today' : fmtDay(date)}</b><button class="iconbtn" data-act="foodDay" data-d="1" aria-label="Next day" ${date >= todayStr() ? 'disabled style="opacity:.3"' : ''}>${ICON.chevR}</button></div>
-    <section class="card"><div class="card-h" style="align-items:flex-end"><div class="stat"><span class="k">Calories</span><span class="big"><span data-count="${Math.round(t.cal)}">${trim(t.cal, 0)}</span><span class="unit">of ${trim(s.calTarget, 0)}</span></span></div><div class="stat" style="text-align:right"><span class="k">Protein</span><span class="v">${trim(t.p, 0)}<span class="unit">of ${trim(s.proteinTarget, 0)} g</span></span></div></div>
-      ${macroBar('Calories', t.cal, s.calTarget, 'kcal')}${macroBar('Protein', t.p, s.proteinTarget, 'g', 'p')}
-      <p class="faint small">${t.cal < s.calTarget ? `${trim(s.calTarget - t.cal, 0)} kcal` : 'Calories done'} and ${t.p < s.proteinTarget ? `${trim(s.proteinTarget - t.p, 0)} g protein to go` : 'protein hit'}. Carbs ${trim(t.c, 0)} g · fat ${trim(t.f, 0)} g.</p></section>
+    ${foodSummaryHTML(t, s)}
     ${proteinIdeasHTML()}
-    <div class="btnrow"><button class="btn${ai ? ' ghost' : ''}" data-act="barcodeScan"><span aria-hidden="true">▥</span> Scan barcode</button>${ai ? `<button class="btn" data-act="foodSnap">${ICON.camera} Snap a label</button><button class="btn ghost" data-act="foodDescribe">${ICON.spark} Describe it</button>` : ''}<button class="btn ghost" data-act="foodManual">${ICON.plus} Enter manually</button><button class="btn ghost" data-act="mealStart">🍽 Build a meal</button>${(foodDay(addDays(date, -1)).items || []).length ? `<button class="btn ghost" data-act="copyYesterday">↺ Copy from ${date === todayStr() ? 'yesterday' : 'day before'}</button>` : ''}</div>`;
+    <div class="btnrow"><button class="btn${ai ? ' ghost' : ''}" data-act="barcodeScan"><span aria-hidden="true">▥</span> Scan barcode</button>${ai ? `<button class="btn" data-act="foodSnap">${ICON.camera} Snap a label</button><button class="btn ghost" data-act="foodDescribe">${ICON.spark} Describe it</button>` : ''}<button class="btn ghost" data-act="foodManual">${ICON.plus} Enter manually</button><button class="btn ghost" data-act="mealStart">🍽 Build a meal</button>${(foodDay(addDays(date, -1)).items || []).length ? `<button class="btn ghost" data-act="copyYesterday">↺ Copy ${date === todayStr() ? "yesterday" : "day before"}</button>` : ''}</div>`;
     if (mf.length) h += `<div class="field"><div class="card-h"><span class="lbl">My foods</span><button class="linkbtn" style="font-size:13px;padding:0" data-act="manageMyFoods">Manage</button></div><div class="chips scroll">${mf.map(f => `<button class="chip" data-act="useMyFood" data-id="${f.id}">${esc(f.name)} <span class="faint">${esc(servingLabel(f))}</span></button>`).join('')}</div></div>`;
     const rec = recentFoods();
     if (rec.length) h += `<div class="field"><span class="lbl">Add again (same amount as last time)</span><div class="chips scroll">${rec.map((it, i) => `<button class="chip" data-act="foodAgain" data-i="${i}">${esc(it.name)} <span class="faint">${trim((it.cal || 0) * (it.qty || 1), 0)}</span></button>`).join('')}</div></div>`;
@@ -268,3 +266,13 @@ A.mealSave = () => {
   addFoodItem({ id: newId(), name, serving: m.parts.map(p => p.name).join(' + ').slice(0, 120), servingSize: 1, servingUnit: 'serving', qty: 1, mode: 'servings', cal: sum('cal'), p: sum('p'), c: sum('c'), f: sum('f'), src: 'meal', parts: m.parts, ts: Date.now() });
   Sheet.meal = null; closeSheet(); toast(`${name} logged`);
 };
+
+/* calories + protein as two rings (like the big trackers), carbs/fat underneath */
+function foodSummaryHTML(t, s) {
+  const cp = s.calTarget ? t.cal / s.calTarget * 100 : 0, pp = s.proteinTarget ? t.p / s.proteinTarget * 100 : 0;
+  const cc = cp > 108 ? '#f5b915' : 'var(--accent)', pc = pp >= 100 ? 'var(--ok)' : '#ff6b8b';
+  const calLeft = s.calTarget - t.cal, pLeft = s.proteinTarget - t.p;
+  const one = (pct, col, val, of, unit, lbl, sub) => `<div class="fr">${ring(Math.min(pct, 100), col, 112, 10, `<span data-count="${Math.round(val)}">${fmtN(val)}</span><small>of ${fmtN(of)}${unit}</small>`)}<span class="fr-l">${lbl}</span><span class="faint small">${sub}</span></div>`;
+  return `<section class="card fsum"><div class="fsum-rings">${one(cp, cc, t.cal, s.calTarget, '', 'Calories', calLeft >= 0 ? `${fmtN(calLeft)} left` : `${fmtN(-calLeft)} over`)}${one(pp, pc, t.p, s.proteinTarget, ' g', 'Protein', pLeft > 0 ? `${fmtN(pLeft)} g to go` : 'Goal hit ✓')}</div>
+    <div class="fsum-mac"><span><i style="background:#f5b915"></i>Carbs <b>${trim(t.c, 0)} g</b></span><span><i style="background:#ff6b8b"></i>Fat <b>${trim(t.f, 0)} g</b></span><span><i style="background:#3392f5"></i>Protein <b>${trim(t.p, 0)} g</b></span></div></section>`;
+}

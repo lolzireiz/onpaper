@@ -57,7 +57,8 @@ const OB_VIEWS = {
       <label class="field ob-in"><span class="lbl">What should we call you?</span><input id="ob-name" value="${esc(OB.a.name)}" placeholder="First name (optional)" autocomplete="given-name" autocapitalize="words" maxlength="30"></label>
       <div class="field ob-in"><span class="lbl">Muscle diagrams</span>${obSeg('bodyModel', [['male', 'Male body'], ['female', 'Female body']])}</div>
       <div class="field ob-in"><span class="lbl">Weights in</span>${obSeg('unit', [['imperial', 'Pounds (lb)'], ['metric', 'Kilograms (kg)']])}</div>
-      ${lw ? `<p class="muted small ob-in" style="margin:0">Latest weigh-in: <b>${fw(lw.weight)} ${U.wu}</b> ✓</p>` : `<label class="field ob-in"><span class="lbl">Your weight today <span class="faint">(optional)</span></span><div class="inunit"><input id="ob-weight" inputmode="decimal" value="${esc(OB.a.weight)}" placeholder="0"><span id="ob-wu">${wu}</span></div></label>`}` };
+      ${lw ? `<p class="muted small ob-in" style="margin:0">Latest weigh-in: <b>${fw(lw.weight)} ${U.wu}</b> ✓</p>` : `<label class="field ob-in"><span class="lbl">Your weight today <span class="faint">(optional)</span></span><div class="inunit"><input id="ob-weight" inputmode="decimal" value="${esc(OB.a.weight)}" placeholder="0"><span id="ob-wu">${wu}</span></div></label>`}
+      <div class="field ob-in"><span class="lbl">Your height <span class="faint">(optional, sizes the dunk simulator)</span></span><div class="fields"><select id="ob-hf"><option value="">ft</option>${[4, 5, 6, 7].map(f => `<option value="${f}" ${OB.a.hf == f ? 'selected' : ''}>${f} ft</option>`).join('')}</select><select id="ob-hi"><option value="">in</option>${[...Array(12)].map((_, i) => `<option value="${i}" ${OB.a.hi === String(i) ? 'selected' : ''}>${i} in</option>`).join('')}</select></div></div>` };
   },
   main() {
     return { t: "What's your main goal?", sub: 'Pick the one that matters most right now.', body: `
@@ -91,7 +92,7 @@ const OB_VIEWS = {
     const g = myGoals(), name = S().name;
     const best = g.length ? bestForGoals(g, 1)[0] : null, ex = best ? [best.name] : null;
     return { t: `You're all set${name ? `, ${esc(name)}` : ''}! 🎉`, next: 'Start lifting',
-      sub: g.length ? 'Liftprint will point out exercises that help with:' : 'You can pick goals anytime in Settings.',
+      sub: g.length ? 'Liftprint will point out exercises that help with:' : 'You can pick goals anytime on the You tab.',
       body: `${g.length ? `<div class="ob-chips ob-done-chips">${g.map(id => `<span class="ob-chip on"><i aria-hidden="true">${GOALS[id][0]}</i>${GOALS[id][1]}</span>`).join('')}</div>` : ''}
         ${ex ? `<div class="ob-in"><span class="lbl">Look for these badges</span><div class="ob-example"><b>${esc(ex[0])}</b>${goalBadges(ex[0], 3)}</div><p class="faint small" style="margin:8px 0 0">They show up in your workouts, the exercise list, and each exercise's ⓘ guide.</p></div>` : ''}
         ${splitDays().length ? '' : `<button class="ob-card ob-in" data-act="obProgram"><span class="oe" aria-hidden="true">✨</span><span class="grow"><b>Build my starter program</b><span class="faint small">A ${S().weeklyGoal || 4}-day plan from your goals. Tweak it anytime.</span></span>${ICON.chevR.replace('<svg', '<svg width="18" height="18" style="color:var(--tx3)"')}</button>`}` };
@@ -136,6 +137,7 @@ function obCollect() {
   const v = id => { const e = $('#' + id); return e ? e.value.trim() : null; };
   if (v('ob-name') != null) OB.a.name = v('ob-name');
   if (v('ob-weight') != null) OB.a.weight = v('ob-weight');
+  if (v('ob-hf') != null) { OB.a.hf = v('ob-hf'); OB.a.hi = v('ob-hi'); }
   if (v('ob-cal') != null) OB.a.cal = Math.round(num(v('ob-cal'))) || OB.a.cal;
   if (v('ob-prot') != null) OB.a.prot = Math.round(num(v('ob-prot'))) || OB.a.prot;
 }
@@ -155,7 +157,7 @@ A.obSkip = () => {
   if (OB.mode === 'edit') { obClose(); return; }
   const answered = [...OB.seen].some(s => s !== 'welcome');
   if (answered) obSave(); else saveSettings({ onboarded: S().onboarded || 'skipped' });
-  obClose(); toast(answered ? 'Saved what you picked. Finish anytime in Settings.' : 'No problem. Set it up anytime in Settings.');
+  obClose(); toast(answered ? 'Saved what you picked. Finish anytime from the You tab.' : 'No problem. Set it up anytime from the You tab.');
 };
 A.obPick = (d, el) => {
   const k = d.k, val = /^\d+$/.test(d.v) ? +d.v : d.v; OB.a[k] = val;
@@ -188,6 +190,7 @@ function obSave() {
   const a = OB.a, s = S(), seen = OB.seen, patch = { onboarded: s.onboarded && s.onboarded !== 'skipped' ? s.onboarded : Date.now() };
   if (seen.has('you')) {
     Object.assign(patch, { name: a.name, bodyModel: a.bodyModel, unit: a.unit });
+    if (a.hf) patch.heightIn = (+a.hf) * 12 + (+a.hi || 0);
     const w = num(a.weight);
     if (w > 0 && !weighins().some(x => x.date === todayStr())) { const lb = a.unit === 'metric' ? w / LB_KG : w, now = new Date(); put('weighins', newId(), { date: todayStr(), time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`, weight: Math.round(lb * 10) / 10, meal: null, bf: null, ts: Date.now() }); }
   }

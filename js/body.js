@@ -44,13 +44,14 @@ function weightHTML() {
   </section>`;
   h += coachCardHTML() + weeklyAvgHTML(list);
   if (bfs.length >= 2) h += `<section class="card"><h2 class="sec-t">Body fat %</h2>${chartSlot('bf', { h: 140, label: 'Body fat percent over time', series: [{ type: 'line', pts: bfs.map(w => ({ x: wiX(w), y: w.bf, w })), end: true }], yFmt: v => trim(v, 1) + '%', tip: p => `<b>${trim(p.w.bf, 1)}%</b> · ${fmtDate(p.w.date)} · lean ${fw(p.w.weight * (1 - p.w.bf / 100))} ${U.wu}` })}<p class="faint small">Lean mass = bodyweight × (1 − body fat %). If it climbs while body fat holds steady, you're adding muscle.</p></section>`;
-  const rows = list.slice().reverse().slice(0, 60);
+  const allRows = list.slice().reverse(), rows = allRows.slice(0, UI.wAll ? 400 : 10);
   h += `<section class="card flush"><h2 class="sec-t" style="padding-top:14px">Entries</h2>${rows.map((w, i) => {
-    const prev = rows[i + 1]; const dlt = prev ? w.weight - prev.weight : null;
+    const prev = allRows[i + 1]; const dlt = prev ? w.weight - prev.weight : null;
     return `<button class="row" data-act="logWeighin" data-id="${w.id}"><div class="grow"><b>${fmtDate(w.date)}</b><div class="faint small">${[w.time ? fmtTime(w.time) : '', mealLabel(w.meal) ? mealLabel(w.meal) + ' since eating' : '', w.bf ? trim(w.bf, 1) + '% fat' : ''].filter(Boolean).join(' · ') || 'No details'}</div></div><div class="rnum"><b>${fw(w.weight)}</b> <span class="faint small">${U.wu}</span><div class="faint tiny">${dlt != null ? signed(U.w(dlt)) : ''}</div></div></button>`;
-  }).join('')}</section>`;
+  }).join('')}${allRows.length > rows.length ? `<button class="linkbtn center more-rows" data-act="wAll">Show all ${allRows.length} weigh-ins</button>` : ''}</section>`;
   return h;
 }
+A.wAll = () => { UI.wAll = true; render(); };
 A.wRange = d => { UI.weightRange = d.k; render(); };
 A.wFilter = d => { UI.weightFilter = d.k; render(); };
 A.logWeighin = d => {

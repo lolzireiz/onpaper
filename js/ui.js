@@ -147,3 +147,7 @@ A.markSave = () => {
 }
 
 document.addEventListener('toggle', e => { if (e.target.classList && e.target.classList.contains('more-start')) UI.moreStart = e.target.open; }, true);
+
+/* cache the heavier derived data per data revision (insights + Big 3 scan every set) */
+{ const ins = insights; insights = () => Store.cached('insights:' + todayStr(), ins); }
+{ const b3 = big3; big3 = () => Store.cached('big3', b3); }
