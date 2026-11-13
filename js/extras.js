@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '7.5';
+const APP_VERSION = '7.6';
 const CHANGELOG = [
+  ['7.6', ['✨ New opening animation: the Liftprint mark draws itself in with a few twinkling stars, then flies into the logo. It only plays while the app is loading and never blocks a tap.', '🔥 New logo in the top left: the fingerprint-and-dumbbell mark from the app icon next to the wordmark. Tap it for a little surprise.']],
   ['7.5', ['The version number now sits quietly at the bottom of every screen.']],
   ['7.4', ['😴 Naps: log as many as you like from Today (under Readiness) or your check-in, or start a nap timer and tap “I’m up” when you wake.', '📈 Naps lift today’s readiness realistically. Short naps help the most per minute, a ~90-min full cycle helps most overall, a nap can make up at most ~60% of a short night, and the lift fades 6–10 hours later.', 'The nap screen shows your readiness before → after while you set it up.']],
   ['7.3', ['👈 Swipe left on a food to delete it, like any iPhone list. Swipe a little to show Delete, or all the way to delete straight away.', '🗑️ In Add food → Your foods, deleting removes it from your list and usuals. Your past logs stay, and it comes back if you ever log it again.', '🍽️ Swipe left on anything in the day\'s food to remove it, or hold a usual and pick Delete from your foods.']],

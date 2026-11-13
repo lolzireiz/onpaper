@@ -12,6 +12,7 @@ function applyTheme() {
   if (r.dataset.theme !== th) r.dataset.theme = th;
   r.style.setProperty('--accent', s.accent || '#3392f5');
   const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = th === 'light' ? '#f2f2f7' : '#000000';
+  try { localStorage.setItem('lp.theme', th); localStorage.setItem('lp.accent', s.accent || '#3392f5'); } catch (e) {}   // so the next launch paints the right theme instantly
 }
 { const base = render; render = function () { applyTheme(); base(); }; }
 A.setTheme = d => { saveSettings({ theme: d.v }); };
