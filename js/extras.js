@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '7.1';
+const APP_VERSION = '7.2';
 const CHANGELOG = [
+  ['7.2', ['🍽️ Food tab rebuilt and cleaned up.', '⭐ Your usuals: anything you eat on 2+ days shows up as a one-tap tile, same amount as last time. Hold a tile to change the amount, pin it or hide it.', '📌 Pin your daily staples (shakes, snacks) and add them all with one tap.', '➕ One Add food button: search everything you\'ve ever logged, or scan, enter, build a meal or copy yesterday. It stays open so you can add several things in a row.', '🕐 The day\'s food is grouped into morning, afternoon, evening and late night.', '🔥 Calories burned now sits inside the summary card.']],
   ['7.1', ['✅ Fixed: checkboxes now show a clear tick. Copy yesterday starts with everything ticked, so just untick what you didn\'t eat again. The button shows how many foods and calories you\'re adding.', '🍽️ Protein ideas moved below your food list and fold up until you need them.']],
   ['7.0', ['💪 New Forearms section: wrist curls (dumbbell, reverse and barbell), reverse curls, dead hangs and plate pinches, each with its own animation and guide.', '🔥 New ready-made day: Shoulders, Forearms & Core. Add it from Train → + Add a workout day.', '🏋️ More shoulder and core moves: Arnold press, front raise, upright row, crunches, lying leg raises, Russian twists and ab wheel rollouts.', '🔥 Calories burned: on the Food tab, enter any day\'s total from your watch and see it split into workouts, other movement (walking around) and resting, plus your surplus or deficit. Works for past days too.']],
   ['6.9', ['✨ Smart pick tags exercises that hit a sore muscle, trims their sets when it makes sense, and says why.', '🔋 Readiness no longer punishes you for being new: training load stays neutral until the app has about 2 weeks of your history.']],

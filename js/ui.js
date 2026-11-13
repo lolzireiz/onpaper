@@ -63,17 +63,6 @@ Views.home.render = function () {
   return h;
 };
 
-/* ---------- Food: saved meals + trends ---------- */
-{
-  const fr = Views.food.render;
-  Views.food.render = function () {
-    let h = fr();
-    const sm = savedMealsHTML();
-    if (sm) { const i = h.indexOf('<div class="field"><div class="card-h"><span class="lbl">My foods'); h = i >= 0 ? h.slice(0, i) + sm + h.slice(i) : h + sm; }
-    return h + macroTrendsHTML();
-  };
-}
-
 /* ---------- You ---------- */
 Views.you = {
   title() { return '<h1>You</h1>'; },
@@ -177,28 +166,6 @@ function burnBarHTML(r) {
   const sum = segs.reduce((t, x) => t + x[2], 0) || 1;
   return `<div class="bn-bar" role="img" aria-label="${segs.map(x => `${x[1]} ${fmtN(x[2])} kcal`).join(', ')}">${segs.filter(x => x[2] > 0).map(x => `<i class="bn-${x[0]}${x[0] === 'm' && r.mixed != null ? ' bn-mix' : ''}" style="flex:${x[2] / sum}"></i>`).join('')}</div>
     <div class="bn-leg">${segs.map(x => `<div class="bn-li"><i class="bn-${x[0]}${x[0] === 'm' && r.mixed != null ? ' bn-mix' : ''}"></i><span class="muted">${x[1]}</span><b>${fmtN(x[2])}</b></div>`).join('')}</div>`;
-}
-function burnCardHTML(date) {
-  const r = burnSplit(date), today = date === todayStr(), ate = foodTotals(date).cal;
-  if (!r.has) {
-    const msg = r.work ? `Workouts burned <b>${fmtN(r.work)} kcal</b>. Add the day's total from your watch to see what walking around added.` : `Add the day's total from your watch to see workouts vs. everyday movement.`;
-    return `<section class="card bn-card bn-empty"><div class="grow"><h2 class="sec-t" style="margin:0 0 2px">🔥 Calories burned</h2><p class="muted small" style="margin:0">${msg}</p></div><button class="btn sm" data-act="burnOpen" data-date="${date}">${ICON.plus} Add</button></section>`;
-  }
-  const net = r.total ? ate - r.total : null;
-  return `<section class="card bn-card" data-act="burnOpen" data-date="${date}" role="button" tabindex="0" aria-label="Edit calories burned">
-    <div class="card-h"><h2 class="sec-t" style="margin:0">🔥 Calories burned</h2><span class="faint small">Edit</span></div>
-    <div class="bn-big"><b>${fmtN(r.grand)}</b><span class="unit">kcal ${r.total ? 'total' : 'active'}</span></div>
-    ${burnBarHTML(r)}
-    ${net != null && ate > 0 ? `<p class="small bn-net">Ate <b>${fmtN(ate)}</b> · burned <b>${fmtN(r.total)}</b> → <b>${fmtN(Math.abs(net))}</b> ${net >= 0 ? 'surplus' : 'deficit'}${today ? ' so far' : ''}</p>` : ''}
-    ${r.low ? `<p class="faint tiny" style="margin:6px 0 0">Your ${r.active ? 'active' : 'total'} number is lower than your workout calories. Check you copied the right number from your watch.</p>` : ''}
-  </section>`;
-}
-{
-  const fr2 = Views.food.render;
-  Views.food.render = function () {
-    const h = fr2(), date = UI.foodDate || todayStr(), i = h.indexOf('</section>', h.indexOf('class="card fsum"'));
-    return i >= 0 ? h.slice(0, i + 10) + burnCardHTML(date) + h.slice(i + 10) : burnCardHTML(date) + h;
-  };
 }
 A.burnOpen = d => {
   const date = d.date || UI.foodDate || todayStr(), b = burnOf(date) || {};

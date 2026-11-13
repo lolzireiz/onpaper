@@ -1,7 +1,11 @@
 {
- "version": "7.1",
+ "version": "7.2",
  "notes": [
-  "\u2705 Fixed: checkboxes now show a clear tick. Copy yesterday starts with everything ticked, so just untick what you didn't eat again. The button shows how many foods and calories you're adding.",
-  "\ud83c\udf7d\ufe0f Protein ideas moved below your food list and fold up until you need them."
+  "\ud83c\udf7d\ufe0f Food tab rebuilt and cleaned up.",
+  "\u2b50 Your usuals: anything you eat on 2+ days shows up as a one-tap tile, same amount as last time. Hold a tile to change the amount, pin it or hide it.",
+  "\ud83d\udccc Pin your daily staples (shakes, snacks) and add them all with one tap.",
+  "\u2795 One Add food button: search everything you've ever logged, or scan, enter, build a meal or copy yesterday. It stays open so you can add several things in a row.",
+  "\ud83d\udd50 The day's food is grouped into morning, afternoon, evening and late night.",
+  "\ud83d\udd25 Calories burned now sits inside the summary card."
  ]
 }
