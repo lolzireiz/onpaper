@@ -111,41 +111,43 @@ A.deleteMeasure = async d => { if (await ask('Delete this check-in?', { ok: 'Del
 /* ---------- progress photos ---------- */
 const photoSrc = p => Store.blobs[p.assetId || p.local] || '';
 function photosHTML() {
-  const list = Store.list('photos').sort((a, b) => b.date.localeCompare(a.date) || (b.ts || 0) - (a.ts || 0));
+  const list = Store.list('photos').sort((a, b) => b.date.localeCompare(a.date) || (b.time || '').localeCompare(a.time || '') || (b.ts || 0) - (a.ts || 0));
   const canUpload = true;
   if (!list.length) return `<div class="empty"><p>Add progress photos to compare side by side over time. Same spot, same light and same pose works best.</p>${canUpload ? `<button class="btn" data-act="pickPhoto">${ICON.camera} Add a photo</button>` : '<p class="faint small">Photo uploads are only available to the app owner.</p>'}</div>`;
-  const pose = UI.photoPose, ofPose = list.filter(p => p.pose === pose).sort((a, b) => a.date.localeCompare(b.date));
+  const pose = UI.photoPose, ofPose = list.filter(p => p.pose === pose).sort((a, b) => a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
   const a = ofPose.find(p => p.id === UI.cmpA) || ofPose[0], b = ofPose.find(p => p.id === UI.cmpB) || ofPose[ofPose.length - 1];
   const fig = (p, which) => {
     if (!p) return `<figure><div class="ph">No ${pose.toLowerCase()} photo yet</div></figure>`;
     const bw = bwOn(p.date);
-    return `<figure><div class="ph"><img src="${photoSrc(p)}" alt="${pose} photo from ${fmtDate(p.date, { rel: false })}"></div><select aria-label="${which} photo date" data-change="cmpPick" data-which="${which}">${ofPose.map(x => `<option value="${x.id}" ${x.id === p.id ? 'selected' : ''}>${fmtDate(x.date, { rel: false, year: true })}</option>`).join('')}</select><figcaption>${bw ? `${fwu(bw.weight)}` : 'No weigh-in yet'}</figcaption></figure>`;
+    return `<figure><div class="ph"><img src="${photoSrc(p)}" alt="${pose} photo from ${fmtDate(p.date, { rel: false })}"></div><select aria-label="${which} photo date" data-change="cmpPick" data-which="${which}">${ofPose.map(x => `<option value="${x.id}" ${x.id === p.id ? 'selected' : ''}>${fmtDate(x.date, { rel: false, year: true })}${x.time ? ' · ' + fmtTime(x.time) : ''}</option>`).join('')}</select><figcaption>${bw ? `${fwu(bw.weight)}` : 'No weigh-in yet'}</figcaption></figure>`;
   };
   return `<section class="card"><div class="card-h"><h2 class="sec-t">Compare</h2><div class="chips">${POSES.map(p => `<button class="chip" data-act="photoPose" data-p="${p}" aria-pressed="${pose === p}">${p}</button>`).join('')}</div></div>
     ${photoCompareHTML(a, b, fig)}
     ${a && b && a.id !== b.id ? `<p class="faint small center">${daysBetween(a.date, b.date)} days apart${bwOn(a.date) && bwOn(b.date) ? ` · ${signed(U.w(bwOn(b.date).weight - bwOn(a.date).weight))} ${U.wu}` : ''}</p>` : ''}</section>
-    <div class="photos">${list.map(p => `<button data-act="viewPhoto" data-id="${p.id}"><img loading="lazy" src="${photoSrc(p)}" alt="${esc(p.pose)} photo, ${fmtDate(p.date, { rel: false })}"><span class="cap">${fmtDate(p.date)} · ${esc(p.pose)}</span></button>`).join('')}</div>
+    <div class="photos">${list.map(p => `<button data-act="viewPhoto" data-id="${p.id}"><img loading="lazy" src="${photoSrc(p)}" alt="${esc(p.pose)} photo, ${fmtDate(p.date, { rel: false })}"><span class="cap">${fmtDate(p.date)}${p.time ? ' · ' + fmtTime(p.time) : ''} · ${esc(p.pose)}</span></button>`).join('')}</div>
     <p class="faint small">Photos are saved only on this phone. They aren't uploaded anywhere and aren't included in backups.</p>`;
 }
 A.photoPose = d => { UI.photoPose = d.p; UI.cmpA = UI.cmpB = null; render(); };
 A.cmpPick = (d, el) => { if (d.which === 'Before') UI.cmpA = el.value; else UI.cmpB = el.value; render(); };
 A.pickPhoto = () => { const i = $('#file-photo'); i.value = ''; i.click(); };
-function onPhotoChosen(file) {
+async function onPhotoChosen(file) {
   if (!file) return;
   Sheet.photo = file; const url = URL.createObjectURL(file);
+  const taken = await photoTakenAt(file), tDate = taken ? taken.date : todayStr(), tTime = taken ? taken.time : nowHM();
   openSheet('Add progress photo', `<img class="prev-img" src="${url}" alt="Selected photo">
     <div class="field"><span class="lbl">Pose</span><div class="seg">${POSES.map(p => `<button data-act="pick" data-group="pose" data-value="${p}" aria-pressed="${p === UI.photoPose}">${p}</button>`).join('')}</div></div>
-    <div class="field"><label class="lbl" for="ph-d">Date</label><input id="ph-d" type="date" name="date" value="${todayStr()}" max="${todayStr()}"></div>
+    <div class="fields"><div class="field"><label class="lbl" for="ph-d">Date taken</label><input id="ph-d" type="date" name="date" value="${tDate}" max="${todayStr()}"></div><div class="field"><label class="lbl" for="ph-t">Time</label><input id="ph-t" type="time" name="ptime" value="${tTime}"></div></div>
+    <p class="faint tiny" style="margin-top:-6px">${taken ? '📷 Read from the photo itself.' : "Couldn't read when this photo was taken, so it's set to now. Change it if it's older."}</p>
     <button class="btn block" id="ph-save" data-act="savePhoto">Save photo</button>`, { onClose: () => URL.revokeObjectURL(url) });
 }
 A.savePhoto = async () => {
   const file = Sheet.photo; if (!file) return;
-  const pose = picked($('#sheet'), 'pose') || 'Front', date = fval('date') || todayStr(), btn = $('#ph-save');
+  const pose = picked($('#sheet'), 'pose') || 'Front', date = fval('date') || todayStr(), time = fval('ptime') || '', btn = $('#ph-save');
   btn.disabled = true; btn.textContent = 'Uploading…';
   try {
     const blob = await toJpeg(file, 1600, 0.85);
-    if (CAP.assets) { const res = await CAP.assets.upload(blob, { type: 'image/jpeg' }); put('photos', newId(), { date, pose, assetId: res.id, ts: Date.now() }); }
-    else { const id = newId(); Store.blobs[id] = URL.createObjectURL(blob); put('photos', newId(), { date, pose, local: id, ts: Date.now() }); }
+    if (CAP.assets) { const res = await CAP.assets.upload(blob, { type: 'image/jpeg' }); put('photos', newId(), { date, time, pose, assetId: res.id, ts: Date.now() }); }
+    else { const id = newId(); Store.blobs[id] = URL.createObjectURL(blob); put('photos', newId(), { date, time, pose, local: id, ts: Date.now() }); }
     UI.photoPose = pose; UI.cmpA = UI.cmpB = null; closeSheet(); toast('Photo saved');
   } catch (e) {
     btn.disabled = false; btn.textContent = 'Save photo';
@@ -154,8 +156,30 @@ A.savePhoto = async () => {
 };
 A.viewPhoto = d => {
   const p = Store.docs.photos[d.id]; if (!p) return; const bw = bwOn(p.date);
-  openSheet(`${p.pose} · ${fmtDate(p.date, { rel: false })}`, `<div class="viewer"><img src="${photoSrc({ ...p, id: d.id })}" alt="${esc(p.pose)} photo"></div><p class="muted small">${bw ? `Bodyweight around then: ${fwu(bw.weight)} (${fmtDate(bw.date)})` : ''}</p><button class="linkbtn danger center" data-act="deletePhoto" data-id="${d.id}">Delete photo</button>`);
+  openSheet(`${p.pose} · ${fmtDate(p.date, { rel: false })}`, `<div class="viewer"><img src="${photoSrc({ ...p, id: d.id })}" alt="${esc(p.pose)} photo"><span class="ph-stamp">${fmtDate(p.date, { rel: false, year: true })}${p.time ? ' · ' + fmtTime(p.time) : ''}</span></div>
+    <div class="fields"><div class="field"><label class="lbl" for="pv-d">Date taken</label><input id="pv-d" type="date" value="${p.date}" max="${todayStr()}"></div><div class="field"><label class="lbl" for="pv-t">Time</label><input id="pv-t" type="time" value="${p.time || ''}"></div></div>
+    <button class="btn ghost block" data-act="photoStamp" data-id="${d.id}">Save date &amp; time</button>
+    <p class="muted small">${bw ? `Bodyweight around then: ${fwu(bw.weight)} (${fmtDate(bw.date)})` : ''}</p><button class="linkbtn danger center" data-act="deletePhoto" data-id="${d.id}">Delete photo</button>`);
 };
+A.photoStamp = d => {
+  const p = Store.docs.photos[d.id]; if (!p) return; const date = $('#pv-d').value || p.date, time = $('#pv-t').value || '';
+  put('photos', d.id, { ...clone(p), date, time }); closeSheet(); toast(`Photo dated ${fmtDate(date, { rel: false })}${time ? ' at ' + fmtTime(time) : ''}`);
+};
+const nowHM = () => { const n = new Date(); return `${pad(n.getHours())}:${pad(n.getMinutes())}`; };
+/* When was the photo taken? Reads the camera's "date taken" stamp from the file (JPEG or HEIC).
+   Edited photos also carry a later "modified" stamp, so the earliest one is the original shot. */
+async function photoTakenAt(file) {
+  try {
+    const buf = new Uint8Array(await file.slice(0, 262144).arrayBuffer());
+    let txt = ''; for (let i = 0; i < buf.length; i += 8192) txt += String.fromCharCode.apply(null, buf.subarray(i, i + 8192));
+    const hits = [...txt.matchAll(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):\d{2}/g)].map(m => ({ date: `${m[1]}-${m[2]}-${m[3]}`, time: `${m[4]}:${m[5]}` }))
+      .filter(h => h.date >= '2000-01-01' && h.date <= todayStr() && +h.time.slice(0, 2) < 24).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+    if (hits.length) return hits[0];
+  } catch (e) {}
+  // Fall back to the file's own date if it's clearly older than right now (photos picked from the library)
+  if (file.lastModified && Date.now() - file.lastModified > 10 * 60e3) { const d = new Date(file.lastModified); return { date: dateStr(d), time: `${pad(d.getHours())}:${pad(d.getMinutes())}` }; }
+  return null;
+}
 A.deletePhoto = async d => {
   const p = Store.docs.photos[d.id]; if (!p || !(await ask('Delete this photo for good?', { ok: 'Delete', danger: true }))) return;
   if (p.assetId && CAP.assets) { try { await CAP.assets.delete(p.assetId); } catch (e) {} }

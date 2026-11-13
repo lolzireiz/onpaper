@@ -1,14 +1,6 @@
 {
- "version": "4.0",
+ "version": "4.1",
  "notes": [
-  "\ud83e\uddee Calorie coach: compares what you eat to what the scale does, estimates what you really burn, and suggests a new target in one tap.",
-  "\u2696\ufe0f True weight trend: a smoothed line that ignores water swings, plus weekly averages.",
-  "\ud83d\udcf8 Photo compare now has a drag slider and a fade between two dates.",
-  "\ud83d\udd25 Muscles this week: a heatmap of sets per muscle on the body diagram, flagging anything you skipped.",
-  "\u26a0\ufe0f Pain flags: mark an exercise that hurts and get a warning plus a swap idea every time it comes up.",
-  "\ud83d\udd0b Lighter-week nudge after many hard weeks in a row with stalled lifts.",
-  "\ud83d\uddd3\ufe0f Weekly recap with PRs, goal work, weight, protein and dunk progress. Share it as an image.",
-  "\ud83c\udfc5 Milestones: 24 badges with confetti when you unlock one.",
-  "\ud83d\udcc4 Export your sets, weigh-ins, food and activities as CSV spreadsheets (Settings \u2192 Backup)."
+  "\ud83d\udd52 Progress photos now show the date and time they were taken, read straight from the photo. You can fix it in the photo viewer if it's off."
  ]
 }

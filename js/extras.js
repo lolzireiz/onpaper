@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '4.0';
+const APP_VERSION = '4.1';
 const CHANGELOG = [
+  ['4.1', ['🕒 Progress photos now show the date and time they were taken, read straight from the photo. You can fix it in the photo viewer if it\'s off.']],
   ['4.0', ['🧮 Calorie coach: compares what you eat to what the scale does, estimates what you really burn, and suggests a new target in one tap.', '⚖️ True weight trend: a smoothed line that ignores water swings, plus weekly averages.', '📸 Photo compare now has a drag slider and a fade between two dates.', '🔥 Muscles this week: a heatmap of sets per muscle on the body diagram, flagging anything you skipped.', '⚠️ Pain flags: mark an exercise that hurts and get a warning plus a swap idea every time it comes up.', '🔋 Lighter-week nudge after many hard weeks in a row with stalled lifts.', '🗓️ Weekly recap with PRs, goal work, weight, protein and dunk progress. Share it as an image.', '🏅 Milestones: 24 badges with confetti when you unlock one.', '📄 Export your sets, weigh-ins, food and activities as CSV spreadsheets (Settings → Backup).']],
   ['3.9', ['🎥 Test your vertical from a video: mark takeoff and landing, and the app works out your jump height from your air time.', '📈 Dunk countdown: how many weeks until you dunk your goal at your current pace, plus your touch height from your standing reach.', '🏋️ Strength levels: see where your squat, bench, deadlift, press and row rank for your bodyweight.', '▥ Scan barcodes for instant nutrition facts, “Hit your protein” suggestions built from your foods, and Copy from yesterday.', '🎙️ “Hey Siri, log my weight”: set it up in Settings → Alerts.']],
   ['3.8.4', ['Figures refined: a more natural fit male build, a slimmer female with narrower shoulders and natural hips, and plain single-colour bodies with no painted clothing.']],

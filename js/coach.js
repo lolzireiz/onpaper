@@ -108,7 +108,7 @@ function photoCompareHTML(a, b, fig) {
   const seg = `<div class="seg" style="margin-bottom:8px">${[['side', 'Side by side'], ['slide', 'Slider'], ['fade', 'Fade']].map(([k, l]) => `<button data-act="cmpMode" data-k="${k}" aria-pressed="${mode === k}">${l}</button>`).join('')}</div>`;
   if (mode === 'side' || !a || !b) return seg + `<div class="cmp">${fig(a, 'Before')}${fig(b, 'After')}</div>`;
   const pos = UI.cmpPos ?? 50;
-  const stack = `<div class="cmp-stack ${mode}" style="--p:${pos}%;--o:${pos / 100}"><img src="${photoSrc(a)}" alt="Before, ${fmtDate(a.date, { rel: false })}"><img class="top" src="${photoSrc(b)}" alt="After, ${fmtDate(b.date, { rel: false })}">${mode === 'slide' ? '<span class="cmp-line"><i>⇔</i></span>' : ''}<span class="cmp-lbl l">Before</span><span class="cmp-lbl r">After</span></div>
+  const stack = `<div class="cmp-stack ${mode}" style="--p:${pos}%;--o:${pos / 100}"><img src="${photoSrc(a)}" alt="Before, ${fmtDate(a.date, { rel: false })}"><img class="top" src="${photoSrc(b)}" alt="After, ${fmtDate(b.date, { rel: false })}">${mode === 'slide' ? '<span class="cmp-line"><i>⇔</i></span>' : ''}<span class="cmp-lbl l">${fmtDate(a.date, { rel: false })}${a.time ? ' · ' + fmtTime(a.time) : ''}</span><span class="cmp-lbl r">${fmtDate(b.date, { rel: false })}${b.time ? ' · ' + fmtTime(b.time) : ''}</span></div>
     <input type="range" class="cmp-range" min="0" max="100" value="${pos}" aria-label="${mode === 'slide' ? 'Slide between before and after' : 'Fade between before and after'}">`;
   const pickers = `<div class="cmp cmp-pick">${fig(a, 'Before').replace(/<div class="ph">[\s\S]*?<\/div>/, '')}${fig(b, 'After').replace(/<div class="ph">[\s\S]*?<\/div>/, '')}</div>`;
   return seg + stack + pickers;
