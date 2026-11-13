@@ -99,10 +99,11 @@ A.openSettings = () => {
     <details><summary class="faint small">Advanced: model</summary><input id="st-gm" name="gmodel" autocomplete="off" autocapitalize="off" value="${esc(geminiModel())}" placeholder="Automatic (fastest available)" style="margin-top:6px"></details>
     <p class="faint small" style="margin-top:-6px">Your key is saved only on this phone and only sent to Google.</p>
     </div></details>
-    <details class="sset"><summary><span class="si" aria-hidden="true">🔔</span><span class="grow"><b>Alerts</b><span class="faint small">Rest alerts, weigh-in reminder</span></span></summary><div class="sset-b">
+    <details class="sset"><summary><span class="si" aria-hidden="true">🔔</span><span class="grow"><b>Alerts</b><span class="faint small">Rest alerts, weigh-in reminder, Siri</span></span></summary><div class="sset-b">
     ${pushSettingsHTML()}
     <div class="field"><span class="lbl">Remind me to weigh in after</span><div class="seg">${chipSeg('nudge', [[1, '1 day'], [2, '2'], [3, '3'], [5, '5'], [7, '7']], s.nudgeDays)}</div></div>
-    </div></details>
+    
+    ${siriSettingsHTML()}</div></details>
     <button class="btn block" data-act="saveSettings">Save settings</button>
     <details class="sset"><summary><span class="si" aria-hidden="true">💾</span><span class="grow"><b>Backup &amp; updates</b><span class="faint small">${lastBackup() ? `Last backup ${fmtDate(lastBackup())}` : 'No backup yet'} · v${APP_VERSION}</span></span></summary><div class="sset-b">
     <div class="field"><span class="lbl">Your data</span><p class="muted small">Everything is saved on this phone only. Back up now and then, and restore it if you switch phones. Progress photos are included.</p></div>
@@ -115,7 +116,7 @@ A.saveSettings = () => {
   const root = $('#sheet'), cal = num(fval('cal')), prot = num(fval('prot'));
   saveSettings({
     unit: picked(root, 'unit') || 'imperial', weeklyGoal: +picked(root, 'goal') || 4, defaultSets: +picked(root, 'dsets') || 3, restSec: +picked(root, 'rest') || 120,
-    calTarget: cal > 0 ? Math.round(cal) : S().calTarget, proteinTarget: prot > 0 ? Math.round(prot) : S().proteinTarget, nudgeDays: +picked(root, 'nudge') || 3, goal: picked(root, 'goal2') || 'bulk', goalWeight: num(fval('gweight')) ? U.toLb(num(fval('gweight'))) : null, bodyModel: picked(root, 'bodym') || 'male', watchReminder: picked(root, 'watch') !== 'off', buddy: picked(root, 'buddy') !== 'off', buddyName: fval('buddyname') || 'Pebble',
+    calTarget: cal > 0 ? Math.round(cal) : S().calTarget, proteinTarget: prot > 0 ? Math.round(prot) : S().proteinTarget, nudgeDays: +picked(root, 'nudge') || 3, goal: picked(root, 'goal2') || 'bulk', goalWeight: num(fval('gweight')) ? U.toLb(num(fval('gweight'))) : null, bodyModel: picked(root, 'bodym') || 'male', watchReminder: picked(root, 'watch') !== 'off', buddy: picked(root, 'buddy') !== 'off', siriOn: picked(root, 'siri') === 'on', buddyName: fval('buddyname') || 'Pebble',
     big3: { squat: fval('b3squat') || S().big3.squat, bench: fval('b3bench') || S().big3.bench, deadlift: fval('b3deadlift') || S().big3.deadlift },
   });
   try { localStorage.setItem(GEMINI_KEY, fval('gkey')); localStorage.setItem(GEMINI_MODEL, fval('gmodel')); } catch (e) {}

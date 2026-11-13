@@ -412,6 +412,46 @@ button.schip:active{background:var(--s3)}
 .alsoeq{display:grid;grid-template-columns:auto 1fr 1fr;gap:10px;align-items:center;margin-top:8px}
 .alsoeq .small{white-space:nowrap}
 .fracs .chip{min-width:44px;justify-content:center;font-size:16px}
+/* ---------- v3.9 ---------- */
+.vt-step{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.vt-step span{min-width:72px;text-align:center;font-variant-numeric:tabular-nums}
+.vt-res{display:flex;flex-direction:column;gap:10px}
+.dunk-cd{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;background:var(--s2)}
+.dunk-cd p{margin:0;font-size:14px;line-height:1.4;color:var(--tx2)}
+.dunk-cd p b{color:var(--tx)}
+.slvl-tag{font-size:12.5px;font-weight:800;color:#0b0b0f;padding:4px 10px;border-radius:999px}
+.slvl-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.slvl-bar i{position:relative;height:8px;border-radius:9px;background:var(--s2)}
+.slvl-bar i.on{background:var(--c)}
+.slvl-bar b{position:absolute;right:-5px;top:-4px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(0,0,0,.5)}
+.slvl-lbl{display:grid;grid-template-columns:repeat(5,1fr);margin-top:-4px}
+.slvl-lbl span{text-align:center}
+.slvl-chips{display:flex;flex-wrap:wrap;gap:6px}
+.slvl-chip{font-size:12.5px;padding:5px 10px;border-radius:999px;background:var(--s2);color:var(--tx2);box-shadow:inset 3px 0 0 var(--c)}
+.slvl-chip b{color:var(--tx)}
+.bc-cam{position:relative;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:4/3}
+.bc-cam video{width:100%;height:100%;object-fit:cover;display:block}
+.bc-frame{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.bc-frame i{width:78%;height:34%;border-radius:12px;box-shadow:0 0 0 2px rgba(255,255,255,.9),0 0 0 999px rgba(0,0,0,.35)}
+.bc-frame i::after{content:"";position:absolute;left:11%;right:11%;top:50%;height:2px;background:#ff5a5a;box-shadow:0 0 10px #ff5a5a;animation:bcscan 1.6s ease-in-out infinite alternate}
+@keyframes bcscan{from{transform:translateY(-36px)}to{transform:translateY(36px)}}
+.bc-msg{position:absolute;left:0;right:0;bottom:10px;margin:0;text-align:center;font-size:13.5px;font-weight:650;color:#fff;text-shadow:0 1px 4px #000}
+.bc-wait{display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 0}
+.spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--s3);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pideas{gap:8px}
+.pidea{display:flex;align-items:center;gap:10px;text-align:left;padding:10px 12px;border-radius:14px;background:var(--s2);transition:transform .15s}
+.pidea:active{transform:scale(.98)}
+.pidea b{font-weight:650}
+.pidea-add{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:#fff;flex:none}
+.cylist label{display:flex;align-items:center;gap:12px;cursor:pointer}
+.cylist input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.siri-steps{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:var(--s3)}
+.siri-steps ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:var(--tx2)}
+.siri-steps b{color:var(--tx)}
+.copyrow{display:flex;align-items:center;gap:8px;margin-top:6px}
+.copyrow code{flex:1;font-size:11.5px;word-break:break-all;background:rgba(0,0,0,.35);padding:6px 8px;border-radius:8px;color:var(--tx)}
+@media (prefers-reduced-motion:reduce){.bc-frame i::after{animation:none}.spin{animation-duration:2s}}
 /* ---------- 3D exercise demo ---------- */
 .actlist .row{min-height:0;padding-top:9px;padding-bottom:9px;gap:10px}
 .cal button.act:not(.gym){box-shadow:inset 0 0 0 2px var(--accent)}
@@ -595,6 +635,7 @@ body.ob-open .tabs{visibility:hidden}
 <script src="js/goals.js"></script>
 <script src="js/program.js"></script>
 <script src="js/acts.js"></script>
+<script src="js/boost.js"></script>
 <script src="js/anim.js"></script>
 <script src="js/anim3d.js"></script>
 <script src="js/onboard.js"></script>

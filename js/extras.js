@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '3.8.4';
+const APP_VERSION = '3.9';
 const CHANGELOG = [
+  ['3.9', ['🎥 Test your vertical from a video: mark takeoff and landing, and the app works out your jump height from your air time.', '📈 Dunk countdown: how many weeks until you dunk your goal at your current pace, plus your touch height from your standing reach.', '🏋️ Strength levels: see where your squat, bench, deadlift, press and row rank for your bodyweight.', '▥ Scan barcodes for instant nutrition facts, “Hit your protein” suggestions built from your foods, and Copy from yesterday.', '🎙️ “Hey Siri, log my weight”: set it up in Settings → Alerts.']],
   ['3.8.4', ['Figures refined: a more natural fit male build, a slimmer female with narrower shoulders and natural hips, and plain single-colour bodies with no painted clothing.']],
   ['3.8.3', ['Figures: shoulders brought back to realistic widths, and proper athletic wear (fitted shorts, and a sports bra with straps) in a softer tone instead of black bands.']],
   ['3.8.2', ['Figures reshaped again: the male has wider shoulders, a fuller chest, defined abs and a stronger V-taper; the female has a clear hourglass with a narrower waist.', 'Chests are now plain smooth surfaces.']],

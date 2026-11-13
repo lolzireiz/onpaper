@@ -29,13 +29,14 @@ function big3CardHTML() {
   }
   return `<section class="card"><div class="card-h"><h2 class="sec-t">Big 3 total</h2><button class="linkbtn" data-act="openSettings">Change lifts</button></div>
     <div class="stats"><div class="stat"><span class="k">Est. total</span><span class="v">${fw(b.total, 0)}<span class="unit">${U.wu}</span></span></div><div class="stat"><span class="k">Tested singles</span><span class="v">${b.singles ? fw(b.singles, 0) : '—'}</span></div><div class="stat"><span class="k">× bodyweight</span><span class="v">${lw ? trim(b.total / lw.weight, 2) : '—'}</span></div></div>
+    ${b.parts.some(p => p.L && strengthLevel(p.L)) ? `<div class="slvl-chips">${b.parts.map(p => levelChip(p.L)).join('')}</div>` : ''}
     ${b.pts.length > 1 ? chartSlot('big3', { h: 150, label: 'Estimated Big 3 total over time', series: [{ type: 'step', pts: b.pts.map(p => ({ ...p, y: U.w(p.y) })), extend: true, end: true }], yFmt: v => trim(v, 0), tip: p => `<b>${trim(p.y, 0)} ${U.wu}</b> est. total · ${fmtDate(p.date)}` }) : ''}
     <p class="faint small">${b.parts.map(p => `${esc(p.name)} ${fw(p.L.e1, 0)}`).join(' + ')}. Estimated 1RMs use the Epley formula from your best set.</p></section>`;
 }
 const ftin = i => `${Math.floor(i / 12)}′ ${trim(i % 12, 2)}″`;
 function dunkCardHTML() {
   const js = Store.list('jumps').sort((a, b) => a.date.localeCompare(b.date) || (a.ts || 0) - (b.ts || 0)), goal = S().dunkGoal || 120;
-  if (!js.length) return `<section class="card"><div class="card-h"><h2 class="sec-t">🏀 Dunk progress</h2><button class="btn sm" data-act="logJump">Log</button></div><p class="muted small">Log the highest rim you've dunked on (like 8′ 9″) and your vertical whenever you test it. You'll see your progress toward ${ftin(goal)}.</p></section>`;
+  if (!js.length) return `<section class="card"><div class="card-h"><h2 class="sec-t">🏀 Dunk progress</h2><button class="btn sm" data-act="logJump">Log</button></div><p class="muted small">Log the highest rim you've dunked on (like 8′ 9″) and your vertical whenever you test it. You'll see your progress toward ${ftin(goal)}.</p><div class="btnrow"><button class="btn ghost sm" data-act="vertTest">🎥 Test vertical from video</button><button class="btn ghost sm" data-act="setReach">Set standing reach</button></div></section>`;
   const rims = js.filter(j => j.rim > 0), best = rims.length ? Math.max(...rims.map(j => j.rim)) : null, start = rims.length ? rims[0].rim : null;
   const verts = js.filter(j => j.vert > 0), bestV = verts.length ? Math.max(...verts.map(j => j.vert)) : null;
   const pct = best != null ? clamp((best - Math.min(start, best)) / Math.max(1, goal - Math.min(start, best)), 0, 1) : 0;
@@ -44,26 +45,28 @@ function dunkCardHTML() {
     <div class="stats"><div class="stat"><span class="k">Highest rim dunked</span><span class="v">${best != null ? ftin(best) : '—'}</span></div><div class="stat"><span class="k">To go</span><span class="v">${best != null ? (best >= goal ? '🎉' : trim(goal - best, 1) + '″') : '—'}</span></div><div class="stat"><span class="k">Best vertical</span><span class="v">${bestV ? trim(bestV, 1) + '″' : '—'}</span></div></div>
     <div><div class="bar" style="height:10px"><i style="width:${Math.max(4, pct * 100)}%;background:var(--grad)"></i></div><div class="faint tiny" style="display:flex;justify-content:space-between;margin-top:4px"><span>${start != null ? ftin(Math.min(start, best)) : ''}</span><span>Goal ${ftin(goal)}</span></div></div>
     ${pts.length > 1 ? chartSlot('dunk', { h: 140, label: 'Highest rim dunked over time', series: [{ type: 'step', pts, extend: true, end: true }, { type: 'pr', pts: rims.map(j => ({ x: parseDate(j.date).getTime(), y: j.rim })), r: 4 }], yFmt: v => `${Math.floor(Math.round(v) / 12)}′${Math.round(v) % 12}″`, tip: p => `<b>${ftin(p.j.rim)}</b> · ${fmtDate(p.j.date)}${p.j.note ? ' · ' + esc(p.j.note) : ''}` }) : ''}
+    ${dunkCountdownHTML()}
     <button class="linkbtn" style="align-self:flex-start;font-size:13px;padding:0" data-act="jumpHistory">See all entries</button></section>`;
 }
 A.logJump = d => {
   const j = d && d.id ? Store.docs.jumps[d.id] : null, last = Store.list('jumps').filter(x => x.rim).sort((a, b) => b.date.localeCompare(a.date))[0];
   const r = j?.rim ?? last?.rim ?? 105;
-  openSheet(j ? 'Edit entry' : 'Log jump progress', `<div class="field"><span class="lbl">Highest rim you dunked on</span><div class="fields"><select name="rft" aria-label="Feet">${[7, 8, 9, 10].map(f => `<option value="${f}" ${Math.floor(r / 12) === f ? 'selected' : ''}>${f} ft</option>`).join('')}</select><input name="rin" inputmode="decimal" value="${plain(r % 12, 2)}" aria-label="Inches"></div><p class="faint tiny">Inches can be decimals, like 9.5</p></div>
+  openSheet(j ? 'Edit entry' : 'Log jump progress', `<label class="row" style="padding:0;gap:10px"><input type="checkbox" name="norim" ${j && !j.rim ? 'checked' : ''}><span class="small">Just a vertical test (no dunk this time)</span></label><div class="field"><span class="lbl">Highest rim you dunked on</span><div class="fields"><select name="rft" aria-label="Feet">${[7, 8, 9, 10].map(f => `<option value="${f}" ${Math.floor(r / 12) === f ? 'selected' : ''}>${f} ft</option>`).join('')}</select><input name="rin" inputmode="decimal" value="${plain(r % 12, 2)}" aria-label="Inches"></div><p class="faint tiny">Inches can be decimals, like 9.5</p></div>
     <div class="field"><label class="lbl" for="jp-v">Max vertical (inches, optional)</label><input id="jp-v" name="vert" inputmode="decimal" value="${j?.vert ?? ''}" placeholder="e.g. 28"></div>
     <div class="field"><label class="lbl" for="jp-d">Date</label><input id="jp-d" type="date" name="date" value="${j?.date || todayStr()}" max="${todayStr()}"></div>
     <div class="field"><label class="lbl" for="jp-n">Note (optional)</label><input id="jp-n" name="note" value="${esc(j?.note || '')}" placeholder="e.g. two-hand, off two feet"></div>
     <button class="btn block" data-act="saveJump" data-id="${d && d.id || ''}">Save</button>${j ? `<button class="linkbtn danger center" data-act="delJump" data-id="${d.id}">Delete</button>` : ''}`);
 };
 A.saveJump = d => {
-  const rim = (+fval('rft')) * 12 + (num(fval('rin')) || 0), vert = num(fval('vert'));
-  if (!(rim > 60 && rim < 144)) return toast('Check the rim height.', { bad: true });
+  const noRim = !!$('#sheet [name=norim]')?.checked, rim = noRim ? null : (+fval('rft')) * 12 + (num(fval('rin')) || 0), vert = num(fval('vert'));
+  if (noRim && !(vert > 0)) return toast('Add your vertical.', { bad: true });
+  if (!noRim && !(rim > 60 && rim < 144)) return toast('Check the rim height.', { bad: true });
   const prevBest = Math.max(0, ...Store.list('jumps').filter(x => x.id !== d.id).map(x => x.rim || 0));
-  put('jumps', d.id || newId(), { date: fval('date') || todayStr(), rim, vert: vert || null, note: fval('note'), ts: Date.now() }); closeSheet();
-  if (prevBest && rim > prevBest) { toast(`New dunk PR: ${ftin(rim)}! 🏀`, { pr: true, ms: 3800 }); confetti({ n: 26, emoji: '🏀', power: 13 }); setTimeout(() => confetti({ n: 70 }), 150); } else toast('Saved');
+  const old = d.id ? Store.docs.jumps[d.id] : null; put('jumps', d.id || newId(), { date: fval('date') || todayStr(), rim, vert: vert || null, note: fval('note'), ...(old && old.src ? { src: old.src } : {}), ts: Date.now() }); closeSheet();
+  if (rim && prevBest && rim > prevBest) { toast(`New dunk PR: ${ftin(rim)}! 🏀`, { pr: true, ms: 3800 }); confetti({ n: 26, emoji: '🏀', power: 13 }); setTimeout(() => confetti({ n: 70 }), 150); } else toast('Saved');
 };
 A.delJump = d => { const j = Store.docs.jumps[d.id]; del('jumps', d.id); closeSheet(); if (j) toastUndo('Entry deleted', () => put('jumps', d.id, j)); };
-A.jumpHistory = () => { openSheet('Dunk log', Store.list('jumps').sort((a, b) => b.date.localeCompare(a.date)).map(j => `<button class="row" data-act="logJump" data-id="${j.id}"><div class="grow"><b>${ftin(j.rim)}</b>${j.vert ? ` <span class="muted small">· ${trim(j.vert, 1)}″ vertical</span>` : ''}<div class="faint small">${fmtDate(j.date)}${j.note ? ' · ' + esc(j.note) : ''}</div></div></button>`).join('')); };
+A.jumpHistory = () => { openSheet('Dunk log', Store.list('jumps').sort((a, b) => b.date.localeCompare(a.date)).map(j => `<button class="row" data-act="logJump" data-id="${j.id}"><div class="grow"><b>${j.rim ? ftin(j.rim) : `${trim(j.vert, 1)}″ vertical`}</b>${j.rim && j.vert ? ` <span class="muted small">· ${trim(j.vert, 1)}″ vertical</span>` : ''}${j.src === 'video' ? ' <span class="faint small">· 🎥</span>' : ''}<div class="faint small">${fmtDate(j.date)}${j.note ? ' · ' + esc(j.note) : ''}</div></div></button>`).join('')); };
 function liftsListHTML() {
   const lifts = liftList();
   if (!lifts.length) return (wantsDunk() ? dunkCardHTML() : '') + skillsCardHTML() + `<div class="empty"><p>Nothing logged yet. Log a PR you already have (pick its real date) or start a workout. Every set gets checked for rep-max PRs.</p><button class="btn" data-act="logPR">Log a PR attempt</button></div>${big3CardHTML()}`;
@@ -90,6 +93,7 @@ function liftDetailHTML(L) {
   return `<button class="back" data-act="liftBack">${ICON.chevL.replace('<svg', '<svg width="18" height="18"')} Lifts</button>
   <div class="card-h"><h1 class="lift-h grow">${esc(L.name)}</h1>${musBtn(L.name)}<button class="iconbtn" data-act="liftMenu" data-key="${esc(L.key)}" aria-label="Lift options">${ICON.dots}</button></div>${exHelps(L.name).length ? `<div style="margin-top:-6px">${goalBadges(L.name, 4)}</div>` : ''}
   <div class="stats"><div class="stat"><span class="k">Est. 1RM</span><span class="v">${L.e1 ? fw(L.e1, 0) : '—'}<span class="unit">${U.wu}</span></span></div><div class="stat"><span class="k">Heaviest</span><span class="v">${L.heavy ? `${fw(L.heavy.w)}<span class="unit">×${L.heavy.r}</span>` : '—'}</span></div><div class="stat"><span class="k">PRs</span><span class="v">${L.prs}</span></div></div>
+  ${strengthCardHTML(L)}
   <section class="card"><h2 class="sec-t">Estimated 1RM over time</h2>
     ${chartSlot('lift-' + slug(L.key), { h: 190, x0, x1, label: `${L.name} estimated one-rep max over time`, series: [{ type: 'step', pts: prLine, extend: true }, { type: 'dots', pts: pts(hits.filter(s => !s.pr)), color: 'var(--tx3)', r: 2.5, op: .8 }, { type: 'rings', pts: pts(misses), color: 'var(--miss)' }, { type: 'pr', pts: pts(hits.filter(s => s.pr || s.baseline)) }], scrubPts: pts(L.sets), yFmt: v => trim(v, 0), tip: tipSet })}
     ${legend([['l', 'background:var(--accent)', 'Best so far'], ['', 'background:var(--grad)', 'PR'], ['', 'background:var(--tx3)', 'Other sets'], ['', 'box-shadow:inset 0 0 0 2px var(--miss)', 'Missed']])}

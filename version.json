@@ -1,6 +1,10 @@
 {
- "version": "3.8.4",
+ "version": "3.9",
  "notes": [
-  "Figures refined: a more natural fit male build, a slimmer female with narrower shoulders and natural hips, and plain single-colour bodies with no painted clothing."
+  "\ud83c\udfa5 Test your vertical from a video: mark takeoff and landing, and the app works out your jump height from your air time.",
+  "\ud83d\udcc8 Dunk countdown: how many weeks until you dunk your goal at your current pace, plus your touch height from your standing reach.",
+  "\ud83c\udfcb\ufe0f Strength levels: see where your squat, bench, deadlift, press and row rank for your bodyweight.",
+  "\u25a5 Scan barcodes for instant nutrition facts, \u201cHit your protein\u201d suggestions built from your foods, and Copy from yesterday.",
+  "\ud83c\udf99\ufe0f \u201cHey Siri, log my weight\u201d: set it up in Settings \u2192 Alerts."
  ]
 }
