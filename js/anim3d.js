@@ -71,7 +71,7 @@ function gripMesh(m, M, sign = -1) {
   }
   return (m[key] = { pos, nrm });
 }
-const GRIP_PROPS = new Set(['ball', 'db', 'bar', 'barhip', 'kb', 'grips', 'fixbar', 'rails', 'cable', 'cable2', 'rope', 'smith', 'tbar', 'handles']);
+const GRIP_PROPS = new Set(['handle', 'db1', 'ball', 'db', 'bar', 'barhip', 'kb', 'grips', 'fixbar', 'rails', 'cable', 'cable2', 'rope', 'smith', 'tbar', 'handles']);
 const grips = def => def.hands !== 'floor' && (def.grip || (def.props || []).some(p => GRIP_PROPS.has(p.t)));
 /* forearm frame with optional twist about the forearm (def.twist, radians; mirrored for the left arm): turns the hand palm-up/down */
 function faFrame(J, s, tw) { const f = frame3(J['el' + s], J['ha' + s], J['eb' + s]); if (!tw) return f; const a = s === 'R' ? tw : -tw, c = Math.cos(a), n = Math.sin(a); return [f[0], V.add(V.mul(f[1], c), V.mul(f[2], n)), V.sub(V.mul(f[2], c), V.mul(f[1], n))]; }
@@ -181,6 +181,7 @@ function propGeo(def, q, J, m) {
       cyl([0, y0 + 10 * k, bz + 3 * k], [0, y0 + 10 * k, bz + 40 * k], 2.5 * k, C3.dark, 10); cyl([0, 0, bz + 40 * k], [0, y0 + 10 * k, bz + 40 * k], 3 * k, C3.dark, 12, 1); }
     else if (pr.t === 'ball') { const h = G.R, up = V.norm(V.sub(J.haR, J.elR)), c = def._ball || V.add(h, V.mul(up, pr.r * 0.9)); ball(c, pr.r, [0.88, 0.42, 0.14], 10, 16); for (const [ax, ay] of [[1, 0], [0, 1]]) { for (let i = 0; i < 16; i++) { const a0 = i / 16 * Math.PI * 2, a1 = (i + 1) / 16 * Math.PI * 2, P = a => ax ? [c[0], c[1] + Math.cos(a) * pr.r * 1.01, c[2] + Math.sin(a) * pr.r * 1.01] : [c[0] + Math.cos(a) * pr.r * 1.01, c[1] + Math.sin(a) * pr.r * 1.01, c[2]]; cyl(P(a0), P(a1), pr.r * 0.04, [0.18, 0.1, 0.06], 4); } } }
     else if (pr.t === 'hline') { const c = pr.col || C3.on; cyl([pr.x || 0, pr.y, pr.z - pr.w], [pr.x || 0, pr.y, pr.z + pr.w * 0.4], pr.th || 0.008, c, 6); }
+    else if (pr.t === 'handle') { const d = V.sub(G.L, G.R), L = V.len(d), u = L > 1e-3 ? V.mul(d, 1 / L) : [1, 0, 0], ext = Math.max(0, (0.16 - L) / 2); cyl(V.sub(G.R, V.mul(u, ext + 0.03)), V.add(G.L, V.mul(u, ext + 0.03)), 0.017, C3.bar, 10, 1); ball(mid, 0.022, C3.dark, 5, 8); }
     else if (pr.t === 'db1') { const c = mid, ax = V.norm(V.add(V.sub(J.haR, J.elR), V.sub(J.haL, J.elL))), P = d => V.add(c, V.mul(ax, d)); cyl(P(-0.05), P(0.17), 0.018, C3.bar); for (const d of [-0.07, 0.19]) cyl(P(d - 0.035), P(d + 0.035), 0.07, C3.dark, 14, 1); }
     else if (pr.t === 'box') { slab([0, pr.h, pr.z0], [0, pr.h, pr.z1], pr.w || 0.6, C3.pad, pr.h); }
     else if (pr.t === 'lpframe') { slab([0, 0.06, -0.75], [0, 0.06, 1.15], 0.7, C3.dark, 0.06); for (const sx of [-0.3, 0.3]) { cyl([sx, 0.3, 0.32], [sx, 1.12, 0.98], 0.03, C3.bar, 8, 1); cyl([sx, 0.06, 0.32], [sx, 0.3, 0.32], 0.03, C3.dark); cyl([sx, 0.06, 0.98], [sx, 1.12, 0.98], 0.03, C3.dark); cyl([sx, 0.06, -0.42], [sx, 0.74, -0.42], 0.03, C3.dark); cyl([sx, 0.06, 0.1], [sx, 0.3, 0.1], 0.03, C3.dark); } }
