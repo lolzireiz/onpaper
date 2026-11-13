@@ -1,8 +1,6 @@
 {
- "version": "6.4",
+ "version": "6.5",
  "notes": [
-  "\ud83c\udf19 Overnight polish: smoother dunk simulator, a cleaner animation for nearly every exercise (real machines, benches, racks, grips), a fully working light theme, ringed Food summary, live workout strip, lift trend lines, and lots of small fixes.",
-  "\ud83c\udfac Exercise info now opens with the animation first.",
-  "\ud83e\uddb5 Leg curl and extension machines have handles to hold."
+  "\ud83d\udcf0 The update pop-up now shows just the latest few changes. Everything else is under You \u2192 What's new."
  ]
 }

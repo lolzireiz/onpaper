@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '6.4';
+const APP_VERSION = '6.5';
 const CHANGELOG = [
+  ['6.5', ['📰 The update pop-up now shows just the latest few changes. Everything else is under You → What\'s new.']],
   ['6.4', ['🌙 Overnight polish: smoother dunk simulator, a cleaner animation for nearly every exercise (real machines, benches, racks, grips), a fully working light theme, ringed Food summary, live workout strip, lift trend lines, and lots of small fixes.', '🎬 Exercise info now opens with the animation first.', '🦵 Leg curl and extension machines have handles to hold.']],
   ['6.3', ['⏱️ Workouts show a live strip at the top: time, volume and sets done out of planned, with a progress bar.', '📏 Dunk simulator works in centimetres for metric users.']],
   ['6.2', ['☀️ Light theme fixed everywhere: pop-up sheets, selected chips, badges and hints are all readable now.', '📈 Each lift in Progress shows a mini trend line of your estimated 1RM.', '🦋 Pec deck animation now uses real swinging machine arms.']],
@@ -57,8 +58,8 @@ const CHANGELOG = [
 function checkVersion() {
   let seen = null; try { seen = localStorage.getItem('onpaper.version'); localStorage.setItem('onpaper.version', APP_VERSION); } catch (e) {}
   if (seen && seen !== APP_VERSION) {
-    const notes = CHANGELOG.filter(([v]) => v > seen);
-    setTimeout(() => openSheet(`Updated to v${APP_VERSION}`, `${notes.map(([v, items]) => `<div class="field"><span class="lbl">What's new in v${v}</span><ul class="muted" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">${items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`).join('')}<p class="faint small">Your data is untouched. Updates only change the app, never what you've logged.</p><button class="btn block" data-act="closeSheet">Got it</button>`), 500);
+    const vn = v => { const [a, b] = String(v).split('.').map(Number); return (a || 0) * 1000 + (b || 0); }, all = CHANGELOG.filter(([v]) => vn(v) > vn(seen)), notes = all.slice(0, 4);
+    setTimeout(() => openSheet(`Updated to v${APP_VERSION}`, `${notes.map(([v, items]) => `<div class="field"><span class="lbl">What's new in v${v}</span><ul class="muted" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">${items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`).join('')}${all.length > 4 ? `<p class="faint small">Plus ${all.length - 4} earlier update${all.length > 5 ? 's' : ''}. See them all under You → What's new.</p>` : ''}<p class="faint small">Your data is untouched. Updates only change the app, never what you've logged.</p><button class="btn block" data-act="closeSheet">Got it</button>`), 500);
   }
 }
 
