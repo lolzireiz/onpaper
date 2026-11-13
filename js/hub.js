@@ -24,6 +24,9 @@ function appearanceHTML() {
 
 /* ======================= recovery & readiness ======================= */
 const GROUP_IDS = { Chest: ['chest'], Back: ['lats', 'upper_back'], Shoulders: ['delts', 'side_delts', 'rear_delts'], Biceps: ['biceps'], Triceps: ['triceps'], Quads: ['quads'], Hamstrings: ['hamstrings'], Glutes: ['glutes'], Calves: ['calves'], Core: ['abs', 'obliques'] };
+/* soreness groups for the check-in (a bit finer than the training groups) */
+const SORE_GROUPS = { Chest: ['chest'], Shoulders: ['delts', 'side_delts', 'rear_delts'], Triceps: ['triceps'], Biceps: ['biceps'], Forearms: ['forearms'], 'Upper back': ['lats', 'upper_back', 'traps'], 'Lower back': ['lower_back'], Core: ['abs', 'obliques'], Glutes: ['glutes'], Quads: ['quads'], Hamstrings: ['hamstrings'], 'Inner thighs': ['adductors'], Calves: ['calves'] };
+const SORE_LV = [['None', ''], ['A bit', '#f5b915'], ['Sore', '#ff8a3d'], ['Very', '#f0302e']];
 /* Fatigue per muscle: each hard set adds 1 (main mover) or 0.5 (helper) and fades with a ~30 hour half-life-ish curve. */
 function muscleRecovery() {
   return Store.cached('mrec', () => {
@@ -35,6 +38,8 @@ function muscleRecovery() {
       if (w.marked) for (const g of w.groups || []) for (const id of GROUP_IDS[g] || []) fat[id] = (fat[id] || 0) + MARK_SETS * k;
     }
     const out = {}; for (const id of Object.keys(MUSCLE_NAMES)) out[id] = Math.round(clamp(100 - (fat[id] || 0) * 11, 0, 100));
+    // what you said hurts today overrides the estimate: a bit ≤ 75%, sore ≤ 55%, very ≤ 35%
+    const sm = dailyOf().soreMap || {}; for (const [g, lv] of Object.entries(sm)) for (const id of SORE_GROUPS[g] || []) if (lv > 0) out[id] = Math.min(out[id], 95 - lv * 20);
     return out;
   });
 }
@@ -48,11 +53,12 @@ function trainingLoad(days) { // hard sets (+ sport minutes / 10) in the last `d
 }
 function readiness(date = todayStr()) {
   return Store.cached('ready:' + date, () => {
-    const d = dailyOf(date), has = d.sleep != null || d.sore != null || d.energy != null;
+    const d = dailyOf(date), has = d.sleep != null || d.sore != null || d.energy != null || d.soreMap != null;
     const acute = trainingLoad(3) / 3, chronic = trainingLoad(28) / 28, ratio = chronic > 0.5 ? acute / chronic : 1;
     const load = ratio <= 1.1 ? 30 : Math.max(0, 30 - (ratio - 1.1) * 40);
     const sleep = d.sleep != null ? Math.min(1, d.sleep / 8) * 35 : 26;
-    const sore = d.sore != null ? (5 - d.sore) / 4 * 20 : 14;
+    const lvls = Object.values(d.soreMap || {}).filter(v => v > 0), mx = Math.max(0, ...lvls), sum = lvls.reduce((a, b) => a + b, 0);
+    const sore = d.soreMap ? Math.max(0, 20 - (mx * 4 + (sum - mx) * 1.2)) : d.sore != null ? (5 - d.sore) / 4 * 20 : 14;
     const energy = d.energy != null ? (d.energy - 1) / 4 * 15 : 10;
     const score = Math.round(load + sleep + sore + energy);
     const [lbl, tip, col] = score >= 80 ? ['Ready to push', 'Good day to go for PRs.', 'var(--ok)'] : score >= 62 ? ['Train normally', 'Solid day. Stick to the plan.', 'var(--accent)'] : score >= 45 ? ['Go a bit lighter', 'Do the workout but drop a set per exercise, or keep 2–3 reps in the tank.', '#f5b915'] : ['Recover today', 'Mobility, a walk, or a light session will pay off more than grinding.', 'var(--miss)'];
@@ -66,21 +72,47 @@ function readinessRowHTML() {
   return `<button class="ready-row" data-act="readyOpen">${ring(r.score, r.col, 52, 6, r.score)}<span class="grow"><span class="eyebrow">Readiness</span><b>${r.lbl}</b><span class="faint small">${esc(r.tip)}</span></span>${ICON.chevR.replace('<svg', '<svg width="16" height="16" style="opacity:.4"')}</button>`;
 }
 A.readyOpen = () => {
-  const r = readiness(), d = r.d, mr = muscleRecovery();
+  const d = dailyOf();
+  Sheet.rd = { sleep: d.sleep ?? null, energy: d.energy ?? null, soreMap: { ...(d.soreMap || {}) } };
+  // first check-in of the day: suggest soreness from what you trained in the last 3 days
+  if (!d.soreMap) { const rec = muscleRecovery(); for (const [g, ids] of Object.entries(SORE_GROUPS)) { const v = Math.min(...ids.map(i => rec[i] ?? 100)); Sheet.rd.sug = Sheet.rd.sug || {}; if (v < 80) Sheet.rd.sug[g] = v < 50 ? 2 : 1; } }
+  openSheet('Readiness', '');
+  drawReady();
+};
+const fmtSleep = h => h == null ? '—' : `${Math.floor(h)}h${Math.round((h % 1) * 60) ? ' ' + Math.round((h % 1) * 60) + 'm' : ''}`;
+function drawReady() {
+  const r = readiness(), R = Sheet.rd; if (!R) return;
   const grp = Object.keys(GROUP_IDS).map(g => [g, groupRecovery(g)]).sort((a, b) => a[1] - b[1]);
-  const chips = (k, opts, cur) => `<div class="seg">${opts.map(([v, l]) => `<button data-act="pick" data-group="${k}" data-value="${v}" aria-pressed="${String(cur) === String(v)}">${l}</button>`).join('')}</div>`;
-  openSheet('Readiness', `<div class="ready-hero">${ring(r.score, r.col, 110, 10, r.score)}<div><b style="font-size:20px">${r.lbl}</b><p class="muted small" style="margin:4px 0 0">${esc(r.tip)}</p></div></div>
-    <div class="field"><span class="lbl">Sleep last night</span>${chips('rsleep', [[5, '≤5h'], [6, '6h'], [7, '7h'], [8, '8h'], [9, '9h+']], d.sleep)}</div>
-    <div class="field"><span class="lbl">How sore are you?</span>${chips('rsore', [[1, 'Not'], [2, 'A bit'], [3, 'Sore'], [4, 'Very'], [5, 'Wrecked']], d.sore)}</div>
-    <div class="field"><span class="lbl">Energy</span>${chips('renergy', [[1, '😴'], [2, '😕'], [3, '😐'], [4, '🙂'], [5, '⚡']], d.energy)}</div>
+  const sleepV = R.sleep ?? 7, heat = {}; for (const [g, lv] of Object.entries(R.soreMap)) for (const id of SORE_GROUPS[g] || []) if (lv) heat[id] = [0, 2, 6, 12][lv];
+  const sex = S().bodyModel || 'male', fig = v => `<div style="--fig-h:170px">${bodySVG(v, sex, { p: new Set(), s: new Set(), heat })}</div>`;
+  const y = $('#sheet .sheet-b')?.scrollTop || 0;
+  sheetBody(`<div class="ready-hero">${ring(r.score, r.has ? r.col : 'var(--tx3)', 104, 10, r.has ? r.score : '?')}<div><b style="font-size:20px">${r.has ? r.lbl : 'Check in'}</b><p class="muted small" style="margin:4px 0 0">${r.has ? esc(r.tip) : 'Tell it how you slept and what hurts.'}</p></div></div>
+    <div class="field"><div class="card-h"><span class="lbl">Sleep last night</span><b class="rnum" id="rd-sv" style="font-size:20px">${R.sleep == null ? '—' : fmtSleep(R.sleep)}</b></div>
+      <div class="sl-row"><button class="btn ghost pl-step" data-act="rdSleep" data-d="-0.25" aria-label="15 minutes less">−</button><input type="range" id="rd-sleep" class="sim-range" min="0" max="12" step="0.25" value="${sleepV}" aria-label="Hours of sleep"><button class="btn ghost pl-step" data-act="rdSleep" data-d="0.25" aria-label="15 minutes more">+</button></div>
+      <div class="chips">${[4, 5, 6, 7, 8, 9].map(h => `<button class="chip" data-act="rdSleepSet" data-v="${h}" aria-pressed="${R.sleep === h}">${h}h</button>`).join('')}</div></div>
+    <div class="field"><span class="lbl">Where are you sore?</span><p class="faint small" style="margin:-2px 0 6px">Tap a muscle to cycle: none → a bit → sore → very.${R.sug && Object.keys(R.sug).length && !Object.keys(R.soreMap).length ? ` <button class="linkbtn" data-act="rdSug">Fill from recent workouts</button>` : ''}</p>
+      <div class="sore-wrap"><div class="sore-figs">${fig('front')}${fig('back')}</div>
+      <div class="sore-grid">${Object.keys(SORE_GROUPS).map(g => { const lv = R.soreMap[g] || 0; return `<button class="sore-b lv${lv}" data-act="rdSore" data-g="${esc(g)}" aria-label="${esc(g)}: ${SORE_LV[lv][0]}"><span>${esc(g)}</span><i>${lv ? SORE_LV[lv][0] : ''}</i></button>`; }).join('')}</div></div>
+      ${Object.values(R.soreMap).some(v => v) ? '<button class="linkbtn" data-act="rdSoreClear" style="align-self:flex-start">Not sore anywhere</button>' : ''}</div>
+    <div class="field"><span class="lbl">Energy</span><div class="seg">${[[1, '😴'], [2, '😕'], [3, '😐'], [4, '🙂'], [5, '⚡']].map(([v, l]) => `<button data-act="rdEnergy" data-v="${v}" aria-pressed="${R.energy === v}">${l}</button>`).join('')}</div></div>
     <button class="btn block" data-act="readySave">Save check-in</button>
     <div class="field"><span class="lbl">Muscle recovery</span><div class="recov">${grp.map(([g, v]) => `<div class="recov-r"><span>${g}</span><span class="bar"><i style="width:${v}%;background:${v >= 85 ? 'var(--ok)' : v >= 60 ? '#f5b915' : 'var(--miss)'}"></i></span><b>${v}%</b></div>`).join('')}</div></div>
-    <p class="faint tiny">The score mixes your check-in (sleep, soreness, energy) with your training load over the last 3 days compared to your usual. Muscle recovery fades over about 2–3 days after hard sets.</p>`);
-};
+    <p class="faint tiny">The score mixes sleep, soreness and energy with your training load over the last 3 days compared to your usual. Muscles you mark as sore count as less recovered, so Smart pick steers around them.</p>`);
+  const b = $('#sheet .sheet-b'); if (b) b.scrollTop = y;
+  const sl = $('#rd-sleep'); if (sl) sl.addEventListener('input', () => { R.sleep = +sl.value; $('#rd-sv').textContent = fmtSleep(R.sleep); $$('#sheet [data-act=rdSleepSet]').forEach(c => c.setAttribute('aria-pressed', String(+c.dataset.v === R.sleep))); });
+}
+A.rdSleep = d => { const R = Sheet.rd; R.sleep = clamp((R.sleep ?? 7) + +d.d, 0, 14); drawReady(); };
+A.rdSleepSet = d => { Sheet.rd.sleep = +d.v; drawReady(); };
+A.rdEnergy = d => { Sheet.rd.energy = Sheet.rd.energy === +d.v ? null : +d.v; drawReady(); };
+A.rdSore = d => { const m = Sheet.rd.soreMap; m[d.g] = ((m[d.g] || 0) + 1) % 4; if (!m[d.g]) delete m[d.g]; drawReady(); };
+A.rdSoreClear = () => { Sheet.rd.soreMap = {}; Sheet.rd.noSore = true; drawReady(); };
+A.rdSug = () => { Object.assign(Sheet.rd.soreMap, Sheet.rd.sug || {}); drawReady(); };
 A.readySave = () => {
-  const root = $('#sheet'), sl = picked(root, 'rsleep'), so = picked(root, 'rsore'), en = picked(root, 'renergy');
-  if (sl == null && so == null && en == null) { toast('Tap at least one answer'); return; }
-  const patch = {}; if (sl != null) patch.sleep = +sl; if (so != null) patch.sore = +so; if (en != null) patch.energy = +en;
+  const R = Sheet.rd; if (!R) return;
+  const touched = R.sleep != null || R.energy != null || Object.keys(R.soreMap).length || R.noSore || dailyOf().soreMap;
+  if (!touched) { toast('Add your sleep, soreness or energy first'); return; }
+  const patch = { soreMap: { ...R.soreMap } }; if (R.sleep != null) patch.sleep = R.sleep; if (R.energy != null) patch.energy = R.energy;
+  const lv = Object.values(R.soreMap); patch.sore = lv.length ? Math.min(5, 1 + Math.max(...lv) + (lv.length > 3 ? 1 : 0)) : 1;   // legacy 1–5 summary
   putDaily(todayStr(), patch); closeSheet(); setTimeout(() => toast(`Readiness ${readiness().score}: ${readiness().lbl}`), 50);
 };
 

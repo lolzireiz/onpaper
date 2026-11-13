@@ -1,6 +1,7 @@
 {
- "version": "6.6",
+ "version": "6.7",
  "notes": [
-  "\ud83d\udd17 Cable rows, Pallof presses and woodchops now show the handle you hold."
+  "\ud83e\ude79 Check-in now lets you mark exactly where you're sore (chest, triceps, quads, and so on) and how much, shown on the body diagram. Sore muscles count as less recovered, so Smart pick steers around them.",
+  "\ud83d\ude34 Enter any amount of sleep with the slider or +/\u2212 in 15-minute steps."
  ]
 }

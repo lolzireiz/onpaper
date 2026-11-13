@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '6.6';
+const APP_VERSION = '6.7';
 const CHANGELOG = [
+  ['6.7', ['🩹 Check-in now lets you mark exactly where you\'re sore (chest, triceps, quads, and so on) and how much, shown on the body diagram. Sore muscles count as less recovered, so Smart pick steers around them.', '😴 Enter any amount of sleep with the slider or +/− in 15-minute steps.']],
   ['6.6', ['🔗 Cable rows, Pallof presses and woodchops now show the handle you hold.']],
   ['6.5', ['📰 The update pop-up now shows just the latest few changes. Everything else is under You → What\'s new.']],
   ['6.4', ['🌙 Overnight polish: smoother dunk simulator, a cleaner animation for nearly every exercise (real machines, benches, racks, grips), a fully working light theme, ringed Food summary, live workout strip, lift trend lines, and lots of small fixes.', '🎬 Exercise info now opens with the animation first.', '🦵 Leg curl and extension machines have handles to hold.']],
