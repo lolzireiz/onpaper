@@ -1,6 +1,7 @@
 {
- "version": "5.7",
+ "version": "5.8",
  "notes": [
-  "\u2705 Mark a day as trained without the details: pick the muscles (or split day) and it counts as a gym day, and recovery and Smart pick know those muscles are worked."
+  "\ud83c\udfc0 Dunk simulator (Progress \u2192 Athlete): a figure your height jumps at a 10\u2032 rim (or your goal rim). Slide your vertical to see where you touch, how far you are from a dunk, and how much vert you need. Your height and reach are saved.",
+  "\u2728 Exercise animations load the detailed figure straight away (no more flash of the simple one)."
  ]
 }

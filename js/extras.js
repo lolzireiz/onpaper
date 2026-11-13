@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '5.7';
+const APP_VERSION = '5.8';
 const CHANGELOG = [
+  ['5.8', ['🏀 Dunk simulator (Progress → Athlete): a figure your height jumps at a 10′ rim (or your goal rim). Slide your vertical to see where you touch, how far you are from a dunk, and how much vert you need. Your height and reach are saved.', '✨ Exercise animations load the detailed figure straight away (no more flash of the simple one).']],
   ['5.7', ['✅ Mark a day as trained without the details: pick the muscles (or split day) and it counts as a gym day, and recovery and Smart pick know those muscles are worked.']],
   ['5.6', ['🗓️ Log a workout for a past day: tap the day in Train → History, or use “Log a past workout” under “Pick a different workout”. Sets count on that date for your calendar, streaks and PRs.']],
   ['5.5', ['✊ Animated figures now close their hands around dumbbells, bars and handles.', '🏋️ Equipment shows up where it belongs: Smith machine, squat rack, bench uprights, incline bench for incline curls, preacher pad, chest-supported row bench, one-arm dumbbell row on a bench, T-bar, hack squat, leg extension/curl pads, seat pads, calf blocks, rope attachments, cable lateral raises and machine arms.']],

@@ -71,7 +71,7 @@ function gripMesh(m, M, sign = -1) {
   }
   return (m[key] = { pos, nrm });
 }
-const GRIP_PROPS = new Set(['db', 'bar', 'barhip', 'kb', 'grips', 'fixbar', 'rails', 'cable', 'cable2', 'rope', 'smith', 'tbar', 'handles']);
+const GRIP_PROPS = new Set(['ball', 'db', 'bar', 'barhip', 'kb', 'grips', 'fixbar', 'rails', 'cable', 'cable2', 'rope', 'smith', 'tbar', 'handles']);
 const grips = def => def.hands !== 'floor' && (def.grip || (def.props || []).some(p => GRIP_PROPS.has(p.t)));
 const BONE_ORDER = ['torso', 'uaR', 'uaL', 'faR', 'faL', 'thR', 'thL', 'shR', 'shL', 'ftR', 'ftL', 'hdR', 'hdL'];
 /* current pose → 11 bone matrices (column-major 4x4), M = [Fc * Fr^T | a_cur - R a_rest] */
@@ -161,6 +161,16 @@ function propGeo(def, q, J, m) {
     if (pr.t === 'bar') { if (pr.short) { const half = Math.max(0.3, Math.abs(gR[0] - gL[0]) / 2 + 0.12); cyl([mid[0] - half, mid[1], mid[2]], [mid[0] + half, mid[1], mid[2]], 0.016, C3.bar, 10, 1); } else barbell(mid[0], mid[1], mid[2]); }
     else if (pr.t === 'barhip') { const c = V.add(q.p, [0, 0.15, 0.08]); barbell(0, c[1], c[2]); }
     else if (pr.t === 'db' && pr.side) { const s = pr.side, h = G[s], ax = GA[s], P = d => V.add(h, V.mul(ax, d)); cyl(P(-0.12), P(0.12), 0.017, C3.bar); for (const dz of [-0.12, 0.12]) cyl(P(dz - 0.035), P(dz + 0.035), 0.062, C3.dark, 14, 1); }
+    else if (pr.t === 'hoop') { // regulation hoop scaled to the figure: 18" rim, 72"x42" board, 15" from board to rim centre
+      const k = pr.k, y = pr.y, z = pr.z, rr = 9 * k, bz = z + 15 * k, col = [0.95, 0.42, 0.13], nn = 24;
+      for (let i = 0; i < nn; i++) { const a0 = i / nn * Math.PI * 2, a1 = (i + 1) / nn * Math.PI * 2; cyl([Math.cos(a0) * rr, y, z + Math.sin(a0) * rr], [Math.cos(a1) * rr, y, z + Math.sin(a1) * rr], 0.45 * k, col, 6); }
+      for (let i = 0; i < 12; i++) { const a0 = i / 12 * Math.PI * 2; cyl([Math.cos(a0) * rr, y, z + Math.sin(a0) * rr], [Math.cos(a0 + 0.5) * rr * 0.62, y - 15 * k, z + Math.sin(a0 + 0.5) * rr * 0.62], 0.18 * k, [0.92, 0.93, 0.96], 4); }
+      cyl([0, y, z + rr], [0, y, bz], 0.6 * k, col, 6);
+      slab([0, y - 6 * k, bz + 1 * k], [0, y + 36 * k, bz + 1 * k], 72 * k, [0.9, 0.92, 0.96], 2 * k);
+      slab([0, y, bz], [0, y + 18 * k, bz], 24 * k, [0.95, 0.42, 0.13], 0.6 * k);
+      cyl([0, y + 10 * k, bz + 3 * k], [0, y + 10 * k, bz + 40 * k], 2.5 * k, C3.dark, 10); cyl([0, 0, bz + 40 * k], [0, y + 10 * k, bz + 40 * k], 3 * k, C3.dark, 12, 1); }
+    else if (pr.t === 'ball') { const h = G.R, up = V.norm(V.sub(J.haR, J.elR)); ball(V.add(h, V.mul(up, pr.r * 0.9)), pr.r, [0.88, 0.42, 0.14], 10, 16); }
+    else if (pr.t === 'hline') { const c = pr.col || C3.on; cyl([pr.x || 0, pr.y, pr.z - pr.w], [pr.x || 0, pr.y, pr.z + pr.w * 0.4], pr.th || 0.008, c, 6); }
     else if (pr.t === 'smith') { const z = pr.z ?? JA.mid[2], top = 2.15; for (const sx of [-1, 1]) { cyl([sx * 0.7, 0, z], [sx * 0.7, top, z], 0.03, C3.dark, 10, 1); cyl([sx * 0.7, 0, z - 0.32], [sx * 0.7, 0, z + 0.32], 0.035, C3.dark, 8, 1); cyl([sx * 0.66, mid[1] - 0.04, z], [sx * 0.66, mid[1] + 0.04, z], 0.04, C3.bar, 10, 1); } cyl([-0.72, top, z], [0.72, top, z], 0.03, C3.dark, 10, 1); }
     else if (pr.t === 'rack') { const z = pr.z ?? JA.mid[2], y = pr.y ?? JA.mid[1] - 0.05; for (const sx of [-1, 1]) for (const dz of [-0.32, 0.32]) cyl([sx * 0.62, 0, z + dz], [sx * 0.62, 2.25, z + dz], 0.028, C3.dark, 8, 1); for (const sx of [-1, 1]) { cyl([sx * 0.62, 2.25, z - 0.32], [sx * 0.62, 2.25, z + 0.32], 0.026, C3.dark); cyl([sx * 0.62, y, z + 0.32], [sx * 0.62, y, z + 0.42], 0.022, C3.bar); cyl([sx * 0.62, 0.95, z - 0.32], [sx * 0.62, 0.95, z + 0.32], 0.024, C3.bar); } cyl([-0.62, 2.25, z - 0.32], [0.62, 2.25, z - 0.32], 0.026, C3.dark); }
     else if (pr.t === 'benchrack') { const z = pr.z, h = pr.h; for (const sx of [-1, 1]) { cyl([sx * 0.56, 0, z], [sx * 0.56, h + 0.08, z], 0.028, C3.dark, 8, 1); cyl([sx * 0.56, h, z], [sx * 0.56, h, z + 0.09], 0.02, C3.bar); cyl([sx * 0.56, 0, z - 0.25], [sx * 0.56, 0, z + 0.25], 0.03, C3.dark, 8, 1); } }
@@ -195,7 +205,7 @@ function propGeo(def, q, J, m) {
   return { data: new Float32Array(o), nFlat };
 }
 function g3Draw(cv, G, def, t, yawDeg, cycle) {
-  const gl = G.gl, W = cv.width, H = cv.height, S = Math.min(W, H * 1.12) / (2 * def.r) * 0.96, q = animPose(def, t, cycle), J = animJoints(q, def.build);
+  const gl = G.gl, W = cv.width, H = cv.height, S = Math.min(W, H * 1.12) / (2 * def.r) * 0.96, q = def.qAt ? def.qAt(t) : animPose(def, t, cycle), J = animJoints(q, def.build);
   const ya = yawDeg * Math.PI / 180, pa = 11 * Math.PI / 180, cy = Math.cos(ya), sy = Math.sin(ya), cp = Math.cos(pa), sp = Math.sin(pa), kx = S / (W / 2), ky = S / (H / 2), kz = 0.25, c = def.c;
   // view rows: x1 = x cy - z sy ; y1 = y cp - (x sy + z cy) sp ; z2 = y sp + (x sy + z cy) cp
   const r0 = [cy, 0, -sy], r1 = [-sy * sp, cp, -cy * sp], r2 = [sy * cp, sp, cy * cp], tx = -(r0[0] * c[0] + r0[1] * c[1] + r0[2] * c[2]), ty = -(r1[0] * c[0] + r1[1] * c[1] + r1[2] * c[2]), tz = -(r2[0] * c[0] + r2[1] * c[1] + r2[2] * c[2]);

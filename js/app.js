@@ -29,3 +29,6 @@ function start(saved) {
 }
 if (window.claude?.hot?.snapshot) window.claude.hot.snapshot(() => ({ tab: UI.tab, bodySub: UI.bodySub, liftKey: UI.liftKey, session: UI.session, weightRange: UI.weightRange, weightFilter: UI.weightFilter }));
 if (window.claude?.hot?.ready) window.claude.hot.ready(start); else start(window.claude?.hot?.data ?? {});
+
+/* warm up the 3D figure in the background so exercise animations open instantly */
+setTimeout(() => { const go = () => { try { loadBodyMesh(() => {}); } catch (e) {} }; 'requestIdleCallback' in window ? requestIdleCallback(go, { timeout: 4000 }) : go(); }, 1500);

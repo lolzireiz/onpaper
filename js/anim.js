@@ -346,7 +346,11 @@ function startAnim(cv, noMesh) {
   let def = animDef(name, sex, !noMesh), G = null; if (!def) return;
   const swap = flag => { const n = cv.cloneNode(false); cv.replaceWith(n); startAnim(n, flag); };
   if (!noMesh && G3.state === 'ready') { try { G = g3Setup(cv, def, sex); } catch (e) { G = null; } if (!G) return swap(true); }                  // no WebGL: simple figure
-  else if (!noMesh && G3.state !== 'failed') loadBodyMesh(ok => { if (ok && cv.isConnected) swap(false); });                                 // simple figure until the mesh arrives
+  else if (!noMesh && G3.state !== 'failed') {   // wait for the detailed figure instead of flashing the simple one; fall back only if it can't load
+    const st = cv.parentElement; st && st.classList.add('anim-loading'); let done = false;
+    const go = flag => { if (done) return; done = true; st && st.classList.remove('anim-loading'); if (cv.isConnected) swap(flag); };
+    loadBodyMesh(ok => go(!ok)); setTimeout(() => go(true), 12000); return;
+  }
   const dpr = Math.min(window.devicePixelRatio || 1, G ? 2.5 : 1.6), fit = () => { const r = cv.getBoundingClientRect(); if (r.width) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); } };
   fit();
   let yaw = def.yaw, drag = null, t0 = performance.now(), still = REDUCED();

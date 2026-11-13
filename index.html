@@ -675,6 +675,13 @@ body.ob-open .tabs{visibility:hidden}
 .hero-card{background:linear-gradient(160deg,color-mix(in srgb,var(--accent) 22%,var(--s1)),var(--s1) 70%)}
 .add-day{color:var(--accent)}.add-day svg{width:22px;height:22px;stroke-width:2.4}.day-new{gap:12px;padding:12px 0;min-height:0;height:auto;flex:none;align-items:flex-start;text-align:left}.day-new .li-ic{margin-top:2px}
 .dunk-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px}.dunk-btns .btn{background:var(--s3);white-space:normal;min-width:0;justify-content:center;text-align:center;line-height:1.2;padding:8px 10px}
+.anim-stage.anim-loading{position:relative}.anim-stage.anim-loading::after{content:"";position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid var(--s3);border-top-color:var(--accent);animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.dsim-stage{position:relative;height:380px;border-radius:16px;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,#1f2230,#0c0c10 75%)}
+.dsim-cv{width:100%;height:100%;display:block;touch-action:none}
+.dsim-badge{position:absolute;left:10px;top:10px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border-radius:12px;padding:7px 10px;display:flex;flex-direction:column;gap:1px;border-left:3px solid var(--c);max-width:65%}.dsim-badge b{font-size:15px;color:#fff}.dsim-badge span{font-size:12px;color:#d0d0d8}
+.dsim-leg{position:absolute;left:10px;bottom:8px;display:flex;gap:12px;font-size:12px;color:#d0d0d8}.dsim-leg i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.dsim-nogl::after{content:"3D isn't available on this device";position:absolute;inset:0;display:grid;place-items:center;color:var(--tx2);font-size:14px}
+.sim-range{-webkit-appearance:auto;appearance:auto;width:100%;height:28px;padding:0;border:0;background:none;box-shadow:none;accent-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -719,6 +726,7 @@ body.ob-open .tabs{visibility:hidden}
 <script src="js/ui.js"></script>
 <script src="js/anim.js"></script>
 <script src="js/anim3d.js"></script>
+<script src="js/dunk.js"></script>
 <script src="js/onboard.js"></script>
 <script src="js/app.js"></script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
