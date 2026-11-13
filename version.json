@@ -1,7 +1,9 @@
 {
- "version": "6.9",
+ "version": "7.0",
  "notes": [
-  "\u2728 Smart pick tags exercises that hit a sore muscle, trims their sets when it makes sense, and says why.",
-  "\ud83d\udd0b Readiness no longer punishes you for being new: training load stays neutral until the app has about 2 weeks of your history."
+  "\ud83d\udcaa New Forearms section: wrist curls (dumbbell, reverse and barbell), reverse curls, dead hangs and plate pinches, each with its own animation and guide.",
+  "\ud83d\udd25 New ready-made day: Shoulders, Forearms & Core. Add it from Train \u2192 + Add a workout day.",
+  "\ud83c\udfcb\ufe0f More shoulder and core moves: Arnold press, front raise, upright row, crunches, lying leg raises, Russian twists and ab wheel rollouts.",
+  "\ud83d\udd25 Calories burned: on the Food tab, enter any day's total from your watch and see it split into workouts, other movement (walking around) and resting, plus your surplus or deficit. Works for past days too."
  ]
 }

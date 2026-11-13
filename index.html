@@ -723,6 +723,20 @@ body.ob-open .tabs{visibility:hidden}
 [data-theme=light] .sore-b.lv1 i{color:#a16207}[data-theme=light] .sore-b.lv2 i{color:#c2410c}[data-theme=light] .sore-b.lv3 i{color:#b91c1c}
 .rparts{display:flex;flex-direction:column;gap:6px;background:var(--s1);border-radius:14px;padding:10px 12px}.rp{display:grid;grid-template-columns:96px 1fr 46px;gap:10px;align-items:center;font-size:13px}.rp b{text-align:right;font-variant-numeric:tabular-nums}.rp b small{color:var(--tx3);font-weight:600}
 .sore-tag{font-size:11px;font-weight:700;color:#ff8a3d;background:color-mix(in srgb,#ff8a3d 15%,transparent);padding:1px 6px;border-radius:6px;white-space:nowrap}[data-theme=light] .sore-tag{color:#c2410c}
+
+/* calories burned */
+:root{--bn-w:#d95926;--bn-m:#3987e5;--bn-r:#199e70}
+[data-theme=light]{--bn-w:#eb6834;--bn-m:#2a78d6;--bn-r:#1baf7a}
+.bn-card{cursor:pointer}.bn-empty{display:flex;flex-direction:row;align-items:center;gap:12px;cursor:default}.bn-empty .btn{flex:none}
+.bn-big{display:flex;align-items:baseline;gap:6px;margin:6px 0 10px}.bn-big b{font-size:30px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.bn-bar{display:flex;gap:2px;height:12px;border-radius:6px;overflow:hidden;background:var(--s2)}.bn-bar i{display:block;min-width:4px}
+.bn-w{background:var(--bn-w)}.bn-m{background:var(--bn-m)}.bn-r{background:var(--bn-r)}
+.bn-mix{background:repeating-linear-gradient(45deg,var(--bn-m) 0 3px,var(--bn-r) 3px 6px)}
+.bn-leg{display:grid;gap:4px;margin-top:10px}.bn-li{display:flex;align-items:center;gap:8px;font-size:14px}.bn-li i{width:10px;height:10px;border-radius:3px;flex:none}.bn-li span{flex:1}.bn-li b{font-variant-numeric:tabular-nums}
+.bn-net{margin:10px 0 0;padding-top:10px;border-top:1px solid var(--line)}
+.bn-prev{margin:2px 0 12px}.bn-sum{padding:4px 0 2px}.bn-warn{color:#f5b915;margin:8px 0 0}
+[data-theme=light] .bn-warn{color:#a86b00}
+.bn-past .row[aria-pressed=true]{background:var(--s2);border-radius:10px}
 </style>
 </head>
 <body>

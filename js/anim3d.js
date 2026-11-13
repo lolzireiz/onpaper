@@ -71,8 +71,16 @@ function gripMesh(m, M, sign = -1) {
   }
   return (m[key] = { pos, nrm });
 }
-const GRIP_PROPS = new Set(['handle', 'db1', 'ball', 'db', 'bar', 'barhip', 'kb', 'grips', 'fixbar', 'rails', 'cable', 'cable2', 'rope', 'smith', 'tbar', 'handles']);
+const GRIP_PROPS = new Set(['wheel', 'pinch', 'handle', 'db1', 'ball', 'db', 'bar', 'barhip', 'kb', 'grips', 'fixbar', 'rails', 'cable', 'cable2', 'rope', 'smith', 'tbar', 'handles']);
 const grips = def => def.hands !== 'floor' && (def.grip || (def.props || []).some(p => GRIP_PROPS.has(p.t)));
+/* wrist flexion: rotation about the grip axis (thumb→pinky) through the wrist, sign so + curls the palm up toward the forearm */
+function rotAxis(v, k, a) { const c = Math.cos(a), s = Math.sin(a), d = V.dot(k, v), x = [k[1] * v[2] - k[2] * v[1], k[2] * v[0] - k[0] * v[2], k[0] * v[1] - k[1] * v[0]]; return V.add(V.add(V.mul(v, c), V.mul(x, s)), V.mul(k, d * (1 - c))); }
+function wristRot(J, m, s, tw) { // returns {piv, ax, ang, R(vec)} or null
+  if (!J.wr || !m || !m.rest || !m.rest['grip' + s]) return null;
+  const fa = faFrame(J, s, tw), l = m.rest['grip' + s], ax = V.norm(V.add(V.add(V.mul(fa[0], l[0]), V.mul(fa[1], l[1])), V.mul(fa[2], l[2]))), ang = (s === 'R' ? 1 : -1) * J.wr * WR_SIGN;
+  return { piv: J['ha' + s], ax, ang, P: x => V.add(J['ha' + s], rotAxis(V.sub(x, J['ha' + s]), ax, ang)), D: v => rotAxis(v, ax, ang) };
+}
+const WR_SIGN = -1;
 /* forearm frame with optional twist about the forearm (def.twist, radians; mirrored for the left arm): turns the hand palm-up/down */
 function faFrame(J, s, tw) { const f = frame3(J['el' + s], J['ha' + s], J['eb' + s]); if (!tw) return f; const a = s === 'R' ? tw : -tw, c = Math.cos(a), n = Math.sin(a); return [f[0], V.add(V.mul(f[1], c), V.mul(f[2], n)), V.sub(V.mul(f[2], c), V.mul(f[1], n))]; }
 const BONE_ORDER = ['torso', 'uaR', 'uaL', 'faR', 'faL', 'thR', 'thL', 'shR', 'shL', 'ftR', 'ftL', 'hdR', 'hdL'];
@@ -84,6 +92,8 @@ function boneMats(J, m, out, hands, tw) {
     cur['th' + s] = [J['hip' + s], frame3(J['hip' + s], J['kn' + s], J['kf' + s])]; cur['sh' + s] = [J['kn' + s], frame3(J['kn' + s], J['an' + s], J['kf' + s])];
     cur['ft' + s] = [J['an' + s], frame3(J['an' + s], J['toe' + s], V.sub(J['kn' + s], J['an' + s]))];
     if (hands === 'floor') cur['hd' + s] = [J['ha' + s], frame3(J['ha' + s], V.add(J['ha' + s], [0, -0.25, 1]), [0, 1, 0.25])];   // palms flat, fingers forward
+    else { const W = wristRot(J, m, s, tw); if (W) { const [ar, fr] = m.rest['fa' + s], fc = cur['fa' + s][1], [hr, hf] = m.rest['hd' + s], mapV = v => V.add(V.add(V.mul(fc[0], V.dot(v, fr[0])), V.mul(fc[1], V.dot(v, fr[1]))), V.mul(fc[2], V.dot(v, fr[2]))), anc = V.add(J['el' + s], mapV(V.sub(hr, ar)));
+      cur['hd' + s] = [W.P(anc), hf.map(v => W.D(mapV(v)))]; } }
   }
   BONE_ORDER.forEach((k, bi) => { const o = bi * 16; if (!cur[k]) { const src = (k === 'hdR' ? 3 : 4) * 16; for (let i = 0; i < 16; i++) out[o + i] = out[src + i]; return; }   // hands ride the forearm unless posed
     const [ac, fc] = cur[k], [ar, fr] = m.rest[k], R = [];
@@ -160,10 +170,10 @@ function propGeo(def, q, J, m) {
   disc(q.p, Math.max(0.12, 0.27 - Math.max(0, q.p[1] - 0.95) * 0.12 + Math.max(0, 0.6 - q.p[1]) * 0.25), C3.shadow, 0);
   if (def._ball) disc(def._ball, Math.max(0.03, (def.ballR || 0.12) * (1.1 - def._ball[1] * 0.25)), C3.shadow, 0.0005);
   const nFlat = o.length / 9;
-  const fist = s => { const rf = m && m.rest && m.rest['fist' + s]; if (!rf || !grips(def)) return null; const [ar, fr] = m.rest['fa' + s], fc = faFrame(J, s, def.twist), d = V.sub(rf, ar); return V.add(J['el' + s], V.add(V.mul(fc[0], V.dot(d, fr[0])), V.add(V.mul(fc[1], V.dot(d, fr[1])), V.mul(fc[2], V.dot(d, fr[2]))))); };
+  const fist = s => { const rf = m && m.rest && m.rest['fist' + s]; if (!rf || !grips(def)) return null; const [ar, fr] = m.rest['fa' + s], fc = faFrame(J, s, (def.twist || 0) + (J.tw || 0)), d = V.sub(rf, ar); const W = wristRot(J, m, s, (def.twist || 0) + (J.tw || 0)), p0 = V.add(J['el' + s], V.add(V.mul(fc[0], V.dot(d, fr[0])), V.add(V.mul(fc[1], V.dot(d, fr[1])), V.mul(fc[2], V.dot(d, fr[2]))))); return W ? W.P(p0) : p0; };
   const grip = s => fist(s) || V.add(J['ha' + s], V.mul(V.norm(V.sub(J['ha' + s], J['el' + s])), 0.075)), gR = grip('R'), gL = grip('L'), mid = V.mul(V.add(gR, gL), 0.5), G = { R: gR, L: gL };
   /* the way the handle runs through each fist: follows the forearm's twist (hammer vs palms-up) */
-  const gax = s => { if (def.hands === 'floor') return [1, 0, 0]; const fa = faFrame(J, s, def.twist), l = (m && m.rest && m.rest['grip' + s]) || [0, 1, 0], k = Math.hypot(l[1], l[2]) || 1; return V.norm(V.add(V.mul(fa[1], l[1] / k), V.mul(fa[2], l[2] / k))); };
+  const gax = s => { if (def.hands === 'floor') return [1, 0, 0]; const fa = faFrame(J, s, (def.twist || 0) + (J.tw || 0)), l = (m && m.rest && m.rest['grip' + s]) || [0, 1, 0], k = Math.hypot(l[1], l[2]) || 1; return V.norm(V.add(V.mul(fa[1], l[1] / k), V.mul(fa[2], l[2] / k))); };
   const GA = { R: gax('R'), L: gax('L') };
   const JA = (() => { const j = animJoints(def.a, def.build); j.mid = V.mul(V.add(j.haR, j.haL), 0.5); return j; })();   // start pose: anchors fixed machine parts
   const barbell = (cx, y, z) => { cyl([cx - 0.98, y, z], [cx + 0.98, y, z], 0.016, C3.bar); for (const sx of [-1, 1]) { cyl([cx + sx * 0.8, y, z], [cx + sx * 0.86, y, z], 0.21, C3.dark, 22, 1); cyl([cx + sx * 0.74, y, z], [cx + sx * 0.92, y, z], 0.035, C3.bar, 10, 1); } };
@@ -182,6 +192,9 @@ function propGeo(def, q, J, m) {
     else if (pr.t === 'ball') { const h = G.R, up = V.norm(V.sub(J.haR, J.elR)), c = def._ball || V.add(h, V.mul(up, pr.r * 0.9)); ball(c, pr.r, [0.88, 0.42, 0.14], 10, 16); for (const [ax, ay] of [[1, 0], [0, 1]]) { for (let i = 0; i < 16; i++) { const a0 = i / 16 * Math.PI * 2, a1 = (i + 1) / 16 * Math.PI * 2, P = a => ax ? [c[0], c[1] + Math.cos(a) * pr.r * 1.01, c[2] + Math.sin(a) * pr.r * 1.01] : [c[0] + Math.cos(a) * pr.r * 1.01, c[1] + Math.sin(a) * pr.r * 1.01, c[2]]; cyl(P(a0), P(a1), pr.r * 0.04, [0.18, 0.1, 0.06], 4); } } }
     else if (pr.t === 'hline') { const c = pr.col || C3.on; cyl([pr.x || 0, pr.y, pr.z - pr.w], [pr.x || 0, pr.y, pr.z + pr.w * 0.4], pr.th || 0.008, c, 6); }
     else if (pr.t === 'handle') { const d = V.sub(G.L, G.R), L = V.len(d), u = L > 1e-3 ? V.mul(d, 1 / L) : [1, 0, 0], ext = Math.max(0, (0.16 - L) / 2); cyl(V.sub(G.R, V.mul(u, ext + 0.03)), V.add(G.L, V.mul(u, ext + 0.03)), 0.017, C3.bar, 10, 1); ball(mid, 0.022, C3.dark, 5, 8); }
+    else if (pr.t === 'pinch') for (const s of ['R', 'L']) { const h = G[s], sx = s === 'R' ? 1 : -1; cyl(V.add(h, [sx * -0.03, -0.11, 0]), V.add(h, [sx * 0.03, -0.11, 0]), 0.13, C3.dark, 22, 1); cyl(V.add(h, [sx * -0.032, -0.11, 0]), V.add(h, [sx * 0.032, -0.11, 0]), 0.03, C3.bar, 10, 1); }
+    else if (pr.t === 'wheel') { const c = [0, 0.095, mid[2]]; cyl([-0.04, c[1], c[2]], [0.04, c[1], c[2]], 0.095, C3.dark, 22, 1); cyl(V.add(G.R, [0.04, 0, 0]), V.add(G.L, [-0.04, 0, 0]), 0.017, C3.bar, 10, 1); }
+    else if (pr.t === 'mat') { const P = JA; slab([0, 0.008, Math.min(P.head[2], P.anR[2], P.toeR[2]) - 0.25], [0, 0.008, Math.max(P.head[2], P.anR[2], P.toeR[2]) + 0.25], 0.62, [0.22, 0.3, 0.42], 0.008); }
     else if (pr.t === 'db1') { const c = mid, ax = V.norm(V.add(V.sub(J.haR, J.elR), V.sub(J.haL, J.elL))), P = d => V.add(c, V.mul(ax, d)); cyl(P(-0.05), P(0.17), 0.018, C3.bar); for (const d of [-0.07, 0.19]) cyl(P(d - 0.035), P(d + 0.035), 0.07, C3.dark, 14, 1); }
     else if (pr.t === 'box') { slab([0, pr.h, pr.z0], [0, pr.h, pr.z1], pr.w || 0.6, C3.pad, pr.h); }
     else if (pr.t === 'lpframe') { slab([0, 0.06, -0.75], [0, 0.06, 1.15], 0.7, C3.dark, 0.06); for (const sx of [-0.3, 0.3]) { cyl([sx, 0.3, 0.32], [sx, 1.12, 0.98], 0.03, C3.bar, 8, 1); cyl([sx, 0.06, 0.32], [sx, 0.3, 0.32], 0.03, C3.dark); cyl([sx, 0.06, 0.98], [sx, 1.12, 0.98], 0.03, C3.dark); cyl([sx, 0.06, -0.42], [sx, 0.74, -0.42], 0.03, C3.dark); cyl([sx, 0.06, 0.1], [sx, 0.3, 0.1], 0.03, C3.dark); } }
@@ -220,7 +233,7 @@ function propGeo(def, q, J, m) {
   return { data: new Float32Array(o), nFlat };
 }
 function g3Draw(cv, G, def, t, yawDeg, cycle) {
-  const gl = G.gl, W = cv.width, H = cv.height, S = Math.min(W, H * 1.12) / (2 * def.r) * 0.96, q = def.qAt ? def.qAt(t) : animPose(def, t, cycle), J = animJoints(q, def.build);
+  const gl = G.gl, W = cv.width, H = cv.height, S = Math.min(W, H * 1.12) / (2 * def.r) * 0.96, q = def.qAt ? def.qAt(t) : animPose(def, t, cycle), J = animJoints(q, def.build); J.wr = (q.wr || 0) * Math.PI / 180; J.tw = (q.tw || 0) * Math.PI / 180;
   const ya = yawDeg * Math.PI / 180, pa = 11 * Math.PI / 180, cy = Math.cos(ya), sy = Math.sin(ya), cp = Math.cos(pa), sp = Math.sin(pa), kx = S / (W / 2), ky = S / (H / 2), kz = 0.25, c = def.c;
   // view rows: x1 = x cy - z sy ; y1 = y cp - (x sy + z cy) sp ; z2 = y sp + (x sy + z cy) cp
   const r0 = [cy, 0, -sy], r1 = [-sy * sp, cp, -cy * sp], r2 = [sy * cp, sp, cy * cp], tx = -(r0[0] * c[0] + r0[1] * c[1] + r0[2] * c[2]), ty = -(r1[0] * c[0] + r1[1] * c[1] + r1[2] * c[2]), tz = -(r2[0] * c[0] + r2[1] * c[1] + r2[2] * c[2]);
@@ -235,7 +248,7 @@ function g3Draw(cv, G, def, t, yawDeg, cycle) {
   gl.uniform1f(G.u.skin, 0); gl.uniform1f(G.u.flat, 1); gl.depthMask(false); gl.drawArrays(gl.TRIANGLES, 0, pg.nFlat); gl.depthMask(true);
   gl.uniform1f(G.u.flat, 0); gl.drawArrays(gl.TRIANGLES, pg.nFlat, pg.data.length / 9 - pg.nFlat);
   // body
-  gl.uniformMatrix4fv(G.u.bones, false, boneMats(J, G.m, G.bones, def.hands, def.twist)); gl.uniform1f(G.u.skin, 1); gl.uniform2fv(G.u.shorts, G.cloth.shorts); gl.uniform4fv(G.u.top, G.cloth.top);
+  gl.uniformMatrix4fv(G.u.bones, false, boneMats(J, G.m, G.bones, def.hands, (def.twist || 0) + (J.tw || 0))); gl.uniform1f(G.u.skin, 1); gl.uniform2fv(G.u.shorts, G.cloth.shorts); gl.uniform4fv(G.u.top, G.cloth.top);
   const bind = (b, loc, n) => { gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, n, gl.FLOAT, false, 0, 0); };
   bind(G.b.pos, a.pos, 3); bind(G.b.nrm, a.nrm, 3); bind(G.b.ex, a.ex, 3); bind(G.b.bi, a.bi, 4); bind(G.b.bw, a.bw, 4); if (a.col >= 0) { gl.disableVertexAttribArray(a.col); gl.vertexAttrib3f(a.col, 0.8, 0.8, 0.8); }
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, G.b.idx); gl.drawElements(gl.TRIANGLES, G.nIdx, gl.UNSIGNED_SHORT, 0);

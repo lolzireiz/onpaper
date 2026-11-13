@@ -23,7 +23,7 @@ function appearanceHTML() {
 }
 
 /* ======================= recovery & readiness ======================= */
-const GROUP_IDS = { Chest: ['chest'], Back: ['lats', 'upper_back'], Shoulders: ['delts', 'side_delts', 'rear_delts'], Biceps: ['biceps'], Triceps: ['triceps'], Quads: ['quads'], Hamstrings: ['hamstrings'], Glutes: ['glutes'], Calves: ['calves'], Core: ['abs', 'obliques'] };
+const GROUP_IDS = { Chest: ['chest'], Back: ['lats', 'upper_back'], Shoulders: ['delts', 'side_delts', 'rear_delts'], Biceps: ['biceps'], Triceps: ['triceps'], Forearms: ['forearms'], Quads: ['quads'], Hamstrings: ['hamstrings'], Glutes: ['glutes'], Calves: ['calves'], Core: ['abs', 'obliques'] };
 /* soreness groups for the check-in (a bit finer than the training groups) */
 const SORE_GROUPS = { Chest: ['chest'], Shoulders: ['delts', 'side_delts', 'rear_delts'], Triceps: ['triceps'], Biceps: ['biceps'], Forearms: ['forearms'], 'Upper back': ['lats', 'upper_back', 'traps'], 'Lower back': ['lower_back'], Core: ['abs', 'obliques'], Glutes: ['glutes'], Quads: ['quads'], Hamstrings: ['hamstrings'], 'Inner thighs': ['adductors'], Calves: ['calves'] };
 const SORE_LV = [['None', ''], ['A bit', '#f5b915'], ['Sore', '#ff8a3d'], ['Very', '#f0302e']];

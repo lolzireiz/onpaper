@@ -86,7 +86,9 @@ const EX_GOALS = {
   'Seated Calf Raise': ['endurance', 'injury', 'legs'], 'Leg Press Calf Raise': ['jump', 'sprint', 'legs'], 'Smith Calf Raise': ['jump', 'sprint', 'legs'],
   'Hanging Leg Raise': ['core', 'grip', 'relative'], 'Cable Crunch': ['core'], 'Plank': ['core', 'backhealth', 'posture', 'longevity'], 'Decline Sit-up': ['core'],
   'Farmer Carry': ['grip', 'everyday', 'core', 'posture', 'longevity'], 'Cable Woodchop': ['power', 'core', 'agility'], 'Pallof Press': ['core', 'backhealth', 'balance', 'injury'],
-  'Dead Bug': ['core', 'backhealth', 'balance', 'posture'], 'Jump Squat': ['jump', 'power', 'sprint', 'legs'], 'Lateral Bounds': ['agility', 'jump', 'balance', 'injury'],
+  'Dead Bug': ['core', 'backhealth', 'balance', 'posture'], 'Crunch': ['core'], 'Lying Leg Raise': ['core'], 'Russian Twist': ['core', 'power'], 'Ab Wheel Rollout': ['core', 'backhealth'],
+  'Wrist Curl': ['grip', 'arms'], 'Reverse Wrist Curl': ['grip', 'arms', 'injury'], 'Barbell Wrist Curl': ['grip', 'arms'], 'Reverse Curl': ['grip', 'arms'], 'Dead Hang': ['grip', 'relative', 'posture'], 'Plate Pinch': ['grip'],
+  'Arnold Press': ['shoulders'], 'Front Raise': ['shoulders'], 'Upright Row': ['shoulders', 'posture'], 'Jump Squat': ['jump', 'power', 'sprint', 'legs'], 'Lateral Bounds': ['agility', 'jump', 'balance', 'injury'],
   'Lateral Lunge': ['agility', 'mobility', 'injury', 'legs', 'balance'], 'Step-up': ['legs', 'balance', 'jump', 'everyday', 'longevity'],
   'Single-Leg RDL': ['balance', 'glutes', 'injury', 'sprint'], 'Tibialis Raise': ['injury', 'sprint', 'jump', 'longevity'],
 };

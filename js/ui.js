@@ -151,3 +151,115 @@ document.addEventListener('toggle', e => { if (e.target.classList && e.target.cl
 /* cache the heavier derived data per data revision (insights + Big 3 scan every set) */
 { const ins = insights; insights = () => Store.cached('insights:' + todayStr(), ins); }
 { const b3 = big3; big3 = () => Store.cached('big3', b3); }
+
+/* ---------- Calories burned: a day's total from your watch, split into workouts, everyday movement and resting ---------- */
+const kcalIn = v => { const n = parseFloat(String(v ?? '').replace(/[,\s]/g, '')); return Number.isFinite(n) && n > 0 ? Math.round(n) : null; };
+const burnOf = d => dailyOf(d).burn || null;
+function burnWork(date) {
+  const items = [];
+  for (const w of Store.list('workouts')) if (w.date === date && w.watch && (w.watch.activeCal || w.watch.totalCal)) items.push({ e: '🏋️', n: w.dayName || 'Workout', k: Math.round(+(w.watch.activeCal || w.watch.totalCal)) });
+  for (const a of Store.list('acts')) if (a.date === date && (a.activeCal || a.totalCal)) items.push({ e: actOf(a).e, n: actName(a), k: Math.round(+(a.activeCal || a.totalCal)) });
+  return { items, k: items.reduce((t, x) => t + x.k, 0) };
+}
+/* active = what the watch counts as movement, total = active + resting. Either can be missing. */
+function burnSplit(date, b = burnOf(date)) {
+  const wk = burnWork(date), act = b ? kcalIn(b.active) : null, tot = b ? kcalIn(b.total) : null;
+  const r = { date, work: wk.k, items: wk.items, active: act, total: tot, has: !!(act || tot) };
+  if (act) { r.other = Math.max(0, act - wk.k); r.low = act < wk.k; }
+  if (tot && act) { r.rest = Math.max(0, tot - act); r.bad = tot < act; }
+  if (tot && !act) { r.mixed = Math.max(0, tot - wk.k); r.low = tot < wk.k; }
+  r.grand = tot || act || wk.k;
+  return r;
+}
+function burnBarHTML(r) {
+  const segs = [['w', 'Workouts', r.work], ['m', r.mixed != null ? 'Walking + resting' : 'Other movement', r.mixed != null ? r.mixed : r.other], ['r', 'Resting', r.rest]].filter(x => x[2] != null && (x[2] > 0 || x[0] !== 'w'));
+  const sum = segs.reduce((t, x) => t + x[2], 0) || 1;
+  return `<div class="bn-bar" role="img" aria-label="${segs.map(x => `${x[1]} ${fmtN(x[2])} kcal`).join(', ')}">${segs.filter(x => x[2] > 0).map(x => `<i class="bn-${x[0]}${x[0] === 'm' && r.mixed != null ? ' bn-mix' : ''}" style="flex:${x[2] / sum}"></i>`).join('')}</div>
+    <div class="bn-leg">${segs.map(x => `<div class="bn-li"><i class="bn-${x[0]}${x[0] === 'm' && r.mixed != null ? ' bn-mix' : ''}"></i><span class="muted">${x[1]}</span><b>${fmtN(x[2])}</b></div>`).join('')}</div>`;
+}
+function burnCardHTML(date) {
+  const r = burnSplit(date), today = date === todayStr(), ate = foodTotals(date).cal;
+  if (!r.has) {
+    const msg = r.work ? `Workouts burned <b>${fmtN(r.work)} kcal</b>. Add the day's total from your watch to see what walking around added.` : `Add the day's total from your watch to see workouts vs. everyday movement.`;
+    return `<section class="card bn-card bn-empty"><div class="grow"><h2 class="sec-t" style="margin:0 0 2px">🔥 Calories burned</h2><p class="muted small" style="margin:0">${msg}</p></div><button class="btn sm" data-act="burnOpen" data-date="${date}">${ICON.plus} Add</button></section>`;
+  }
+  const net = r.total ? ate - r.total : null;
+  return `<section class="card bn-card" data-act="burnOpen" data-date="${date}" role="button" tabindex="0" aria-label="Edit calories burned">
+    <div class="card-h"><h2 class="sec-t" style="margin:0">🔥 Calories burned</h2><span class="faint small">Edit</span></div>
+    <div class="bn-big"><b>${fmtN(r.grand)}</b><span class="unit">kcal ${r.total ? 'total' : 'active'}</span></div>
+    ${burnBarHTML(r)}
+    ${net != null && ate > 0 ? `<p class="small bn-net">Ate <b>${fmtN(ate)}</b> · burned <b>${fmtN(r.total)}</b> → <b>${fmtN(Math.abs(net))}</b> ${net >= 0 ? 'surplus' : 'deficit'}${today ? ' so far' : ''}</p>` : ''}
+    ${r.low ? `<p class="faint tiny" style="margin:6px 0 0">Your ${r.active ? 'active' : 'total'} number is lower than your workout calories. Check you copied the right number from your watch.</p>` : ''}
+  </section>`;
+}
+{
+  const fr2 = Views.food.render;
+  Views.food.render = function () {
+    const h = fr2(), date = UI.foodDate || todayStr(), i = h.indexOf('</section>', h.indexOf('class="card fsum"'));
+    return i >= 0 ? h.slice(0, i + 10) + burnCardHTML(date) + h.slice(i + 10) : burnCardHTML(date) + h;
+  };
+}
+A.burnOpen = d => {
+  const date = d.date || UI.foodDate || todayStr(), b = burnOf(date) || {};
+  Sheet.burn = { date, active: b.active ?? '', total: b.total ?? '' };
+  openSheet('Calories burned', burnSheetHTML(), { onMount: burnMount });
+};
+function burnSheetHTML() {
+  const B = Sheet.burn, has = !!burnOf(B.date);
+  return `<div class="field"><label class="lbl" for="bn-d">Day</label><input id="bn-d" type="date" max="${todayStr()}" value="${B.date}"></div>
+    <div class="fields"><div class="field"><label class="lbl" for="bn-a">Active calories</label><input id="bn-a" inputmode="numeric" placeholder="e.g. 950" value="${B.active}"></div><div class="field"><label class="lbl" for="bn-t">Total calories</label><input id="bn-t" inputmode="numeric" placeholder="e.g. 3,000" value="${B.total}"></div></div>
+    <p class="faint tiny" style="margin:-4px 0 10px">Copy them from your watch's summary for that day. <b>Active</b> is movement only (usually the main number). <b>Total</b> also counts what your body burns at rest, so it's much bigger. Fill in one or both.</p>
+    <div id="bn-prev"></div>
+    <button class="btn block" data-act="burnSave">Save for ${B.date === todayStr() ? 'today' : esc(fmtDay(B.date))}</button>
+    ${has ? `<button class="linkbtn center" data-act="burnClear">Clear this day</button>` : ''}
+    ${burnPastHTML()}`;
+}
+function burnPrevHTML() {
+  const B = Sheet.burn, r = burnSplit(B.date, B);
+  let h = '';
+  if (r.items.length) h += `<div class="bn-items">${r.items.map(x => `<div class="row" style="min-height:0;padding:6px 0"><span aria-hidden="true">${x.e}</span><span class="grow">${esc(x.n)}</span><b>${fmtN(x.k)}</b><span class="faint small">&nbsp;kcal</span></div>`).join('')}</div>`;
+  else h += `<p class="faint small" style="margin:0 0 8px">No workout calories saved for this day. Add watch stats to a workout or activity and they'll be split out here.</p>`;
+  if (r.has) {
+    h += `<div class="bn-sum"><div class="bn-big"><b>${fmtN(r.grand)}</b><span class="unit">kcal ${r.total ? 'total' : 'active'}</span></div>${burnBarHTML(r)}</div>`;
+    if (r.mixed != null) h += `<p class="faint tiny" style="margin:6px 0 0">Add your active number too to split walking around from resting.</p>`;
+    if (r.bad) h += `<p class="small bn-warn">Total should be bigger than active. Did they get swapped?</p>`;
+    else if (r.low) h += `<p class="small bn-warn">That's lower than your workout calories (${fmtN(r.work)}). Check you copied the right number.</p>`;
+    if (r.total && !r.active && r.total < 1500) h += `<p class="small bn-warn">${fmtN(r.total)} looks like an active number. <button class="linkbtn" style="padding:0;font-size:inherit" data-act="burnSwap">Move it to Active</button></p>`;
+  }
+  return `<div class="bn-prev">${h}</div>`;
+}
+function burnPastHTML() {
+  const days = Store.list('daily').filter(x => x.burn && (kcalIn(x.burn.active) || kcalIn(x.burn.total))).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30);
+  if (!days.length) return '';
+  return `<div class="field" style="margin-top:14px"><span class="lbl">Past days</span><div class="bn-past">${days.map(x => { const r = burnSplit(x.date); const parts = [r.work ? `${fmtN(r.work)} workouts` : '', r.other != null ? `${fmtN(r.other)} movement` : r.mixed != null ? `${fmtN(r.mixed)} walking + resting` : '', r.rest != null ? `${fmtN(r.rest)} resting` : ''].filter(Boolean).join(' · ');
+    return `<button class="row" data-act="burnPick" data-date="${x.date}" aria-pressed="${x.date === Sheet.burn.date}"><span class="grow"><b>${x.date === todayStr() ? 'Today' : esc(fmtDay(x.date))}</b><div class="faint small">${parts}</div></span><b>${fmtN(r.grand)}</b><span class="faint small">&nbsp;kcal</span></button>`; }).join('')}</div></div>`;
+}
+function burnMount(L) {
+  const B = Sheet.burn, upd = () => { $('#bn-prev', L).innerHTML = burnPrevHTML(); };
+  $('#bn-a', L).addEventListener('input', e => { B.active = e.target.value; upd(); });
+  $('#bn-t', L).addEventListener('input', e => { B.total = e.target.value; upd(); });
+  $('#bn-d', L).addEventListener('change', e => { const v = e.target.value; if (v && v <= todayStr()) burnLoad(v); });
+  upd();
+}
+function burnLoad(date) { const b = burnOf(date) || {}; Sheet.burn = { date, active: b.active ?? '', total: b.total ?? '' }; sheetBody(burnSheetHTML()); burnMount($('#sheet')); }
+A.burnPick = d => burnLoad(d.date);
+A.burnSwap = () => { const B = Sheet.burn; B.active = B.total; B.total = ''; burnLoad2(); };
+function burnLoad2() { sheetBody(burnSheetHTML()); burnMount($('#sheet')); }
+PAGES.push(['🔥', 'Calories burned', 'calories burned burn total active watch walking steps movement tdee energy', () => A.burnOpen({})]);
+{ const cf = csvFiles; csvFiles = function () {
+  const out = cf(), rows = [['date', 'total kcal', 'active kcal', 'workout kcal', 'other movement kcal', 'resting kcal']];
+  for (const x of Store.list('daily').filter(x => x.burn).sort((a, b) => a.date.localeCompare(b.date))) { const r = burnSplit(x.date); if (r.has) rows.push([x.date, r.total || '', r.active || '', r.work || '', r.other ?? '', r.rest ?? '']); }
+  if (rows.length > 1) out.push(new File([csvOf(rows)], 'liftprint-calories-burned.csv', { type: 'text/csv' }));
+  return out;
+}; }
+A.burnSave = () => {
+  const B = Sheet.burn, active = kcalIn(B.active), total = kcalIn(B.total);
+  if (!active && !total) return toast('Enter at least one number');
+  putDaily(B.date, { burn: { active, total } }); closeSheet();
+  const r = burnSplit(B.date);
+  toast(r.other != null ? `Saved: ${fmtN(r.work)} workouts + ${fmtN(r.other)} other movement` : `Saved ${fmtN(r.grand)} kcal`);
+};
+A.burnClear = () => {
+  const B = Sheet.burn, old = burnOf(B.date), dd = clone(dailyOf(B.date)); delete dd.burn;
+  put('daily', B.date, dd); closeSheet(); toastUndo('Cleared', () => putDaily(B.date, { burn: old }));
+};

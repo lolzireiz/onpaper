@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '6.9';
+const APP_VERSION = '7.0';
 const CHANGELOG = [
+  ['7.0', ['💪 New Forearms section: wrist curls (dumbbell, reverse and barbell), reverse curls, dead hangs and plate pinches, each with its own animation and guide.', '🔥 New ready-made day: Shoulders, Forearms & Core. Add it from Train → + Add a workout day.', '🏋️ More shoulder and core moves: Arnold press, front raise, upright row, crunches, lying leg raises, Russian twists and ab wheel rollouts.', '🔥 Calories burned: on the Food tab, enter any day\'s total from your watch and see it split into workouts, other movement (walking around) and resting, plus your surplus or deficit. Works for past days too.']],
   ['6.9', ['✨ Smart pick tags exercises that hit a sore muscle, trims their sets when it makes sense, and says why.', '🔋 Readiness no longer punishes you for being new: training load stays neutral until the app has about 2 weeks of your history.']],
   ['6.8', ['🔋 Readiness now weighs each sore muscle by its size and how sore it is. A bit of sore biceps nudges the score, very sore legs drop it a lot, and the tip tells you what to go easy on.', '📊 The check-in shows a live breakdown (sleep, soreness, energy, training load) that updates as you tap.']],
   ['6.7', ['🩹 Check-in now lets you mark exactly where you\'re sore (chest, triceps, quads, and so on) and how much, shown on the body diagram. Sore muscles count as less recovered, so Smart pick steers around them.', '😴 Enter any amount of sleep with the slider or +/− in 15-minute steps.']],
@@ -114,7 +115,9 @@ const EX_MUSCLES = {
   'hip thrust': ['glutes', 'hamstrings'], 'machine hip thrust': ['glutes', 'hamstrings'], 'cable kickback': ['glutes', 'hamstrings'], 'hip abduction': ['abductors glutes'],
   'standing calf raise': ['calves'], 'dumbbell standing calf raise': ['calves'], 'chin-ups': ['lats biceps', 'upper_back forearms'], 'calf extension': ['calves'], 'seated calf raise': ['calves'], 'leg press calf raise': ['calves'], 'smith calf raise': ['calves'],
   'hanging leg raise': ['abs', 'obliques forearms'], 'cable crunch': ['abs', 'obliques'], 'plank': ['abs', 'obliques delts'], 'decline sit-up': ['abs', 'obliques'],
-  'farmer carry': ['forearms traps', 'abs obliques upper_back'], 'cable woodchop': ['obliques abs', 'delts glutes'], 'pallof press': ['obliques abs', 'delts'], 'dead bug': ['abs', 'obliques'],
+  'farmer carry': ['forearms traps', 'abs obliques upper_back'], 'crunch': ['abs', 'obliques'], 'lying leg raise': ['abs', 'obliques'], 'russian twist': ['obliques abs', 'delts'], 'ab wheel rollout': ['abs', 'obliques lats lower_back'],
+  'wrist curl': ['forearms'], 'reverse wrist curl': ['forearms'], 'barbell wrist curl': ['forearms'], 'reverse curl': ['forearms biceps'], 'dead hang': ['forearms', 'lats upper_back'], 'plate pinch': ['forearms', 'traps'],
+  'arnold press': ['delts side_delts', 'triceps traps'], 'front raise': ['delts', 'side_delts traps'], 'upright row': ['side_delts traps', 'delts biceps forearms'], 'cable woodchop': ['obliques abs', 'delts glutes'], 'pallof press': ['obliques abs', 'delts'], 'dead bug': ['abs', 'obliques'],
   'jump squat': ['quads glutes', 'calves hamstrings'], 'lateral bounds': ['glutes abductors quads', 'calves adductors'], 'lateral lunge': ['quads adductors glutes', 'hamstrings abductors'], 'step-up': ['quads glutes', 'hamstrings calves'],
   'single-leg rdl': ['hamstrings glutes', 'lower_back abductors forearms'], 'tibialis raise': ['calves', ''],
 };

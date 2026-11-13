@@ -1,7 +1,7 @@
 'use strict';
 /* Train: equipment, exercise library, gyms, split, workout sessions, rest timer, calendar. */
 
-const GROUPS = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core'];
+const GROUPS = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Forearms', 'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core'];
 const EQUIP = [
   ['Free weights', [['barbell', 'Barbell + plates'], ['rack', 'Squat / power rack'], ['bench', 'Flat bench'], ['incline', 'Incline / adjustable bench'], ['db', 'Dumbbells'], ['ez', 'EZ curl bar'], ['kb', 'Kettlebells']]],
   ['Machines', [['smith', 'Smith machine'], ['legpress', 'Leg press'], ['hack', 'Hack squat'], ['legext', 'Leg extension'], ['legcurl', 'Leg curl'], ['chestpress', 'Chest press machine'], ['shoulderpress', 'Shoulder press machine'], ['pecdeck', 'Pec deck / rear delt'], ['calf', 'Calf raise machine'], ['hipthrust', 'Hip thrust machine'], ['abductor', 'Hip abductor / adductor'], ['tbar', 'T-bar row'], ['preacher', 'Preacher bench']]],
@@ -30,6 +30,9 @@ const LIBRARY = [
   ['Standing Calf Raise', 'Calves', ['calf']], ['Calf Extension', 'Calves', ['calf']], ['Dumbbell Standing Calf Raise', 'Calves', ['db']], ['Seated Calf Raise', 'Calves', ['calf']], ['Leg Press Calf Raise', 'Calves', ['legpress']], ['Smith Calf Raise', 'Calves', ['smith']],
   ['Hanging Leg Raise', 'Core', ['pullup']], ['Cable Crunch', 'Core', ['cable']], ['Plank', 'Core', []], ['Decline Sit-up', 'Core', ['bench']],
   ['Farmer Carry', 'Core', ['db']], ['Cable Woodchop', 'Core', ['cable']], ['Pallof Press', 'Core', ['cable']], ['Dead Bug', 'Core', []],
+  ['Crunch', 'Core', []], ['Lying Leg Raise', 'Core', []], ['Russian Twist', 'Core', ['db']], ['Ab Wheel Rollout', 'Core', []],
+  ['Wrist Curl', 'Forearms', ['db', 'bench']], ['Reverse Wrist Curl', 'Forearms', ['db', 'bench']], ['Barbell Wrist Curl', 'Forearms', ['barbell', 'bench']], ['Reverse Curl', 'Forearms', ['barbell']], ['Dead Hang', 'Forearms', ['pullup']], ['Plate Pinch', 'Forearms', ['barbell']],
+  ['Arnold Press', 'Shoulders', ['db', 'incline']], ['Front Raise', 'Shoulders', ['db']], ['Upright Row', 'Shoulders', ['barbell']],
   ['Jump Squat', 'Quads', []], ['Lateral Bounds', 'Quads', []], ['Lateral Lunge', 'Quads', ['db']], ['Step-up', 'Quads', ['db', 'bench']],
   ['Single-Leg RDL', 'Hamstrings', ['db']], ['Tibialis Raise', 'Calves', []],
 ].map(([name, group, equip]) => ({ name, group, equip }));
@@ -426,6 +429,7 @@ const DAY_PRESETS = [
   { name: 'Back & Biceps', e: '🦍', groups: ['Back', 'Biceps', 'Shoulders'], ex: [['Lat Pulldown', 3, '6-10'], ['Seated Cable Row', 3, '8-12'], ['Chest-Supported Row', 3, '8-12'], ['Straight-Arm Pulldown', 2, '12-15'], ['Face Pull', 3, '12-20'], ['Incline Dumbbell Curl', 3, '8-12'], ['Hammer Curl', 3, '10-12']] },
   { name: 'Legs', e: '🦵', groups: ['Quads', 'Hamstrings', 'Glutes', 'Calves'], ex: [['Smith Squat', 3, '6-10'], ['Romanian Deadlift', 3, '8-10'], ['Leg Press', 3, '10-12'], ['Lying Leg Curl', 3, '10-12'], ['Leg Extension', 2, '12-15'], ['Standing Calf Raise', 4, '10-15']] },
   { name: 'Shoulders & Arms', e: '💪', groups: ['Shoulders', 'Biceps', 'Triceps'], ex: [['Dumbbell Shoulder Press', 3, '6-10'], ['Cable Lateral Raise', 4, '12-20'], ['Rear Delt Fly', 3, '12-20'], ['EZ-Bar Curl', 3, '8-12'], ['Rope Pushdown', 3, '10-15'], ['Hammer Curl', 2, '10-12'], ['Overhead Rope Extension', 2, '10-15']] },
+  { name: 'Shoulders, Forearms & Core', e: '🔥', groups: ['Shoulders', 'Forearms', 'Core'], ex: [['Dumbbell Shoulder Press', 3, '6-10'], ['Cable Lateral Raise', 3, '12-20'], ['Rear Delt Fly', 3, '12-20'], ['Reverse Curl', 3, '10-12'], ['Wrist Curl', 3, '12-20'], ['Reverse Wrist Curl', 2, '12-20'], ['Dead Hang', 2, '30-60s'], ['Hanging Leg Raise', 3, '10-15'], ['Cable Crunch', 3, '10-15'], ['Pallof Press', 2, '10-12']] },
   { name: 'Push', e: '⬆️', groups: ['Chest', 'Shoulders', 'Triceps'], ex: [['Bench Press', 3, '5-8'], ['Incline Dumbbell Press', 3, '8-10'], ['Dumbbell Shoulder Press', 3, '8-10'], ['Lateral Raise', 3, '12-20'], ['Rope Pushdown', 3, '10-15'], ['Overhead Rope Extension', 2, '10-15']] },
   { name: 'Pull', e: '⬇️', groups: ['Back', 'Biceps'], ex: [['Pull-ups', 3, '6-10'], ['Barbell Row', 3, '6-10'], ['Lat Pulldown', 3, '8-12'], ['Face Pull', 3, '12-20'], ['Dumbbell Curl', 3, '8-12'], ['Hammer Curl', 2, '10-12']] },
   { name: 'Upper', e: '🧍', groups: ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps'], ex: [['Bench Press', 3, '5-8'], ['Barbell Row', 3, '6-10'], ['Dumbbell Shoulder Press', 3, '8-10'], ['Lat Pulldown', 3, '8-12'], ['Dumbbell Curl', 2, '10-12'], ['Rope Pushdown', 2, '10-15']] },

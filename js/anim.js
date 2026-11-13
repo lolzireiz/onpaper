@@ -30,7 +30,7 @@ const BUILD = {
 /* turn a compact pose into full world-space targets */
 function animResolve(o, B = BUILD.male) {
   const lean = o.lean || 0, L = lean * Math.PI / 180, u = [0, Math.cos(L), Math.sin(L)], w = [0, -Math.sin(L), Math.cos(L)], p = o.p || [0, 0.95, 0];
-  const neck = V.add(p, V.mul(u, B.torso || 0.5)), q = { p, lean, shrug: o.shrug || 0, toe: o.toe || 0, ptR: o.ptR ?? o.pt ?? 0, ptL: o.ptL ?? o.pt ?? 0 };
+  const neck = V.add(p, V.mul(u, B.torso || 0.5)), q = { p, lean, shrug: o.shrug || 0, toe: o.toe || 0, ptR: o.ptR ?? o.pt ?? 0, ptL: o.ptL ?? o.pt ?? 0, wr: o.wr || 0, tw: o.tw || 0 };
   for (const [s, sx] of SIDES) {
     const sh = V.add(V.add(neck, V.mul(u, -0.05)), [sx * (B.sw || 0.2), 0, 0]);
     if (o['h' + s]) q['h' + s] = o['h' + s]; else if (o.h) q['h' + s] = [o.h[0] * sx, o.h[1], o.h[2]];
@@ -45,7 +45,7 @@ function animResolve(o, B = BUILD.male) {
 const mirrorX = a => [-a[0], a[1], a[2]];
 function animMirror(q) { const m = { ...q, p: mirrorX(q.p), ptR: q.ptL, ptL: q.ptR }; for (const k of ['h', 'f', 'ep', 'kp']) { m[k + 'R'] = mirrorX(q[k + 'L']); m[k + 'L'] = mirrorX(q[k + 'R']); } return m; }
 function animLerp(a, b, t) {
-  const q = { p: V.lerp(a.p, b.p, t), lean: a.lean + (b.lean - a.lean) * t, shrug: a.shrug + (b.shrug - a.shrug) * t, toe: a.toe + (b.toe - a.toe) * t, ptR: a.ptR + (b.ptR - a.ptR) * t, ptL: a.ptL + (b.ptL - a.ptL) * t };
+  const q = { p: V.lerp(a.p, b.p, t), lean: a.lean + (b.lean - a.lean) * t, shrug: a.shrug + (b.shrug - a.shrug) * t, toe: a.toe + (b.toe - a.toe) * t, ptR: a.ptR + (b.ptR - a.ptR) * t, ptL: a.ptL + (b.ptL - a.ptL) * t, wr: (a.wr || 0) + ((b.wr || 0) - (a.wr || 0)) * t, tw: (a.tw || 0) + ((b.tw || 0) - (a.tw || 0)) * t };
   for (const k of ['hR', 'hL', 'fR', 'fL', 'epR', 'epL', 'kpR', 'kpL']) q[k] = V.lerp(a[k], b[k], t);
   return q;
 }
@@ -152,6 +152,18 @@ const ARCH = {
   // one knee and hand on a bench, rowing with the other arm
   dbrow: () => ({ A: { p: [0, 0.82, -0.12], lean: 80, fR: [0.24, 0.06, -0.02], fL: [-0.12, 0.5, -0.52], kpL: [0, -1, 0.5], kpR: [0.2, 0, 1], hR: [0.22, 0.34, 0.36], hL: [-0.18, 0.5, 0.42], epR: [0.3, 0.6, -1], epL: [-1, 0.3, 0] }, B: { p: [0, 0.82, -0.12], lean: 80, fR: [0.24, 0.06, -0.02], fL: [-0.12, 0.5, -0.52], kpL: [0, -1, 0.5], kpR: [0.2, 0, 1], hR: [0.24, 0.74, 0.16], hL: [-0.18, 0.5, 0.42], epR: [0.3, 1, -0.8], epL: [-1, 0.3, 0] }, props: [{ t: 'slab', a: [-0.13, 0.46, -0.66], b: [-0.13, 0.46, 0.56], w: 0.32, legs: 1 }, { t: 'db', side: 'R' }], yaw: 50, cue: ['One knee and hand on the bench, back flat', 'Pull the dumbbell to your hip', 'Lower to a full stretch, don\'t twist'] }),
   lhfly: () => ({ A: AP({ lean: 6, fR: [0.13, 0.06, 0.2], fL: [-0.13, 0.06, -0.2], h: [0.58, 0.82, -0.02], ep: [0.4, 0.8, -1] }), B: AP({ lean: 6, fR: [0.13, 0.06, 0.2], fL: [-0.13, 0.06, -0.2], h: [0.07, 1.42, 0.42], ep: [1, -0.6, -0.3] }), props: [{ t: 'cable2', a: [1.05, 0.12, -0.1] }, { t: 'grips' }], yaw: 25, cue: ['Cables set low, slight lean forward', 'Sweep your hands up and together to chin height', 'Squeeze your upper chest, lower slowly'] }),
+  // forearms resting on the thighs, only the wrists move
+  wcurl: (o = {}) => { const S = { p: [0, 0.52, -0.08], lean: 34, f: [0.17, 0.06, 0.42], kp: [0, 1, 0.5], h: [0.14, 0.6, 0.52], ep: [0.6, 0.6, -1] };
+    return { A: { ...S, wr: o.rev ? 50 : -45 }, B: { ...S, wr: o.rev ? -40 : 55 }, props: [SEAT, ...(o.props || [{ t: 'db' }])], twist: o.rev ? -1.45 : 1.45, yaw: 58, cue: o.rev ? ['Forearms on your thighs, palms down', 'Lift the back of your hands up', 'Only the wrists move'] : ['Forearms on your thighs, palms up', 'Let the weight roll down, then curl your wrists up', 'Only the wrists move'] }; },
+  hang: () => ({ A: { p: [0, 1.07, 0], f: [0.1, 0.3, -0.25], h: [0.32, 2.1, 0], ep: [1, 0, -0.3] }, B: { p: [0, 1.1, 0], f: [0.1, 0.33, -0.25], h: [0.32, 2.1, 0], ep: [1, 0, -0.3], shrug: -0.03 }, props: [{ t: 'fixbar', y: 2.12 }], hold: 1, yaw: 30, cue: ['Grab the bar and hang with straight arms', 'Squeeze the bar as hard as you can', 'Hold for time'] }),
+  pinch: () => ({ A: AP({ h: [0.27, 0.86, 0.02] }), B: AP({ p: [0, 0.955, 0], h: [0.27, 0.87, 0.02] }), props: [{ t: 'pinch' }], hold: 1, yaw: 30, cue: ['Pinch plates smooth side out, fingers on one side, thumb on the other', 'Stand tall, arms by your sides', 'Hold for time'] }),
+  frontraise: () => ({ A: AP({ h: [0.18, 0.9, 0.12] }), B: AP({ h: [0.18, 1.42, 0.62], ep: [1, 0, 0] }), props: [{ t: 'db' }], twist: -1.45, swing: ['h'], yaw: 62, cue: ['Raise the weights in front to shoulder height', 'Arms nearly straight', 'Lower slowly'] }),
+  uprow: () => ({ A: AP({ h: [0.1, 0.86, 0.12], ep: [1, 0, 0] }), B: AP({ h: [0.11, 1.36, 0.1], ep: [1, 0.7, -0.2] }), props: [{ t: 'bar', short: 1 }], twist: -1.45, yaw: 35, cue: ['Hands about shoulder-width', 'Lead with your elbows up to chest height', 'Stop if your shoulders pinch'] }),
+  arnold: () => ({ A: { p: [0, 0.55, 0], f: [0.18, 0.06, 0.42], kp: [0, 1, 0.5], hl: [0.12, -0.08, 0.2], ep: [0.2, -1, 0.6], tw: 85 }, B: { p: [0, 0.55, 0], f: [0.18, 0.06, 0.42], kp: [0, 1, 0.5], h: [0.21, 1.55, 0.02], ep: [1, -0.2, 0.2], tw: -15 }, props: [SEAT, BACKREST, { t: 'db' }], yaw: 30, cue: ['Start with dumbbells at your chin, palms facing you', 'Press up and turn your palms forward as you go', 'Reverse on the way down'] }),
+  floorcrunch: () => ({ A: { p: [0, 0.12, 0], lean: -90, f: [0.12, 0.06, 0.42], kp: [0, 1, 0], hl: [0.12, 0.1, 0.13], ep: [1, 0, 0] }, B: { p: [0, 0.12, 0], lean: -58, f: [0.12, 0.06, 0.42], kp: [0, 1, 0], hl: [0.12, 0.1, 0.13], ep: [1, 0, 0] }, props: [{ t: 'mat' }], yaw: 70, cue: ['Lie on your back, knees bent, feet flat', 'Curl your shoulders off the floor', 'Lower back stays on the floor'] }),
+  legraise: () => ({ A: { p: [0, 0.12, 0], lean: -90, f: [0.1, 0.1, 0.92], kp: [0, 1, 0], h: [0.26, 0.05, -0.12], ep: [1, 0.3, 0] }, B: { p: [0, 0.12, 0], lean: -90, f: [0.1, 0.94, 0.16], kp: [0, 0, 1], h: [0.26, 0.05, -0.12], ep: [1, 0.3, 0] }, props: [{ t: 'mat' }], swing: ['f'], yaw: 70, cue: ['Lie flat, hands by your sides', 'Raise straight legs up to vertical', 'Lower slowly without arching your back'] }),
+  rtwist: () => ({ A: { p: [0, 0.12, -0.05], lean: -42, f: [0.12, 0.3, 0.46], kp: [0, 1, 0], hR: [-0.18, 0.58, 0.3], hL: [-0.32, 0.58, 0.22], epR: [1, -0.6, 0], epL: [-1, -0.6, 0] }, B: { p: [0, 0.12, -0.05], lean: -42, f: [0.12, 0.3, 0.46], kp: [0, 1, 0], hR: [0.32, 0.58, 0.22], hL: [0.18, 0.58, 0.3], epR: [1, -0.6, 0], epL: [-1, -0.6, 0] }, props: [{ t: 'db1' }, { t: 'mat' }], yaw: 20, cue: ['Sit leaning back, feet off the floor', 'Turn your chest and tap the weight beside each hip', 'Keep your back straight'] }),
+  abwheel: () => ({ A: { p: [0, 0.62, -0.12], lean: 52, f: [0.12, 0.06, -0.6], pt: 0.9, kp: [0, -1, 0.1], h: [0.13, 0.1, 0.42], ep: [1, 0, 0.3] }, B: { p: [0, 0.38, 0.12], lean: 84, f: [0.12, 0.06, -0.6], pt: 0.9, kp: [0, -1, 0.1], h: [0.13, 0.1, 1.05], ep: [1, 0, 0.3] }, props: [{ t: 'wheel' }, { t: 'mat' }], yaw: 70, cue: ['Kneel, hands on the wheel under your shoulders', 'Roll out as far as you can with a flat back', 'Pull back with your abs'] }),
   carry: () => ({ A: AP({ p: [0, 0.92, 0], fR: [0.11, 0.06, 0.3], fL: [-0.11, 0.13, -0.3] }), B: AP({ p: [0, 0.92, 0], fR: [0.11, 0.13, -0.3], fL: [-0.11, 0.06, 0.3] }), props: [{ t: 'db' }], arc: 0.03, yaw: 55, cue: CUE.carry }),
 };
 const BAR = [{ t: 'bar' }], DB = [{ t: 'db' }], NONE = [], TW = window.TW_TEST ?? 1.45;
@@ -170,7 +182,7 @@ const EX_ANIM = {
   'Leg Press': ['legpress'], 'Leg Extension': ['legext', { roller: 1 }], 'Bulgarian Split Squat': ['lunge', { back: 1 }], 'Walking Lunge': ['lunge'], 'Jump Squat': ['jumpsquat'], 'Lateral Bounds': ['bounds'], 'Lateral Lunge': ['latlunge'], 'Step-up': ['stepup'],
   'Lying Leg Curl': ['llcurl'], 'Seated Leg Curl': ['slcurl'], 'Hip Thrust': ['thrust'], 'Machine Hip Thrust': ['thrust', { machine: 1 }], 'Cable Kickback': ['kickback'], 'Hip Abduction': ['abduct'],
   'Standing Calf Raise': ['calf', { props: [{ t: 'block' }, { t: 'shoulderpads' }], grip: 1 }], 'Calf Extension': ['lpcalf'], 'Dumbbell Standing Calf Raise': ['calf', { props: [{ t: 'db' }, { t: 'block' }] }], 'Smith Calf Raise': ['calf', { hl: SQ_HL, props: [{ t: 'bar' }, { t: 'smith' }, { t: 'block' }] }], 'Seated Calf Raise': ['scalf'], 'Leg Press Calf Raise': ['lpcalf'], 'Tibialis Raise': ['tib'],
-  'Cable Crunch': ['crunch'], 'Plank': ['plank'], 'Decline Sit-up': ['situp'], 'Farmer Carry': ['carry'], 'Cable Woodchop': ['chop'], 'Pallof Press': ['pallof'], 'Dead Bug': ['deadbug'],
+  'Cable Crunch': ['crunch'], 'Wrist Curl': ['wcurl'], 'Reverse Wrist Curl': ['wcurl', { rev: 1 }], 'Barbell Wrist Curl': ['wcurl', { props: [{ t: 'bar', short: 1 }] }], 'Reverse Curl': ['curl', { props: [{ t: 'bar', short: 1 }], twist: -1.45 }], 'Dead Hang': ['hang'], 'Plate Pinch': ['pinch'], 'Front Raise': ['frontraise'], 'Upright Row': ['uprow'], 'Arnold Press': ['arnold'], 'Crunch': ['floorcrunch'], 'Lying Leg Raise': ['legraise'], 'Russian Twist': ['rtwist'], 'Ab Wheel Rollout': ['abwheel'], 'Plank': ['plank'], 'Decline Sit-up': ['situp'], 'Farmer Carry': ['carry'], 'Cable Woodchop': ['chop'], 'Pallof Press': ['pallof'], 'Dead Bug': ['deadbug'],
 };
 const MUS_SEG = { quads: ['thigh'], hamstrings: ['thigh'], glutes: ['glute', 'pelvis'], adductors: ['thigh'], abductors: ['pelvis', 'glute'], calves: ['shin'], chest: ['pec'], abs: ['tl'], obliques: ['tl'], lats: ['tu'], upper_back: ['tu', 'trap'], lower_back: ['tl'], traps: ['trap'], delts: ['sho'], side_delts: ['sho'], rear_delts: ['sho'], biceps: ['upper'], triceps: ['upper'], forearms: ['fore'] };
 function animDef(name, sex, useMesh) {
@@ -191,6 +203,10 @@ function animDef(name, sex, useMesh) {
 function animPose(def, t, cycle) {
   let b = def.b; if (def.alt && cycle % 2) b = animMirror(def.b);
   let q = animLerp(def.a, b, t);
+  if (def.swing) { // limbs that swing through an arc (leg raises, front raises): keep their reach instead of folding mid-rep
+    const piv = { f: s => V.add(q.p, [s === 'R' ? 0.1 : -0.1, 0, 0]), h: s => V.add(q.p, V.add(V.mul([0, Math.cos(q.lean * Math.PI / 180), Math.sin(q.lean * Math.PI / 180)], 0.45), [s === 'R' ? 0.2 : -0.2, 0, 0])) };
+    for (const k of def.swing) for (const s of ['R', 'L']) { const pa = piv[k](s), la = V.len(V.sub(def.a[k + s], pa)), lb = V.len(V.sub(b[k + s], pa)), d = V.sub(q[k + s], pa), L = la + (lb - la) * t; if (V.len(d) > 1e-3) q[k + s] = V.add(pa, V.mul(V.norm(d), L)); }
+  }
   if (def.arc) { const k = Math.sin(Math.PI * t) * def.arc; q.p = V.add(q.p, [0, k, 0]); q.fR = V.add(q.fR, [0, k * (t < 0.5 ? 0.4 : 1), 0]); q.fL = V.add(q.fL, [0, k * (t < 0.5 ? 1 : 0.4), 0]); }
   return q;
 }
