@@ -33,10 +33,46 @@ function restFrames(m) {
     // hand: x along the fingers, y out of the back of the hand (thumb-to-pinky crossed with the finger direction, flipped per side)
     { const fx = V.sub(g('finger_3_1'), g('hand')), tp = V.sub(g('finger_5_1'), g('finger_1_1')), nb = [fx[1] * tp[2] - fx[2] * tp[1], fx[2] * tp[0] - fx[0] * tp[2], fx[0] * tp[1] - fx[1] * tp[0]]; R['hd' + s] = [g('hand'), frame3(g('hand'), g('finger_3_1'), V.mul(nb, s === 'R' ? 1 : -1))];
       /* grip axis (index knuckle → pinky knuckle) in forearm coordinates, so held props can turn with the hand */
-      const fa = R['fa' + s][1], tpn = V.norm(tp); R['grip' + s] = [V.dot(tpn, fa[0]), V.dot(tpn, fa[1]), V.dot(tpn, fa[2])]; }
+      const fa = R['fa' + s][1], tpn = V.norm(tp); R['grip' + s] = [V.dot(tpn, fa[0]), V.dot(tpn, fa[1]), V.dot(tpn, fa[2])];
+      /* centre of the closed fist (where a handle sits), same geometry as gripMesh() */
+      const f1 = g('finger_1_1'), f3 = g('finger_3_1'), f5 = g('finger_5_1'), ff = V.norm(V.sub(f3, g('hand'))), a0 = V.sub(f5, f1), aa = V.norm(V.sub(a0, V.mul(ff, V.dot(a0, ff)))), nn = V.mul(V.norm([ff[1] * aa[2] - ff[2] * aa[1], ff[2] * aa[0] - ff[0] * aa[2], ff[0] * aa[1] - ff[1] * aa[0]]), -(p === 'L_' ? 1 : -1));
+      R['fist' + s] = V.add(V.add(f3, V.mul(nn, 0.03)), V.mul(ff, -0.012)); }
   }
   return R;
 }
+/* Closed hands: bend the four fingers (everything past the knuckle line) around the grip axis
+   with a constant curve, like wrapping a handle. Baked once per body into a second vertex/normal set. */
+const TH_ANG = -1.1;
+function gripMesh(m, M, sign = -1) {
+  const key = 'grip' + sign; if (m[key]) return m[key];
+  const pos = m.pos.slice(), nrm = m.nrm.slice(), n = M.n, R = 0.032, k = 1 / R;
+  for (const [bone, p] of [[11, 'L_'], [12, 'R_']]) {
+    const J = m.J, h = J[p + 'hand'], f1 = J[p + 'finger_1_1'], f3 = J[p + 'finger_3_1'], f5 = J[p + 'finger_5_1'];
+    const f = V.norm(V.sub(f3, h)), a0 = V.sub(f5, f1), a = V.norm(V.sub(a0, V.mul(f, V.dot(a0, f)))), nn = V.mul(V.norm([f[1] * a[2] - f[2] * a[1], f[2] * a[0] - f[0] * a[2], f[0] * a[1] - f[1] * a[0]]), sign * (p === 'L_' ? 1 : -1));
+    const s5 = V.dot(V.sub(f5, f3), a), d5 = V.dot(V.sub(f5, f3), f), slope = Math.abs(s5) > 1e-4 ? d5 / s5 : 0;
+    for (let i = 0; i < n; i++) {
+      let w = 0; for (let q = 0; q < 4; q++) if (M.bi[i * 4 + q] === bone) w += M.bw[i * 4 + q] / 255; if (w < 0.5) continue;
+      const v = [pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]], r = V.sub(v, f3), sa = V.dot(r, a), d = V.dot(r, f) - sa * slope;
+      if (d <= 0) { // thumb: the part sticking out past the index side swings over toward the palm
+        const r1 = V.sub(v, f1), out = -V.dot(r1, a), along = V.dot(V.sub(v, h), f);
+        if (out > 0.004 && along > 0.01) { const wgt = Math.min(1, (out - 0.004) / 0.02), th = TH_ANG * wgt, c = Math.cos(th), sn = Math.sin(th), ra = V.dot(r1, a), rn = V.dot(r1, nn), rf = V.dot(r1, f);
+          const np = V.add(f1, V.add(V.mul(f, rf), V.add(V.mul(a, ra * c - rn * sn), V.mul(nn, ra * sn + rn * c)))); pos[i * 3] = np[0]; pos[i * 3 + 1] = np[1]; pos[i * 3 + 2] = np[2];
+          const nv = [nrm[i * 3], nrm[i * 3 + 1], nrm[i * 3 + 2]], na = V.dot(nv, a), nf = V.dot(nv, f), nh = V.dot(nv, nn), rv = V.add(V.mul(f, nf), V.add(V.mul(a, na * c - nh * sn), V.mul(nn, na * sn + nh * c))); nrm[i * 3] = rv[0]; nrm[i * 3 + 1] = rv[1]; nrm[i * 3 + 2] = rv[2]; }
+        continue; }
+      const hh = V.dot(r, nn), phi = Math.min(d * k, 2.9), c = Math.cos(phi), sn = Math.sin(phi);
+      // point on the bent centreline + the vertex's offset off that line, both rotated by phi
+      const base = V.add(V.add(f3, V.mul(a, sa)), V.add(V.mul(f, d * (d > 0 ? 0 : 1) + Math.sin(phi) / k + (V.dot(r, f) - d - sa * slope) * 0), V.mul(nn, (1 - c) / k)));
+      const off = V.add(V.mul(nn, hh * c), V.mul(f, -hh * sn)), np = V.add(V.add(base, off), V.mul(f, sa * slope));
+      pos[i * 3] = np[0]; pos[i * 3 + 1] = np[1]; pos[i * 3 + 2] = np[2];
+      const nv = [nrm[i * 3], nrm[i * 3 + 1], nrm[i * 3 + 2]], na = V.dot(nv, a), nf = V.dot(nv, f), nh = V.dot(nv, nn);
+      const rn = V.add(V.mul(a, na), V.add(V.mul(f, nf * c - nh * sn), V.mul(nn, nf * sn + nh * c)));
+      nrm[i * 3] = rn[0]; nrm[i * 3 + 1] = rn[1]; nrm[i * 3 + 2] = rn[2];
+    }
+  }
+  return (m[key] = { pos, nrm });
+}
+const GRIP_PROPS = new Set(['db', 'bar', 'barhip', 'kb', 'grips', 'fixbar', 'rails', 'cable', 'cable2', 'rope', 'smith', 'tbar', 'handles']);
+const grips = def => def.hands !== 'floor' && (def.grip || (def.props || []).some(p => GRIP_PROPS.has(p.t)));
 const BONE_ORDER = ['torso', 'uaR', 'uaL', 'faR', 'faL', 'thR', 'thL', 'shR', 'shL', 'ftR', 'ftL', 'hdR', 'hdL'];
 /* current pose → 11 bone matrices (column-major 4x4), M = [Fc * Fr^T | a_cur - R a_rest] */
 function boneMats(J, m, out, hands) {
@@ -96,7 +132,7 @@ function g3Setup(cv, def, sex) {
   const col = new Float32Array(3), hipY = m.pel[1], fy = f => m.pel[1] + f * (m.shm[1] - m.pel[1]), top = sex === 'female';
   return { gl, pr, m, n, nIdx: M.idx.length, a: { pos: A('aPos'), nrm: A('aNrm'), col: A('aCol'), bi: A('aBi'), bw: A('aBw'), ex: A('aEx') }, u: { bones: U('uBones[0]'), vp: U('uVP'), vr: U('uVR'), skin: U('uSkin'), flat: U('uFlat'), shorts: U('uShorts'), top: U('uTop') },
     cloth: { shorts: [9, 9], top: [m.pel[1], m.shm[1], m.build.sw, 0] },   // plain single-colour figures, no painted clothing
-    b: { pos: buf(m.pos), nrm: buf(m.nrm), ex: buf(ex), bi: buf(bi), bw: buf(bw), idx: buf(M.idx, gl.ELEMENT_ARRAY_BUFFER), prop: gl.createBuffer() }, bones: new Float32Array(13 * 16), hl: on.size > 0 };
+    b: { pos: buf(grips(def) ? gripMesh(m, M).pos : m.pos), nrm: buf(grips(def) ? gripMesh(m, M).nrm : m.nrm), ex: buf(ex), bi: buf(bi), bw: buf(bw), idx: buf(M.idx, gl.ELEMENT_ARRAY_BUFFER), prop: gl.createBuffer() }, bones: new Float32Array(13 * 16), hl: on.size > 0 };
 }
 /* equipment + floor are rebuilt each frame as plain triangles: [x,y,z, nx,ny,nz, r,g,b] */
 function propGeo(def, q, J, m) {
@@ -114,14 +150,37 @@ function propGeo(def, q, J, m) {
   // floor (drawn unlit: marked by a zero normal)
   const flatStart = 0; disc(def.c, def.r * 0.98, C3.ring, -0.004); disc(def.c, def.r * 0.965, C3.floor, -0.003); disc(def.c, def.r * 0.56, C3.ring, -0.002); disc(def.c, def.r * 0.545, C3.floor, -0.001); disc(q.p, 0.27 + Math.max(0, 0.6 - q.p[1]) * 0.25, C3.shadow, 0);
   const nFlat = o.length / 9;
-  const grip = s => V.add(J['ha' + s], V.mul(V.norm(V.sub(J['ha' + s], J['el' + s])), 0.075)), gR = grip('R'), gL = grip('L'), mid = V.mul(V.add(gR, gL), 0.5), G = { R: gR, L: gL };
+  const fist = s => { const rf = m && m.rest && m.rest['fist' + s]; if (!rf || !grips(def)) return null; const [ar, fr] = m.rest['fa' + s], fc = frame3(J['el' + s], J['ha' + s], J['eb' + s]), d = V.sub(rf, ar); return V.add(J['el' + s], V.add(V.mul(fc[0], V.dot(d, fr[0])), V.add(V.mul(fc[1], V.dot(d, fr[1])), V.mul(fc[2], V.dot(d, fr[2]))))); };
+  const grip = s => fist(s) || V.add(J['ha' + s], V.mul(V.norm(V.sub(J['ha' + s], J['el' + s])), 0.075)), gR = grip('R'), gL = grip('L'), mid = V.mul(V.add(gR, gL), 0.5), G = { R: gR, L: gL };
   /* the way the handle runs through each fist: follows the forearm's twist (hammer vs palms-up) */
   const gax = s => { if (def.hands === 'floor') return [1, 0, 0]; const fa = frame3(J['el' + s], J['ha' + s], J['eb' + s]), l = (m && m.rest && m.rest['grip' + s]) || [0, 1, 0], k = Math.hypot(l[1], l[2]) || 1; return V.norm(V.add(V.mul(fa[1], l[1] / k), V.mul(fa[2], l[2] / k))); };
   const GA = { R: gax('R'), L: gax('L') };
+  const JA = (() => { const j = animJoints(def.a, def.build); j.mid = V.mul(V.add(j.haR, j.haL), 0.5); return j; })();   // start pose: anchors fixed machine parts
   const barbell = (cx, y, z) => { cyl([cx - 0.98, y, z], [cx + 0.98, y, z], 0.016, C3.bar); for (const sx of [-1, 1]) { cyl([cx + sx * 0.8, y, z], [cx + sx * 0.86, y, z], 0.21, C3.dark, 22, 1); cyl([cx + sx * 0.74, y, z], [cx + sx * 0.92, y, z], 0.035, C3.bar, 10, 1); } };
   for (const pr of def.props || []) {
     if (pr.t === 'bar') { if (pr.short) { const half = Math.max(0.3, Math.abs(gR[0] - gL[0]) / 2 + 0.12); cyl([mid[0] - half, mid[1], mid[2]], [mid[0] + half, mid[1], mid[2]], 0.016, C3.bar, 10, 1); } else barbell(mid[0], mid[1], mid[2]); }
     else if (pr.t === 'barhip') { const c = V.add(q.p, [0, 0.15, 0.08]); barbell(0, c[1], c[2]); }
+    else if (pr.t === 'db' && pr.side) { const s = pr.side, h = G[s], ax = GA[s], P = d => V.add(h, V.mul(ax, d)); cyl(P(-0.12), P(0.12), 0.017, C3.bar); for (const dz of [-0.12, 0.12]) cyl(P(dz - 0.035), P(dz + 0.035), 0.062, C3.dark, 14, 1); }
+    else if (pr.t === 'smith') { const z = pr.z ?? JA.mid[2], top = 2.15; for (const sx of [-1, 1]) { cyl([sx * 0.7, 0, z], [sx * 0.7, top, z], 0.03, C3.dark, 10, 1); cyl([sx * 0.7, 0, z - 0.32], [sx * 0.7, 0, z + 0.32], 0.035, C3.dark, 8, 1); cyl([sx * 0.66, mid[1] - 0.04, z], [sx * 0.66, mid[1] + 0.04, z], 0.04, C3.bar, 10, 1); } cyl([-0.72, top, z], [0.72, top, z], 0.03, C3.dark, 10, 1); }
+    else if (pr.t === 'rack') { const z = pr.z ?? JA.mid[2], y = pr.y ?? JA.mid[1] - 0.05; for (const sx of [-1, 1]) for (const dz of [-0.32, 0.32]) cyl([sx * 0.62, 0, z + dz], [sx * 0.62, 2.25, z + dz], 0.028, C3.dark, 8, 1); for (const sx of [-1, 1]) { cyl([sx * 0.62, 2.25, z - 0.32], [sx * 0.62, 2.25, z + 0.32], 0.026, C3.dark); cyl([sx * 0.62, y, z + 0.32], [sx * 0.62, y, z + 0.42], 0.022, C3.bar); cyl([sx * 0.62, 0.95, z - 0.32], [sx * 0.62, 0.95, z + 0.32], 0.024, C3.bar); } cyl([-0.62, 2.25, z - 0.32], [0.62, 2.25, z - 0.32], 0.026, C3.dark); }
+    else if (pr.t === 'benchrack') { const z = pr.z, h = pr.h; for (const sx of [-1, 1]) { cyl([sx * 0.56, 0, z], [sx * 0.56, h + 0.08, z], 0.028, C3.dark, 8, 1); cyl([sx * 0.56, h, z], [sx * 0.56, h, z + 0.09], 0.02, C3.bar); cyl([sx * 0.56, 0, z - 0.25], [sx * 0.56, 0, z + 0.25], 0.03, C3.dark, 8, 1); } }
+    else if (pr.t === 'roller' || pr.t === 'roller2') { // leg-machine pad: across both legs at the ankles (or knees), on the front (dir 1) or back (dir -1) of the shin
+      const at = pr.at || 'an', c = V.mul(V.add(J[at + 'R'], J[at + 'L']), 0.5), sd = V.norm(V.sub(J.anR, J.knR)), kf = J.kfR; let pv = V.sub(kf, V.mul(sd, V.dot(kf, sd))); pv = V.norm(V.len(pv) < 1e-3 ? [0, 0, 1] : pv);
+      const off = pr.at === 'kn' ? V.add(V.mul(V.norm(V.sub(J.knR, J.hipR)), -0.08), [0, 0.085, 0]) : V.mul(pv, (pr.dir || 1) * 0.085), cc = V.add(c, off);
+      cyl([cc[0] - 0.24, cc[1], cc[2]], [cc[0] + 0.24, cc[1], cc[2]], 0.055, C3.pad, 14, 1);
+      if (pr.lever) { const pvt = V.mul(V.add(J.knR, J.knL), 0.5), piv = [0.32, pvt[1], pvt[2]]; cyl(piv, [0.3, cc[1], cc[2]], 0.022, C3.dark); cyl([0.3, piv[1], piv[2]], [0.36, piv[1], piv[2]], 0.05, C3.dark, 12, 1); } }
+    else if (pr.t === 'kneepads') for (const [s, sx] of SIDES) { const k = V.add(J['kn' + s], [sx * 0.085, 0, 0]); cyl(V.add(k, [0, -0.08, 0]), V.add(k, [0, 0.08, 0]), 0.045, C3.pad, 12, 1); cyl(V.add(k, [sx * 0.05, 0, 0]), [sx * 0.3, k[1] - 0.25, k[2] - 0.2], 0.018, C3.dark); }
+    else if (pr.t === 'chestpad') { const P = JA, a2 = V.add(P.pelvis, V.mul(P.fwd, 0.15)), b2 = V.add(P.chest, V.add(V.mul(P.fwd, 0.15), V.mul(P.up, 0.12))); slab(a2, b2, 0.36, C3.pad, 0.06); cyl(a2, [a2[0], 0, a2[2]], 0.025, C3.dark); cyl(b2, [b2[0], 0, b2[2] - 0.05], 0.025, C3.dark); if (pr.seat) slab([0, pr.seat, a2[2] - 0.42], [0, pr.seat, a2[2] - 0.06], 0.34, C3.pad); }
+    else if (pr.t === 'thighpad') { const c = V.add(V.mul(V.add(JA.knR, JA.knL), 0.5), [0, 0.1, -0.05]); cyl([-0.26, c[1], c[2]], [0.26, c[1], c[2]], 0.05, C3.pad, 14, 1); cyl([0, c[1], c[2] + 0.04], [0, 0, c[2] + 0.12], 0.025, C3.dark); }
+    else if (pr.t === 'tbar') { const piv = [0, 0.04, -0.95], d = V.norm(V.sub(mid, piv)), end = V.add(mid, V.mul(d, 0.32)); cyl(piv, end, 0.02, C3.bar); cyl(V.add(mid, V.mul(d, 0.12)), V.add(mid, V.mul(d, 0.16)), 0.2, C3.dark, 22, 1); cyl([mid[0] - 0.14, mid[1], mid[2]], [mid[0] + 0.14, mid[1], mid[2]], 0.017, C3.bar, 10, 1); cyl([-0.06, 0.04, -0.95], [0.06, 0.04, -0.95], 0.05, C3.dark, 10, 1); }
+    else if (pr.t === 'rope') { const knot = V.add(mid, V.mul(V.norm(V.sub(pr.a, mid)), 0.13)); cyl(pr.a, knot, 0.006, C3.cable, 6); for (const s of ['R', 'L']) cyl(knot, G[s], 0.013, C3.dark, 8); ball(knot, 0.022, C3.dark, 5, 8); if (pr.a[1] > 2) cyl([pr.a[0] - 0.25, pr.a[1], pr.a[2]], [pr.a[0] + 0.25, pr.a[1], pr.a[2]], 0.022, C3.dark, 10, 1); else cyl([pr.a[0], 0, pr.a[2]], [pr.a[0], Math.max(0.3, pr.a[1]), pr.a[2]], 0.02, C3.dark); }
+    else if (pr.t === 'levers') for (const [s, sx] of SIDES) { const a = [sx * pr.a[0], pr.a[1], pr.a[2]]; cyl(a, G[s], 0.02, C3.dark); ball(a, 0.035, C3.dark, 5, 8); }
+    else if (pr.t === 'block') { const tz = (JA.toeR[2] + JA.toeL[2]) / 2, an = (JA.anR[2] + JA.anL[2]) / 2, z0 = Math.min(tz, an) + (tz - an) * 0.35; slab([0, 0.09, z0 - 0.05], [0, 0.09, Math.max(tz, an) + 0.12], 0.56, C3.pad, 0.09); }
+    else if (pr.t === 'shoulderpads') { for (const [s, sx] of SIDES) { const sp = V.add(J['sh' + s], [sx * -0.02, 0.075, 0]); cyl(V.add(sp, [0, 0, -0.1]), V.add(sp, [0, 0, 0.1]), 0.05, C3.pad, 12, 1); cyl([sx * 0.42, 0, sp[2] - 0.2], [sx * 0.42, 2.0, sp[2] - 0.2], 0.03, C3.dark, 8, 1); cyl(V.add(sp, [0, 0, -0.1]), [sx * 0.42, sp[1], sp[2] - 0.2], 0.02, C3.dark); } }
+    else if (pr.t === 'hack') { const a2 = V.add(J.pelvis, V.mul(J.fwd, -0.14)), b2 = V.add(J.neck, V.mul(J.fwd, -0.13)); slab(a2, b2, 0.4, C3.pad, 0.06); for (const [s, sx] of SIDES) { const sp = V.add(J['sh' + s], [sx * -0.03, 0.07, 0.02]); cyl(V.add(sp, [0, 0, -0.08]), V.add(sp, [0, 0, 0.1]), 0.045, C3.pad, 12, 1); }
+      const ft = V.mul(V.add(JA.anR, JA.anL), 0.5); slab([0, 0.12, ft[2] - 0.22], [0, 0.04, ft[2] + 0.3], 0.62, C3.dark, 0.05); const dir = V.norm(V.sub(JA.neck, JA.pelvis)), base = [0, 0.05, JA.pelvis[2] - 0.32]; for (const sx of [-0.24, 0.24]) cyl([sx, base[1], base[2]], V.add([sx, base[1], base[2]], V.mul(dir, 2.0)), 0.025, C3.bar, 8, 1); }
+    else if (pr.t === 'hippad') { const c = V.add(q.p, [0, 0.16, 0.06]); cyl([c[0] - 0.3, c[1], c[2]], [c[0] + 0.3, c[1], c[2]], 0.07, C3.pad, 14, 1); for (const sx of [-0.4, 0.4]) cyl([sx, 0, c[2]], [sx, c[1], c[2]], 0.025, C3.dark); cyl([-0.4, c[1], c[2]], [-0.3, c[1], c[2]], 0.025, C3.dark); cyl([0.3, c[1], c[2]], [0.4, c[1], c[2]], 0.025, C3.dark); }
+    else if (pr.t === 'preacher') { slab(pr.a, pr.b, 0.5, C3.pad, 0.07); cyl([0, 0, (pr.a[2] + pr.b[2]) / 2], [0, Math.min(pr.a[1], pr.b[1]) - 0.08, (pr.a[2] + pr.b[2]) / 2], 0.03, C3.dark); }
     else if (pr.t === 'db') for (const s of ['R', 'L']) { const h = G[s], ax = GA[s], P = d => V.add(h, V.mul(ax, d)); cyl(P(-0.12), P(0.12), 0.017, C3.bar); for (const dz of [-0.12, 0.12]) cyl(P(dz - 0.035), P(dz + 0.035), 0.062, C3.dark, 14, 1); }
     else if (pr.t === 'kb') { ball([mid[0], mid[1] - 0.12, mid[2]], 0.1, C3.dark, 8, 12); cyl([mid[0] - 0.06, mid[1], mid[2]], [mid[0] + 0.06, mid[1], mid[2]], 0.015, C3.bar); }
     else if (pr.t === 'grips') for (const s of ['R', 'L']) { const h = G[s], ax = GA[s]; cyl(V.add(h, V.mul(ax, -0.09)), V.add(h, V.mul(ax, 0.09)), 0.017, C3.bar, 10, 1); }

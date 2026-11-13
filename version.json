@@ -1,6 +1,7 @@
 {
- "version": "5.4",
+ "version": "5.5",
  "notes": [
-  "\ud83d\udee0\ufe0f Dumbbells (and cable handles) in the exercise animations now turn with your hands, so hammer curls, presses, raises and rows hold them the right way."
+  "\u270a Animated figures now close their hands around dumbbells, bars and handles.",
+  "\ud83c\udfcb\ufe0f Equipment shows up where it belongs: Smith machine, squat rack, bench uprights, incline bench for incline curls, preacher pad, chest-supported row bench, one-arm dumbbell row on a bench, T-bar, hack squat, leg extension/curl pads, seat pads, calf blocks, rope attachments, cable lateral raises and machine arms."
  ]
 }
