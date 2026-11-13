@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '7.7';
+const APP_VERSION = '7.8';
 const CHANGELOG = [
+  ['7.8', ['📸 Snap your meal: take a photo, add details if you like (amounts, oil, sauces, how much you ate), and the AI splits your plate into foods with portion sizes and macros.', 'Adjust any portion, set how much you ate, or tell it what to fix and it re-estimates. Log it as one meal or as separate items.', 'Find it with the 📸 button next to Add food, or at the top of the Add food screen.']],
   ['7.7', ['🔥 Day streak next to the logo: train or hit your protein goal to keep it lit. Tap it for your best streak and the last 5 weeks.', '👀 A small “Yesterday” line under the greeting: calories, protein, workout and last night’s sleep at a glance.', '🏆 Trophy wall (Progress → Lifts): every PR you’ve hit, newest first, with a shareable PR card.', '🔮 PR predictions: when you’ll hit the next round number on each lift at your current pace.', '📅 Monthly wrap: a story-style look back at your month you can share.', '🔊 Sounds for sets, PRs, finished workouts and quick adds. Quiet on silent, still plays in earbuds, never pauses your music. Turn them off in You → Appearance.', '✨ Smoother screens: tabs slide in the direction you tap, and numbers and rings glide to their new values.', '🏋️ Lateral Raise is now called Dumbbell Lateral Raise. Your past sets came with it.']],
   ['7.6', ['✨ New opening animation: the Liftprint mark draws itself in with a few twinkling stars, then flies into the logo. It only plays while the app is loading and never blocks a tap.', '🔥 New logo in the top left: the fingerprint-and-dumbbell mark from the app icon next to the wordmark. Tap it for a little surprise.']],
   ['7.5', ['The version number now sits quietly at the bottom of every screen.']],

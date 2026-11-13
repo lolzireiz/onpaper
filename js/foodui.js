@@ -65,7 +65,7 @@ Views.food.render = function () {
   const date = foodDate(), t = foodTotals(date), s = S();
   let h = buddyCardHTML() + `<div class="daynav"><button class="iconbtn" data-act="foodDay" data-d="-1" aria-label="Previous day">${ICON.chevL}</button><b>${date === todayStr() ? 'Today' : fmtDay(date)}</b><button class="iconbtn" data-act="foodDay" data-d="1" aria-label="Next day" ${date >= todayStr() ? 'disabled style="opacity:.3"' : ''}>${ICON.chevR}</button></div>`;
   h += foodSummaryHTML(t, s).replace(/<\/section>\s*$/, burnRowHTML(date) + '</section>');
-  h += `<div class="fa-cta"><button class="btn fa-addbtn" data-act="foodAdd">${ICON.plus} Add food</button><button class="btn ghost fa-scan" data-act="barcodeScan" aria-label="Scan a barcode"><span aria-hidden="true">▥</span> Scan</button></div>`;
+  h += `<div class="fa-cta"><button class="btn fa-addbtn" data-act="foodAdd">${ICON.plus} Add food</button><button class="btn ghost fa-cam" data-act="mealSnap" aria-label="Snap your meal"><span aria-hidden="true">📸</span></button><button class="btn ghost fa-scan" data-act="barcodeScan" aria-label="Scan a barcode"><span aria-hidden="true">▥</span> Scan</button></div>`;
   h += usualsHTML(date);
   h += dayLogHTML(date);
   h += proteinIdeasHTML();
@@ -167,13 +167,14 @@ A.usualShow = d => { saveSettings({ foodHide: (S().foodHide || []).filter(x => x
 /* ---------- one Add food sheet ---------- */
 A.foodAdd = () => {
   openSheet('Add food', addSheetHTML(), { onMount: L => {
-    const q = $('#fa-q', L); q.addEventListener('input', () => { $('#fa-list', L).innerHTML = faListHTML(q.value); $('.fa-ways', L).hidden = !!q.value.trim(); });
+    const q = $('#fa-q', L); q.addEventListener('input', () => { $('#fa-list', L).innerHTML = faListHTML(q.value); $('.fa-ways', L).hidden = !!q.value.trim(); const hero = $('.fa-hero', L); if (hero) hero.hidden = !!q.value.trim(); });
   } });
 };
 function addSheetHTML() {
   const ai = !!CAP.sample, date = foodDate(), yn = (foodDay(addDays(date, -1)).items || []).length;
   const ways = [['barcodeScan', '▥', 'Scan barcode'], ai && ['foodSnap', ICON.camera, 'Snap a label'], ai && ['foodDescribe', ICON.spark, 'Describe it'], ['faManual', ICON.plus, 'Enter manually'], ['mealStart', '🍽', 'Build a meal'], yn && ['copyYesterday', '↺', date === todayStr() ? 'Copy yesterday' : 'Copy day before']].filter(Boolean);
   return `<div class="fa-search">${ICON.search}<input id="fa-q" type="search" placeholder="Search your foods" autocomplete="off" autocapitalize="off" enterkeyhint="search" aria-label="Search your foods"></div>
+    <button class="fa-hero" data-act="mealSnap"><span class="fa-hi" aria-hidden="true">📸</span><span class="grow"><b>Snap your meal</b><span class="faint">Take a photo, add details if you like, and get portions and macros.</span></span>${ICON.chevR}</button>
     <div class="fa-ways" style="--n:${ways.length <= 4 ? ways.length : 3}">${ways.map(([a, ic, l]) => `<button class="fa-way" data-act="${a}"><span class="fa-ic" aria-hidden="true">${ic}</span><span>${l}</span></button>`).join('')}</div>
     <div id="fa-list">${faListHTML('')}</div>
     ${ai ? '' : `<p class="faint small" style="margin-top:12px">Want label scanning? <button class="linkbtn" style="padding:0;font-size:inherit" data-act="openSettings">Add your free AI key</button> in Settings.</p>`}
@@ -212,7 +213,7 @@ function dayLogHTML(date) {
   }
   const slotOf = it => { if (!it.ts) return -1; const h = new Date(it.ts).getHours(); return SLOTS.findIndex(s => h >= s[1] && h < s[2]); };
   const groups = new Map(); for (const it of items) { const g = slotOf(it); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(it); }
-  const tag = it => it.src === 'label' ? ' · label' : it.src === 'ai' ? ' · estimate' : it.src === 'meal' ? ' · meal' : '';
+  const tag = it => it.est === 'photo' ? ' · photo estimate' : it.src === 'label' ? ' · label' : it.src === 'ai' ? ' · estimate' : it.src === 'meal' ? ' · meal' : '';
   let h = '';
   for (const [g, xs] of [...groups.entries()].sort((a, b) => a[0] - b[0])) {
     h += `<div class="fl-g"><span>${g < 0 ? 'Logged' : SLOTS[g][0]}</span><span>${fmtN(xs.reduce((a, x) => a + itK(x), 0))} kcal</span></div>`;
