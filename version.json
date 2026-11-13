@@ -1,6 +1,6 @@
 {
- "version": "5.3",
+ "version": "5.4",
  "notes": [
-  "\ud83d\udee0\ufe0f Closing an exercise's info (\u24d8) now takes you back to where you were, like the day editor, instead of closing everything."
+  "\ud83d\udee0\ufe0f Dumbbells (and cable handles) in the exercise animations now turn with your hands, so hammer curls, presses, raises and rows hold them the right way."
  ]
 }

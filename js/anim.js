@@ -146,6 +146,8 @@ const ARCH = {
   carry: () => ({ A: AP({ p: [0, 0.92, 0], fR: [0.11, 0.06, 0.3], fL: [-0.11, 0.13, -0.3] }), B: AP({ p: [0, 0.92, 0], fR: [0.11, 0.13, -0.3], fL: [-0.11, 0.06, 0.3] }), props: [{ t: 'db' }], arc: 0.03, yaw: 55, cue: CUE.carry }),
 };
 const BAR = [{ t: 'bar' }], DB = [{ t: 'db' }], NONE = [];
+/* handle direction through the fist for the flat fallback renderer: perpendicular to the forearm, along its twist */
+function gripAx2(J, s) { const x = V.norm(V.sub(J['ha' + s], J['el' + s])), p = J['eb' + s] || [0, 0, 1]; let y = V.sub(p, V.mul(x, V.dot(p, x))); if (V.len(y) < 1e-4) y = [0, 0, 1]; return V.norm(y); }
 const EX_ANIM = {
   'Bench Press': ['bench'], 'Incline Bench Press': ['incline'], 'Dumbbell Bench Press': ['bench', { props: DB }], 'Incline Dumbbell Press': ['incline', { props: DB }], 'Machine Chest Press': ['mpress'], 'Smith Incline Press': ['incline'], 'Smith Bench Press': ['bench'], 'Low-to-High Cable Fly': ['cfly'],
   'Pec Deck Fly': ['pecdeck'], 'Cable Fly': ['cfly'], 'Dips': ['dips'], 'Push-ups': ['pushup'], 'Close-Grip Bench Press': ['bench', { x: 0.13 }],
@@ -300,9 +302,9 @@ function animDraw(cv, def, t, yawDeg, cycle = 0) {
   for (const pr of def.props || []) {
     if (pr.t === 'bar') { if (pr.short) { const half = Math.max(0.3, Math.abs(J.haR[0] - J.haL[0]) / 2 + 0.12); seg([mid[0] - half, mid[1], mid[2]], [mid[0] + half, mid[1], mid[2]], 0.03, 'prop', AC.bar); } else barbell(mid[0], mid[1], mid[2]); }
     else if (pr.t === 'barhip') { const c = V.add(q.p, [0, 0.13, 0.06]); barbell(0, c[1], c[2]); }
-    else if (pr.t === 'db') for (const [s] of SIDES) { const h = J['ha' + s]; seg([h[0], h[1], h[2] - 0.12], [h[0], h[1], h[2] + 0.12], 0.034, 'prop', AC.bar); for (const dz of [-0.12, 0.12]) dot([h[0], h[1], h[2] + dz], 0.062, 'prop', AC.dark); }
+    else if (pr.t === 'db') for (const [s] of SIDES) { const h = J['ha' + s], ax = gripAx2(J, s), P = d => V.add(h, V.mul(ax, d)); seg(P(-0.12), P(0.12), 0.034, 'prop', AC.bar); for (const dz of [-0.12, 0.12]) dot(P(dz), 0.062, 'prop', AC.dark); }
     else if (pr.t === 'kb') { dot([mid[0], mid[1] - 0.1, mid[2]], 0.1, 'prop', AC.dark); seg([mid[0] - 0.05, mid[1], mid[2]], [mid[0] + 0.05, mid[1], mid[2]], 0.03, 'prop', AC.bar); }
-    else if (pr.t === 'grips') for (const [s] of SIDES) { const h = J['ha' + s]; seg([h[0], h[1] - 0.09, h[2]], [h[0], h[1] + 0.09, h[2]], 0.034, 'prop', AC.bar); }
+    else if (pr.t === 'grips') for (const [s] of SIDES) { const h = J['ha' + s], ax = gripAx2(J, s); seg(V.add(h, V.mul(ax, -0.09)), V.add(h, V.mul(ax, 0.09)), 0.034, 'prop', AC.bar); }
     else if (pr.t === 'slab') { quad(pr.a, pr.b, pr.w, AC.pad); if (pr.legs) for (const e of [pr.a, pr.b]) seg([e[0], e[1] - 0.03, e[2]], [e[0], 0, e[2]], 0.035, 'prop', AC.dark); }
     else if (pr.t === 'fixbar') seg([-0.6, pr.y, 0], [0.6, pr.y, 0], 0.034, 'prop', AC.bar);
     else if (pr.t === 'rails') { if (pr.cross) seg([-pr.x - 0.15, pr.y, pr.z], [pr.x + 0.15, pr.y, pr.z], 0.034, 'prop', AC.bar); else for (const sx of [-1, 1]) { seg([sx * pr.x, pr.y, -0.35], [sx * pr.x, pr.y, 0.35], 0.034, 'prop', AC.bar); seg([sx * pr.x, pr.y, -0.35], [sx * pr.x, 0, -0.35], 0.03, 'prop', AC.dark); } }

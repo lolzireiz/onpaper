@@ -31,7 +31,9 @@ function restFrames(m) {
     R['th' + s] = [g('upper_leg'), frame3(g('upper_leg'), g('knee'), [0, 0, 1])]; R['sh' + s] = [g('knee'), frame3(g('knee'), g('ankle'), [0, 0, 1])];
     R['ft' + s] = [g('ankle'), frame3(g('ankle'), g('toe_3_1'), V.sub(g('knee'), g('ankle')))];
     // hand: x along the fingers, y out of the back of the hand (thumb-to-pinky crossed with the finger direction, flipped per side)
-    { const fx = V.sub(g('finger_3_1'), g('hand')), tp = V.sub(g('finger_5_1'), g('finger_1_1')), nb = [fx[1] * tp[2] - fx[2] * tp[1], fx[2] * tp[0] - fx[0] * tp[2], fx[0] * tp[1] - fx[1] * tp[0]]; R['hd' + s] = [g('hand'), frame3(g('hand'), g('finger_3_1'), V.mul(nb, s === 'R' ? 1 : -1))]; }
+    { const fx = V.sub(g('finger_3_1'), g('hand')), tp = V.sub(g('finger_5_1'), g('finger_1_1')), nb = [fx[1] * tp[2] - fx[2] * tp[1], fx[2] * tp[0] - fx[0] * tp[2], fx[0] * tp[1] - fx[1] * tp[0]]; R['hd' + s] = [g('hand'), frame3(g('hand'), g('finger_3_1'), V.mul(nb, s === 'R' ? 1 : -1))];
+      /* grip axis (index knuckle → pinky knuckle) in forearm coordinates, so held props can turn with the hand */
+      const fa = R['fa' + s][1], tpn = V.norm(tp); R['grip' + s] = [V.dot(tpn, fa[0]), V.dot(tpn, fa[1]), V.dot(tpn, fa[2])]; }
   }
   return R;
 }
@@ -97,7 +99,7 @@ function g3Setup(cv, def, sex) {
     b: { pos: buf(m.pos), nrm: buf(m.nrm), ex: buf(ex), bi: buf(bi), bw: buf(bw), idx: buf(M.idx, gl.ELEMENT_ARRAY_BUFFER), prop: gl.createBuffer() }, bones: new Float32Array(13 * 16), hl: on.size > 0 };
 }
 /* equipment + floor are rebuilt each frame as plain triangles: [x,y,z, nx,ny,nz, r,g,b] */
-function propGeo(def, q, J) {
+function propGeo(def, q, J, m) {
   const o = [], tri = (a, b, c, na, nb, nc, col) => { o.push(a[0], a[1], a[2], na[0], na[1], na[2], col[0], col[1], col[2], b[0], b[1], b[2], nb[0], nb[1], nb[2], col[0], col[1], col[2], c[0], c[1], c[2], nc[0], nc[1], nc[2], col[0], col[1], col[2]); };
   const basis = d => { const x = V.norm(d), r = Math.abs(x[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0], y = V.norm(V.sub(r, V.mul(x, V.dot(r, x)))); return [x, y, [x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]]]; };
   const cyl = (a, b, r, col, n = 10, caps = 0) => { const d = V.sub(b, a); if (V.len(d) < 1e-5) return; const [x, y, z] = basis(d), ring = k => { const an = k / n * Math.PI * 2; return V.add(V.mul(y, Math.cos(an)), V.mul(z, Math.sin(an))); };
@@ -113,13 +115,16 @@ function propGeo(def, q, J) {
   const flatStart = 0; disc(def.c, def.r * 0.98, C3.ring, -0.004); disc(def.c, def.r * 0.965, C3.floor, -0.003); disc(def.c, def.r * 0.56, C3.ring, -0.002); disc(def.c, def.r * 0.545, C3.floor, -0.001); disc(q.p, 0.27 + Math.max(0, 0.6 - q.p[1]) * 0.25, C3.shadow, 0);
   const nFlat = o.length / 9;
   const grip = s => V.add(J['ha' + s], V.mul(V.norm(V.sub(J['ha' + s], J['el' + s])), 0.075)), gR = grip('R'), gL = grip('L'), mid = V.mul(V.add(gR, gL), 0.5), G = { R: gR, L: gL };
+  /* the way the handle runs through each fist: follows the forearm's twist (hammer vs palms-up) */
+  const gax = s => { if (def.hands === 'floor') return [1, 0, 0]; const fa = frame3(J['el' + s], J['ha' + s], J['eb' + s]), l = (m && m.rest && m.rest['grip' + s]) || [0, 1, 0], k = Math.hypot(l[1], l[2]) || 1; return V.norm(V.add(V.mul(fa[1], l[1] / k), V.mul(fa[2], l[2] / k))); };
+  const GA = { R: gax('R'), L: gax('L') };
   const barbell = (cx, y, z) => { cyl([cx - 0.98, y, z], [cx + 0.98, y, z], 0.016, C3.bar); for (const sx of [-1, 1]) { cyl([cx + sx * 0.8, y, z], [cx + sx * 0.86, y, z], 0.21, C3.dark, 22, 1); cyl([cx + sx * 0.74, y, z], [cx + sx * 0.92, y, z], 0.035, C3.bar, 10, 1); } };
   for (const pr of def.props || []) {
     if (pr.t === 'bar') { if (pr.short) { const half = Math.max(0.3, Math.abs(gR[0] - gL[0]) / 2 + 0.12); cyl([mid[0] - half, mid[1], mid[2]], [mid[0] + half, mid[1], mid[2]], 0.016, C3.bar, 10, 1); } else barbell(mid[0], mid[1], mid[2]); }
     else if (pr.t === 'barhip') { const c = V.add(q.p, [0, 0.15, 0.08]); barbell(0, c[1], c[2]); }
-    else if (pr.t === 'db') for (const s of ['R', 'L']) { const h = G[s]; cyl([h[0], h[1], h[2] - 0.12], [h[0], h[1], h[2] + 0.12], 0.017, C3.bar); for (const dz of [-0.12, 0.12]) cyl([h[0], h[1], h[2] + dz - 0.035], [h[0], h[1], h[2] + dz + 0.035], 0.062, C3.dark, 14, 1); }
+    else if (pr.t === 'db') for (const s of ['R', 'L']) { const h = G[s], ax = GA[s], P = d => V.add(h, V.mul(ax, d)); cyl(P(-0.12), P(0.12), 0.017, C3.bar); for (const dz of [-0.12, 0.12]) cyl(P(dz - 0.035), P(dz + 0.035), 0.062, C3.dark, 14, 1); }
     else if (pr.t === 'kb') { ball([mid[0], mid[1] - 0.12, mid[2]], 0.1, C3.dark, 8, 12); cyl([mid[0] - 0.06, mid[1], mid[2]], [mid[0] + 0.06, mid[1], mid[2]], 0.015, C3.bar); }
-    else if (pr.t === 'grips') for (const s of ['R', 'L']) { const h = G[s]; cyl([h[0], h[1] - 0.09, h[2]], [h[0], h[1] + 0.09, h[2]], 0.017, C3.bar, 10, 1); }
+    else if (pr.t === 'grips') for (const s of ['R', 'L']) { const h = G[s], ax = GA[s]; cyl(V.add(h, V.mul(ax, -0.09)), V.add(h, V.mul(ax, 0.09)), 0.017, C3.bar, 10, 1); }
     else if (pr.t === 'slab') { slab(pr.a, pr.b, pr.w, C3.pad); if (pr.legs) for (const e of [pr.a, pr.b]) cyl([e[0], e[1] - 0.04, e[2]], [e[0], 0, e[2]], 0.018, C3.dark); }
     else if (pr.t === 'fixbar') cyl([-0.6, pr.y, 0], [0.6, pr.y, 0], 0.017, C3.bar, 10, 1);
     else if (pr.t === 'rails') { if (pr.cross) cyl([-pr.x - 0.15, pr.y, pr.z], [pr.x + 0.15, pr.y, pr.z], 0.017, C3.bar, 10, 1); else for (const sx of [-1, 1]) { cyl([sx * pr.x, pr.y, -0.35], [sx * pr.x, pr.y, 0.35], 0.017, C3.bar, 10, 1); cyl([sx * pr.x, pr.y, -0.35], [sx * pr.x, 0, -0.35], 0.015, C3.dark); } }
@@ -139,7 +144,7 @@ function g3Draw(cv, G, def, t, yawDeg, cycle) {
   gl.viewport(0, 0, W, H); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
   gl.uniformMatrix4fv(G.u.vp, false, vp); gl.uniformMatrix3fv(G.u.vr, false, new Float32Array([r0[0], r1[0], r2[0], r0[1], r1[1], r2[1], r0[2], r1[2], r2[2]]));
   // equipment + floor
-  const pg = propGeo(def, q, J), a = G.a, F = 36;
+  const pg = propGeo(def, q, J, G.m), a = G.a, F = 36;
   gl.bindBuffer(gl.ARRAY_BUFFER, G.b.prop); gl.bufferData(gl.ARRAY_BUFFER, pg.data, gl.DYNAMIC_DRAW);
   for (const k of ['pos', 'nrm', 'col']) gl.enableVertexAttribArray(a[k]); for (const k of ['bi', 'bw', 'ex']) if (a[k] >= 0) gl.disableVertexAttribArray(a[k]);
   gl.vertexAttribPointer(a.pos, 3, gl.FLOAT, false, F, 0); gl.vertexAttribPointer(a.nrm, 3, gl.FLOAT, false, F, 12); gl.vertexAttribPointer(a.col, 3, gl.FLOAT, false, F, 24);

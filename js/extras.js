@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '5.3';
+const APP_VERSION = '5.4';
 const CHANGELOG = [
+  ['5.4', ['🛠️ Dumbbells (and cable handles) in the exercise animations now turn with your hands, so hammer curls, presses, raises and rows hold them the right way.']],
   ['5.3', ['🛠️ Closing an exercise\'s info (ⓘ) now takes you back to where you were, like the day editor, instead of closing everything.']],
   ['5.2', ['🛠️ Fixed the dunk progress buttons running off the screen.']],
   ['5.1', ['➕ Add a workout day from the + at the top of Train: pick Chest & Triceps, Back & Biceps, Legs, Shoulders & Arms, Push, Pull, Upper, Lower, Full Body or a blank day.', '👆 Tap any day in your split to edit it.']],
