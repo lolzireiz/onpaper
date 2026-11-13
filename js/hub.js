@@ -183,7 +183,7 @@ function workoutStats(w) {
     if (rec?.pr) prs.push({ ex: s.ex, w: load, r: s.r, added: rec.bwf ? s.w : null });
     const m = musclesFor(s.ex); if (m) { for (const id of m.p) heat[id] = (heat[id] || 0) + 3; for (const id of m.s) if (!m.p.has(id)) heat[id] = (heat[id] || 0) + 1.5; }
   }
-  const dur = w.endTs && w.startTs ? Math.round((w.endTs - w.startTs) / 6e4) : null;
+  const dur = w.endTs && w.startTs && !w.noTime ? Math.round((w.endTs - w.startTs) / 6e4) : null;
   const prev = Store.list('workouts').filter(x => x.id !== w.id && x.date <= w.date && (w.dayId ? x.dayId === w.dayId : x.dayName === w.dayName) && (x.sets || []).length).sort((a, b) => b.date.localeCompare(a.date) || (b.startTs || 0) - (a.startTs || 0))[0];
   let prevVol = null; if (prev) { prevVol = 0; for (const s of prev.sets) if (!s.warm && s.hit !== false) { const rec = setRec(idx.get(keyOf(s.ex)), s.id); prevVol += (rec ? rec.w : s.w || 0) * s.r; } }
   const exN = new Set(sets.map(s => keyOf(s.ex))).size;

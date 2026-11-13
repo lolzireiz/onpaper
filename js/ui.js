@@ -38,7 +38,7 @@ overviewHTML = function () {
   if (sub === 'history') return h + weekCardHTML() + heatmapCardHTML() + recentWorkoutsHTML();
   h += deloadBannerHTML();
   if (w) h += `<section class="card hero-card"><div class="card-h"><div><div class="eyebrow">In progress</div><h2 class="lift-h" style="font-size:30px">${esc(w.dayName || 'Workout')}</h2><p class="muted small">${esc(w.gymName || 'No gym')} · started ${fmtClock(w.startTs)} · ${plural((w.sets || []).length, 'set')}</p></div><button class="btn" data-act="resumeWorkout">Resume</button></div></section>`;
-  else { h += smartCardHTML(); h += `<details class="card more-start"${smartPlan().ex.length ? '' : ' open'}><summary><b>Pick a different workout</b><span class="faint small">Any day of your split, or an empty workout</span></summary>${startCardHTML().replace('<button class="btn block" data-act="startWorkout">', '<button class="btn ghost block" data-act="dayNew">' + ICON.plus + ' Add a workout day</button><button class="btn block" data-act="startWorkout">').replace(/^<section class="card">/, '<div class="inner-start">').replace(/<\/section>$/, '</div>')}</details>`; }
+  else { h += smartCardHTML(); h += `<details class="card more-start"${smartPlan().ex.length ? '' : ' open'}><summary><b>Pick a different workout</b><span class="faint small">Any day of your split, or an empty workout</span></summary>${startCardHTML().replace('<button class="btn block" data-act="startWorkout">', '<button class="btn ghost block" data-act="dayNew">' + ICON.plus + ' Add a workout day</button><button class="btn ghost block" data-act="pastStart">🗓️ Log a past workout</button><button class="btn block" data-act="startWorkout">').replace(/^<section class="card">/, '<div class="inner-start">').replace(/<\/section>$/, '</div>')}</details>`; }
   const nx = dunkNext(); if (nx) h += dunkProgramHTML(true);
   return h + actsCardHTML();
 };
@@ -93,3 +93,27 @@ Views.you = {
 };
 A.goalsEditYou = () => A.editGoals({});
 A.whatsNewAll = () => openSheet("What's new", CHANGELOG.slice(0, 8).map(([v, xs]) => `<div class="field"><span class="lbl">Version ${v}</span><ul class="small" style="padding-left:18px;margin:0;line-height:1.5">${xs.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`).join(''));
+
+/* ---------- log a workout for a past day ---------- */
+A.pastStart = d => {
+  if (activeWorkout()) { closeSheet(); toast('Finish or discard the workout in progress first.', { bad: true }); return; }
+  const days = splitDays(), y = addDays(todayStr(), -1), date = d && d.date && d.date < todayStr() ? d.date : y;
+  const body = `<p class="muted small" style="margin:0">Log sets for a day you already trained. They count on that date for your calendar, streaks and PRs.</p>
+    <div class="field"><label class="lbl" for="past-d">Date</label><input id="past-d" type="date" value="${date}" max="${y}"></div>
+    <div class="field"><span class="lbl">Which workout?</span><div class="chips">${days.map(x => `<button class="chip" data-act="pick" data-group="pastday" data-value="${x.id}">${esc(x.name)}</button>`).join('')}<button class="chip" data-act="pick" data-group="pastday" data-value="" aria-pressed="${days.length ? 'false' : 'true'}">Empty workout</button></div></div>
+    <button class="btn block" data-act="pastGo">Start logging</button>`;
+  if ($('#sheet').hidden) openSheet('Log a past workout', body); else { sheetTitle('Log a past workout'); sheetBody(body); }
+};
+A.pastGo = () => {
+  const date = $('#past-d').value, dayId = picked($('#sheet'), 'pastday');
+  if (!date || date >= todayStr()) { toast('Pick a day before today.', { bad: true }); return; }
+  const day = splitDays().find(x => x.id === dayId) || null, gym = activeGym(), plan = day ? planFor(day, gym).filter(p => p.use).map(p => p.use) : [];
+  put('workouts', newId(), { date, past: true, startTs: Date.now(), gymId: gym?.id || null, gymName: gym?.name || '', dayId: day?.id || null, dayName: day?.name || 'Workout', plan, sets: [] });
+  closeSheet(); UI.session = true; UI.tab = 'train'; $('#view').scrollTop = 0; render(); toast(`Logging for ${fmtDay(date)}`);
+};
+{
+  const sh = sessionHTML;
+  sessionHTML = function (w) { const h = sh(w); return w.past ? `<div class="alert past-bar"><span class="ai" aria-hidden="true">🗓️</span><p>Logging a past workout for <b>${fmtDay(w.date)}</b>. Sets count on that day.</p></div>` + h : h; };
+  const cd = A.calDay;
+  A.calDay = d => { cd(d); if (d.date < todayStr() && !$('#sheet').hidden && !$('#sheet [data-act=pastStart]')) { const b = $('#sheet .sheet-b'); if (b) b.insertAdjacentHTML('beforeend', `<button class="btn block${b.querySelector('.row') ? ' ghost' : ''}" data-act="pastStart" data-date="${d.date}">🏋️ Log a workout for this day</button>`); } };
+}

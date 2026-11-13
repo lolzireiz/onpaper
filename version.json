@@ -1,7 +1,6 @@
 {
- "version": "5.5",
+ "version": "5.6",
  "notes": [
-  "\u270a Animated figures now close their hands around dumbbells, bars and handles.",
-  "\ud83c\udfcb\ufe0f Equipment shows up where it belongs: Smith machine, squat rack, bench uprights, incline bench for incline curls, preacher pad, chest-supported row bench, one-arm dumbbell row on a bench, T-bar, hack squat, leg extension/curl pads, seat pads, calf blocks, rope attachments, cable lateral raises and machine arms."
+  "\ud83d\uddd3\ufe0f Log a workout for a past day: tap the day in Train \u2192 History, or use \u201cLog a past workout\u201d under \u201cPick a different workout\u201d. Sets count on that date for your calendar, streaks and PRs."
  ]
 }

@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '5.5';
+const APP_VERSION = '5.6';
 const CHANGELOG = [
+  ['5.6', ['🗓️ Log a workout for a past day: tap the day in Train → History, or use “Log a past workout” under “Pick a different workout”. Sets count on that date for your calendar, streaks and PRs.']],
   ['5.5', ['✊ Animated figures now close their hands around dumbbells, bars and handles.', '🏋️ Equipment shows up where it belongs: Smith machine, squat rack, bench uprights, incline bench for incline curls, preacher pad, chest-supported row bench, one-arm dumbbell row on a bench, T-bar, hack squat, leg extension/curl pads, seat pads, calf blocks, rope attachments, cable lateral raises and machine arms.']],
   ['5.4', ['🛠️ Dumbbells (and cable handles) in the exercise animations now turn with your hands, so hammer curls, presses, raises and rows hold them the right way.']],
   ['5.3', ['🛠️ Closing an exercise\'s info (ⓘ) now takes you back to where you were, like the day editor, instead of closing everything.']],

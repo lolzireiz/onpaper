@@ -161,7 +161,7 @@ function recentWorkoutsHTML() {
 function sessionNames(w) { const names = [...(w.plan || [])]; for (const s of w.sets || []) if (!names.some(n => keyOf(n) === keyOf(s.ex))) names.push(s.ex); return names; }
 function sessionHTML(w) {
   const mins = Math.max(0, Math.round((Date.now() - w.startTs) / 6e4));
-  let h = `<p class="muted small">${esc(w.gymName || 'No gym')} · ${mins} min · ${plural((w.sets || []).length, 'set')}</p>`;
+  let h = `<p class="muted small">${esc(w.gymName || 'No gym')} · ${w.past ? "" : mins + " min · "}${plural((w.sets || []).length, 'set')}</p>`;
   for (const n of sessionNames(w)) h += exBlockHTML(w, n);
   h += `<button class="btn ghost block" data-act="addExercise">${ICON.plus} Add exercise</button><button class="linkbtn danger center" data-act="discardWorkout">Discard workout</button>`;
   return h;
@@ -306,7 +306,7 @@ A.finishWorkout = async () => {
     if (await ask('No sets logged yet. Discard this workout?', { ok: 'Discard', danger: true })) { del('workouts', w.id); UI.session = false; A.restSkip(); render(); }
     return;
   }
-  put('workouts', w.id, { ...clone(w), endTs: Date.now() });
+  put('workouts', w.id, { ...clone(w), endTs: Date.now(), ...(w.past ? { noTime: true } : {}) });
   UI.session = false; UI.unlocked = null; A.restSkip(); releaseWake(); render(); prepBackup(); showSummary(w.id); setTimeout(() => { if (!REDUCED()) confetti({ n: 120 }); countUps($('#sheet')); }, 250);
 };
 A.discardWorkout = async () => {
@@ -321,7 +321,7 @@ function showWorkout(id, justFinished = false) {
   for (const s of sets) (groups[s.ex] = groups[s.ex] || []).push(s);
   const vol = sets.filter(s => s.hit !== false && !s.warm).reduce((a, s) => a + (s.w || 0) * s.r, 0);
   const prs = sets.filter(s => setRec(idx.get(keyOf(s.ex)), s.id)?.pr);
-  const dur = w.endTs && w.startTs ? Math.round((w.endTs - w.startTs) / 6e4) : null;
+  const dur = w.endTs && w.startTs && !w.noTime ? Math.round((w.endTs - w.startTs) / 6e4) : null;
   openSheet(justFinished ? 'Workout saved' : (w.dayName || 'Workout'), `
     <p class="muted">${fmtDay(w.date)}${w.gymName ? ' · ' + esc(w.gymName) : ''}</p>
     <div class="stats">${dur != null ? `<div class="stat"><span class="k">Time</span><span class="v">${dur}<span class="unit">min</span></span></div>` : ''}<div class="stat"><span class="k">Sets</span><span class="v" data-count="${sets.length}">${sets.length}</span></div><div class="stat"><span class="k">Volume</span><span class="v"><span data-count="${(U.w(vol) / 1000).toFixed(1)}" data-dp="1">${trim(U.w(vol) / 1000, 1)}</span>k<span class="unit">${U.wu}</span></span></div></div>
