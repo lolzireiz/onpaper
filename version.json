@@ -1,9 +1,7 @@
 {
- "version": "7.0",
+ "version": "7.1",
  "notes": [
-  "\ud83d\udcaa New Forearms section: wrist curls (dumbbell, reverse and barbell), reverse curls, dead hangs and plate pinches, each with its own animation and guide.",
-  "\ud83d\udd25 New ready-made day: Shoulders, Forearms & Core. Add it from Train \u2192 + Add a workout day.",
-  "\ud83c\udfcb\ufe0f More shoulder and core moves: Arnold press, front raise, upright row, crunches, lying leg raises, Russian twists and ab wheel rollouts.",
-  "\ud83d\udd25 Calories burned: on the Food tab, enter any day's total from your watch and see it split into workouts, other movement (walking around) and resting, plus your surplus or deficit. Works for past days too."
+  "\u2705 Fixed: checkboxes now show a clear tick. Copy yesterday starts with everything ticked, so just untick what you didn't eat again. The button shows how many foods and calories you're adding.",
+  "\ud83c\udf7d\ufe0f Protein ideas moved below your food list and fold up until you need them."
  ]
 }

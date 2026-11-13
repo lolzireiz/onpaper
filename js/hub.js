@@ -435,7 +435,7 @@ const savedMeals = () => myFoods().filter(f => f.kind === 'meal');
   drawMeal = function () {
     base(); const m = Sheet.meal; if (!m) return;
     const save = $('#sheet [data-act=mealSave]'); if (!save || $('#ml-keep')) return;
-    save.insertAdjacentHTML('beforebegin', `<div class="ml-save"><label class="row" style="border:0;padding:4px 0;min-height:0;gap:10px;cursor:pointer"><input type="checkbox" id="ml-keep" ${m.keep ? 'checked' : ''} style="width:22px;height:22px;min-height:0;accent-color:var(--accent)"><span class="grow small"><b>Save to my meals</b> so I can log it in one tap</span></label>
+    save.insertAdjacentHTML('beforebegin', `<div class="ml-save"><label class="row" style="border:0;padding:4px 0;min-height:0;gap:10px;cursor:pointer"><input type="checkbox" id="ml-keep" ${m.keep ? 'checked' : ''}><span class="grow small"><b>Save to my meals</b> so I can log it in one tap</span></label>
       <label class="row" style="border:0;padding:0;min-height:0;gap:10px"><span class="grow small">Recipe? It makes</span><input id="ml-serv" inputmode="decimal" value="${m.servings || 1}" style="max-width:70px;text-align:center"><span class="small">servings</span></label></div>`);
     $('#ml-keep').addEventListener('change', e => { m.keep = e.target.checked; });
     $('#ml-serv').addEventListener('input', e => { m.servings = num(e.target.value) || 1; });

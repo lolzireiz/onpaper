@@ -737,6 +737,20 @@ body.ob-open .tabs{visibility:hidden}
 .bn-prev{margin:2px 0 12px}.bn-sum{padding:4px 0 2px}.bn-warn{color:#f5b915;margin:8px 0 0}
 [data-theme=light] .bn-warn{color:#a86b00}
 .bn-past .row[aria-pressed=true]{background:var(--s2);border-radius:10px}
+
+/* checkboxes: the global input reset hides the native tick, so draw our own */
+input[type=checkbox]:not(#_){-webkit-appearance:none;appearance:none;width:24px;height:24px;min-width:24px;min-height:0;padding:0;margin:0;flex:none;display:inline-grid;place-content:center;border:2px solid var(--tx3);border-radius:7px;background:transparent;cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+input[type=checkbox]:not(#_)::before{content:"";width:13px;height:13px;transform:scale(0);transition:transform .14s cubic-bezier(.3,1.6,.6,1);background:#fff;clip-path:polygon(14% 44%,0 65%,50% 100%,100% 16%,80% 0%,43% 62%)}
+input[type=checkbox]:not(#_):checked{background:var(--accent);border-color:var(--accent)}
+input[type=checkbox]:not(#_):checked::before{transform:scale(1)}
+input[type=checkbox]:not(#_):active{transform:scale(.9)}
+input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cylist .row{transition:opacity .15s}.cylist .row:has(input:not(:checked)){opacity:.55}
+.cy-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+
+.pideas{position:relative;padding:0}.pideas summary{list-style:none;display:flex;align-items:center;padding:14px 44px 14px 16px;cursor:pointer}.pideas summary::-webkit-details-marker{display:none}
+.pideas summary::after{content:'›';position:absolute;right:18px;top:12px;font-size:22px;color:var(--tx3);transform:rotate(90deg);transition:transform .2s}.pideas[open] summary::after{transform:rotate(-90deg)}
+.pideas-b{display:grid;gap:8px;padding:0 16px 14px}
 </style>
 </head>
 <body>

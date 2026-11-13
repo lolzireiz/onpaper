@@ -231,9 +231,9 @@ function proteinIdeas() {
 function proteinIdeasHTML() {
   const ideas = proteinIdeas(); if (!ideas.length) return '';
   Sheet.pIdeas = ideas;
-  return `<section class="card pideas"><div class="card-h"><h2 class="sec-t">💪 Hit your protein</h2><span class="faint small">${trim(ideas[0].need, 0)} g to go</span></div>
+  return `<details class="card pideas"${UI.pOpen ? ' open' : ''}><summary><span class="grow"><b>💪 Protein ideas</b><span class="faint small" style="display:block">${trim(ideas[0].need, 0)} g to go · ${ideas.length} quick ${ideas.length === 1 ? 'combo' : 'combos'} from your foods</span></span></summary><div class="pideas-b">
     ${ideas.map((c, i) => `<button class="pidea" data-act="pIdeaAdd" data-i="${i}"><span class="grow">${c.parts.map(x => `<b>${x.q > 1 ? x.q + '× ' : ''}${esc(x.f.name)}</b>`).join(' <span class="faint">+</span> ')}<span class="faint small" style="display:block">${trim(c.p, 0)} g protein · ${trim(c.cal, 0)} kcal${c.calLeft > 0 && c.cal > c.calLeft + 80 ? ` · <span style="color:#f5c542">${trim(c.cal - c.calLeft, 0)} over your calories</span>` : ''}</span></span><span class="pidea-add" aria-hidden="true">${ICON.plus.replace('<svg', '<svg width="18" height="18"')}</span></button>`).join('')}
-    <p class="faint tiny" style="margin:0">Built from your saved and recent foods. Tap one to add it all.</p></section>`;
+    <p class="faint tiny" style="margin:0">Built from your saved and recent foods. Tap one to add it all.</p></div></details>`;
 }
 A.pIdeaAdd = d => {
   const c = (Sheet.pIdeas || [])[+d.i]; if (!c) return; const date = UI.foodDate || todayStr(), before = foodTotals(date), day = clone(foodDay(date)), added = [];
@@ -246,10 +246,17 @@ A.pIdeaAdd = d => {
 A.copyYesterday = () => {
   const date = UI.foodDate || todayStr(), y = addDays(date, -1), items = (foodDay(y).items || []).slice().sort((a, b) => (a.ts || 0) - (b.ts || 0));
   if (!items.length) return toast(`Nothing logged on ${fmtDay(y)}.`);
-  openSheet(`Copy from ${date === todayStr() ? 'yesterday' : fmtDay(y)}`, `<p class="muted small" style="margin:0">Pick what you're eating again.</p>
+  openSheet(`Copy from ${date === todayStr() ? 'yesterday' : fmtDay(y)}`, `<div class="cy-top"><p class="muted small" style="margin:0">Tap to untick anything you're not eating again.</p><button class="linkbtn" style="padding:0;font-size:14px;flex:none" data-act="cyAll">Select none</button></div>
     <div class="cylist">${items.map(it => `<label class="row"><input type="checkbox" checked value="${it.id}"><span class="grow"><b>${esc(it.name)}</b><span class="faint small" style="display:block">${esc(eatenLabel(it))}${it.ts ? ' · ' + fmtClock(it.ts) : ''}</span></span><span class="rnum"><b>${trim((it.cal || 0) * (it.qty || 1), 0)}</b> <span class="faint small">kcal</span></span></label>`).join('')}</div>
-    <button class="btn block" data-act="copyYesterdayGo" data-y="${y}">Add selected</button>`);
+    <button class="btn block" id="cy-go" data-act="copyYesterdayGo" data-y="${y}">Add selected</button>`, { onMount: L => { $('.cylist', L).addEventListener('change', cyCount); cyCount(); } });
 };
+function cyCount() {
+  const box = $$('#sheet .cylist input'), on = box.filter(i => i.checked), y = $('#cy-go')?.dataset.y, items = foodDay(y).items || [];
+  const kcal = items.filter(x => on.some(i => i.value === x.id)).reduce((t, x) => t + (x.cal || 0) * (x.qty || 1), 0), b = $('#cy-go'), all = $('#sheet [data-act=cyAll]');
+  if (b) { b.textContent = on.length ? `Add ${on.length} ${on.length === 1 ? 'food' : 'foods'} · ${trim(kcal, 0)} kcal` : 'Nothing selected'; b.disabled = !on.length; }
+  if (all) all.textContent = on.length === box.length ? 'Select none' : 'Select all';
+}
+A.cyAll = () => { const box = $$('#sheet .cylist input'), v = !box.every(i => i.checked); box.forEach(i => { i.checked = v; }); cyCount(); };
 A.copyYesterdayGo = d => {
   const ids = $$('#sheet .cylist input:checked').map(i => i.value); if (!ids.length) return toast('Pick at least one.', { bad: true });
   const date = UI.foodDate || todayStr(), src = (foodDay(d.y).items || []).filter(x => ids.includes(x.id)), before = foodTotals(date), day = clone(foodDay(date)), now = Date.now(), added = src.map((it, i) => ({ ...clone(it), id: newId(), ts: now + i }));
