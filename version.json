@@ -1,7 +1,13 @@
 {
- "version": "7.6",
+ "version": "7.7",
  "notes": [
-  "\u2728 New opening animation: the Liftprint mark draws itself in with a few twinkling stars, then flies into the logo. It only plays while the app is loading and never blocks a tap.",
-  "\ud83d\udd25 New logo in the top left: the fingerprint-and-dumbbell mark from the app icon next to the wordmark. Tap it for a little surprise."
+  "\ud83d\udd25 Day streak next to the logo: train or hit your protein goal to keep it lit. Tap it for your best streak and the last 5 weeks.",
+  "\ud83d\udc40 A small \u201cYesterday\u201d line under the greeting: calories, protein, workout and last night\u2019s sleep at a glance.",
+  "\ud83c\udfc6 Trophy wall (Progress \u2192 Lifts): every PR you\u2019ve hit, newest first, with a shareable PR card.",
+  "\ud83d\udd2e PR predictions: when you\u2019ll hit the next round number on each lift at your current pace.",
+  "\ud83d\udcc5 Monthly wrap: a story-style look back at your month you can share.",
+  "\ud83d\udd0a Sounds for sets, PRs, finished workouts and quick adds. Quiet on silent, still plays in earbuds, never pauses your music. Turn them off in You \u2192 Appearance.",
+  "\u2728 Smoother screens: tabs slide in the direction you tap, and numbers and rings glide to their new values.",
+  "\ud83c\udfcb\ufe0f Lateral Raise is now called Dumbbell Lateral Raise. Your past sets came with it."
  ]
 }

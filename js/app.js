@@ -20,11 +20,13 @@ $('#file-backup').addEventListener('change', e => { const f = e.target.files && 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('#dialog').hidden) return; closeSheet(); } });
 setInterval(() => { if (UI.tab === 'train' && UI.session && $('#sheet').hidden) scheduleRender(); }, 60000);
 
+/* old exercise names still find their animation, guide and muscles (train.js migrates saved data on launch) */
+for (const [a, b] of EX_RENAMES) { if (EX_ANIM[b] && !EX_ANIM[a]) EX_ANIM[a] = EX_ANIM[b]; if (EX_INFO[b] && !EX_INFO[a]) EX_INFO[a] = EX_INFO[b]; if (EX_MUSCLES[keyOf(b)] && !EX_MUSCLES[keyOf(a)]) EX_MUSCLES[keyOf(a)] = EX_MUSCLES[keyOf(b)]; }
 function initCaps() { refreshCaps(); scheduleRender(); }
 function start(saved) {
   if (saved && typeof saved === 'object') for (const k of ['tab', 'bodySub', 'liftKey', 'session', 'weightRange', 'weightFilter']) if (saved[k] !== undefined) UI[k] = saved[k];
   render();
-  initStore().then(() => { requestAnimationFrame(() => requestAnimationFrame(() => { if (typeof splashOut === 'function') splashOut(); })); if (!S().onboarded && !activeWorkout()) openOnboarding(); checkVersion(); setTimeout(() => siriPoll(false), 900); if (activeWorkout()) { UI.tab = 'train'; UI.session = true; render(); restoreRest(); } else lsSet('onpaper.rest', ''); });
+  initStore().then(() => { try { migrateExNames(); } catch (e) {} requestAnimationFrame(() => requestAnimationFrame(() => { if (typeof splashOut === 'function') splashOut(); })); if (!S().onboarded && !activeWorkout()) openOnboarding(); checkVersion(); setTimeout(() => siriPoll(false), 900); if (activeWorkout()) { UI.tab = 'train'; UI.session = true; render(); restoreRest(); } else lsSet('onpaper.rest', ''); });
   initCaps();
 }
 if (window.claude?.hot?.snapshot) window.claude.hot.snapshot(() => ({ tab: UI.tab, bodySub: UI.bodySub, liftKey: UI.liftKey, session: UI.session, weightRange: UI.weightRange, weightFilter: UI.weightFilter }));

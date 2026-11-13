@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '7.6';
+const APP_VERSION = '7.7';
 const CHANGELOG = [
+  ['7.7', ['🔥 Day streak next to the logo: train or hit your protein goal to keep it lit. Tap it for your best streak and the last 5 weeks.', '👀 A small “Yesterday” line under the greeting: calories, protein, workout and last night’s sleep at a glance.', '🏆 Trophy wall (Progress → Lifts): every PR you’ve hit, newest first, with a shareable PR card.', '🔮 PR predictions: when you’ll hit the next round number on each lift at your current pace.', '📅 Monthly wrap: a story-style look back at your month you can share.', '🔊 Sounds for sets, PRs, finished workouts and quick adds. Quiet on silent, still plays in earbuds, never pauses your music. Turn them off in You → Appearance.', '✨ Smoother screens: tabs slide in the direction you tap, and numbers and rings glide to their new values.', '🏋️ Lateral Raise is now called Dumbbell Lateral Raise. Your past sets came with it.']],
   ['7.6', ['✨ New opening animation: the Liftprint mark draws itself in with a few twinkling stars, then flies into the logo. It only plays while the app is loading and never blocks a tap.', '🔥 New logo in the top left: the fingerprint-and-dumbbell mark from the app icon next to the wordmark. Tap it for a little surprise.']],
   ['7.5', ['The version number now sits quietly at the bottom of every screen.']],
   ['7.4', ['😴 Naps: log as many as you like from Today (under Readiness) or your check-in, or start a nap timer and tap “I’m up” when you wake.', '📈 Naps lift today’s readiness realistically. Short naps help the most per minute, a ~90-min full cycle helps most overall, a nap can make up at most ~60% of a short night, and the lift fades 6–10 hours later.', 'The nap screen shows your readiness before → after while you set it up.']],
@@ -111,7 +112,7 @@ const EX_MUSCLES = {
   'deadlift': ['glutes hamstrings lower_back', 'quads traps lats forearms upper_back'], 'pull-ups': ['lats biceps', 'upper_back rear_delts forearms'], 'barbell row': ['lats upper_back', 'rear_delts biceps lower_back'], 'lat pulldown': ['lats', 'biceps upper_back'],
   'seated cable row': ['upper_back lats', 'rear_delts biceps'], 'dumbbell row': ['lats upper_back', 'biceps rear_delts'], 't-bar row': ['upper_back lats', 'rear_delts biceps lower_back'], 'chest-supported row': ['upper_back lats', 'rear_delts biceps'],
   'straight-arm pulldown': ['lats', 'triceps'], 'back extension': ['lower_back glutes', 'hamstrings'],
-  'overhead press': ['delts side_delts triceps', 'traps abs'], 'dumbbell shoulder press': ['delts side_delts', 'triceps traps'], 'machine shoulder press': ['delts side_delts', 'triceps'], 'lateral raise': ['side_delts', 'traps'],
+  'overhead press': ['delts side_delts triceps', 'traps abs'], 'dumbbell shoulder press': ['delts side_delts', 'triceps traps'], 'machine shoulder press': ['delts side_delts', 'triceps'], 'dumbbell lateral raise': ['side_delts', 'traps'],
   'cable lateral raise': ['side_delts', 'traps'], 'rear delt fly': ['rear_delts', 'upper_back'], 'face pull': ['rear_delts upper_back', 'traps'], 'dumbbell shrug': ['traps', 'forearms'],
   'barbell curl': ['biceps', 'forearms'], 'ez-bar curl': ['biceps', 'forearms'], 'dumbbell curl': ['biceps', 'forearms'], 'hammer curl': ['biceps forearms'], 'preacher curl': ['biceps', 'forearms'], 'cable curl': ['biceps', 'forearms'], 'incline dumbbell curl': ['biceps', 'forearms'],
   'triceps pushdown': ['triceps'], 'overhead cable extension': ['triceps'], 'rope pushdown': ['triceps'], 'overhead rope extension': ['triceps'], 'skull crushers': ['triceps'], 'close-grip bench press': ['triceps chest', 'delts'], 'dumbbell overhead extension': ['triceps'],

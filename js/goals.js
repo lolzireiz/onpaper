@@ -73,7 +73,7 @@ const EX_GOALS = {
   'Barbell Row': ['vback', 'strength', 'posture', 'grip'], 'Lat Pulldown': ['vback', 'relative', 'posture'], 'Seated Cable Row': ['vback', 'posture', 'backhealth'], 'Dumbbell Row': ['vback', 'posture', 'grip'],
   'T-Bar Row': ['vback', 'strength', 'grip'], 'Chest-Supported Row': ['vback', 'posture'], 'Straight-Arm Pulldown': ['vback', 'core'], 'Back Extension': ['backhealth', 'posture', 'glutes', 'longevity'],
   'Overhead Press': ['shoulders', 'strength', 'core', 'everyday', 'power'], 'Dumbbell Shoulder Press': ['shoulders', 'strength', 'everyday'], 'Machine Shoulder Press': ['shoulders', 'strength'],
-  'Lateral Raise': ['shoulders'], 'Cable Lateral Raise': ['shoulders'], 'Rear Delt Fly': ['posture', 'shoulders', 'injury'], 'Face Pull': ['posture', 'injury', 'shoulders', 'backhealth'],
+  'Dumbbell Lateral Raise': ['shoulders'], 'Cable Lateral Raise': ['shoulders'], 'Rear Delt Fly': ['posture', 'shoulders', 'injury'], 'Face Pull': ['posture', 'injury', 'shoulders', 'backhealth'],
   'Dumbbell Shrug': ['vback', 'grip', 'everyday', 'injury'],
   'Barbell Curl': ['arms', 'grip'], 'EZ-Bar Curl': ['arms'], 'Dumbbell Curl': ['arms'], 'Hammer Curl': ['arms', 'grip', 'everyday'], 'Preacher Curl': ['arms'], 'Cable Curl': ['arms'], 'Incline Dumbbell Curl': ['arms'],
   'Triceps Pushdown': ['arms'], 'Overhead Cable Extension': ['arms'], 'Rope Pushdown': ['arms'], 'Overhead Rope Extension': ['arms'], 'Skull Crushers': ['arms'], 'Close-Grip Bench Press': ['arms', 'chest', 'strength', 'power'], 'Dumbbell Overhead Extension': ['arms'],

@@ -324,6 +324,7 @@ function checkMilestones() {
   const [ic, name] = fresh[fresh.length - 1];
   toast(`${ic} Milestone unlocked: ${name}${fresh.length > 1 ? ` (+${fresh.length - 1} more)` : ''}`);
   if (!REDUCED()) confetti();
+  if (typeof sfx === 'function') sfx('pr');
 }
 {
   const base = changed;

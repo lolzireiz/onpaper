@@ -18,7 +18,7 @@ const LIBRARY = [
   ['Seated Cable Row', 'Back', ['row']], ['Dumbbell Row', 'Back', ['db', 'bench']], ['T-Bar Row', 'Back', ['tbar']], ['Chest-Supported Row', 'Back', ['db', 'incline']],
   ['Straight-Arm Pulldown', 'Back', ['cable']], ['Back Extension', 'Back', ['ghd']],
   ['Overhead Press', 'Shoulders', ['barbell', 'rack']], ['Dumbbell Shoulder Press', 'Shoulders', ['db']], ['Machine Shoulder Press', 'Shoulders', ['shoulderpress']],
-  ['Lateral Raise', 'Shoulders', ['db']], ['Cable Lateral Raise', 'Shoulders', ['cable']], ['Rear Delt Fly', 'Shoulders', ['pecdeck']], ['Face Pull', 'Shoulders', ['cable']], ['Dumbbell Shrug', 'Shoulders', ['db']],
+  ['Dumbbell Lateral Raise', 'Shoulders', ['db']], ['Cable Lateral Raise', 'Shoulders', ['cable']], ['Rear Delt Fly', 'Shoulders', ['pecdeck']], ['Face Pull', 'Shoulders', ['cable']], ['Dumbbell Shrug', 'Shoulders', ['db']],
   ['Barbell Curl', 'Biceps', ['barbell']], ['EZ-Bar Curl', 'Biceps', ['ez']], ['Dumbbell Curl', 'Biceps', ['db']], ['Hammer Curl', 'Biceps', ['db']],
   ['Preacher Curl', 'Biceps', ['preacher', 'ez']], ['Cable Curl', 'Biceps', ['cable']], ['Incline Dumbbell Curl', 'Biceps', ['db', 'incline']],
   ['Triceps Pushdown', 'Triceps', ['cable']], ['Overhead Cable Extension', 'Triceps', ['cable']], ['Rope Pushdown', 'Triceps', ['cable']], ['Overhead Rope Extension', 'Triceps', ['cable']], ['Skull Crushers', 'Triceps', ['ez', 'bench']],
@@ -38,7 +38,7 @@ const LIBRARY = [
 ].map(([name, group, equip]) => ({ name, group, equip }));
 const TEMPLATES = {
   ppl: { label: 'Push / Pull / Legs', days: [
-    { name: 'Push', groups: ['Chest', 'Shoulders', 'Triceps'], ex: ['Bench Press', 'Incline Dumbbell Press', 'Dumbbell Shoulder Press', 'Lateral Raise', 'Triceps Pushdown', 'Overhead Cable Extension'] },
+    { name: 'Push', groups: ['Chest', 'Shoulders', 'Triceps'], ex: ['Bench Press', 'Incline Dumbbell Press', 'Dumbbell Shoulder Press', 'Dumbbell Lateral Raise', 'Triceps Pushdown', 'Overhead Cable Extension'] },
     { name: 'Pull', groups: ['Back', 'Biceps'], ex: ['Deadlift', 'Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Face Pull', 'Dumbbell Curl', 'Hammer Curl'] },
     { name: 'Legs', groups: ['Quads', 'Hamstrings', 'Glutes', 'Calves'], ex: ['Squat', 'Romanian Deadlift', 'Leg Press', 'Lying Leg Curl', 'Leg Extension', 'Standing Calf Raise'] }] },
   ul: { label: 'Upper / Lower', days: [
@@ -47,11 +47,11 @@ const TEMPLATES = {
   bro: { label: 'Body part split', days: [
     { name: 'Chest', groups: ['Chest'], ex: ['Bench Press', 'Incline Dumbbell Press', 'Machine Chest Press', 'Cable Fly', 'Dips'] },
     { name: 'Back', groups: ['Back'], ex: ['Deadlift', 'Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Seated Cable Row'] },
-    { name: 'Shoulders', groups: ['Shoulders'], ex: ['Overhead Press', 'Lateral Raise', 'Rear Delt Fly', 'Face Pull', 'Dumbbell Shrug'] },
+    { name: 'Shoulders', groups: ['Shoulders'], ex: ['Overhead Press', 'Dumbbell Lateral Raise', 'Rear Delt Fly', 'Face Pull', 'Dumbbell Shrug'] },
     { name: 'Arms', groups: ['Biceps', 'Triceps'], ex: ['Barbell Curl', 'Close-Grip Bench Press', 'Hammer Curl', 'Triceps Pushdown', 'Preacher Curl', 'Overhead Cable Extension'] },
     { name: 'Legs', groups: ['Quads', 'Hamstrings', 'Glutes', 'Calves'], ex: ['Squat', 'Romanian Deadlift', 'Leg Press', 'Lying Leg Curl', 'Standing Calf Raise'] }] },
   full: { label: 'Full body', days: [
-    { name: 'Full Body A', groups: ['Quads', 'Chest', 'Back', 'Shoulders'], ex: ['Squat', 'Bench Press', 'Barbell Row', 'Lateral Raise', 'Dumbbell Curl'] },
+    { name: 'Full Body A', groups: ['Quads', 'Chest', 'Back', 'Shoulders'], ex: ['Squat', 'Bench Press', 'Barbell Row', 'Dumbbell Lateral Raise', 'Dumbbell Curl'] },
     { name: 'Full Body B', groups: ['Hamstrings', 'Back', 'Shoulders', 'Chest'], ex: ['Deadlift', 'Overhead Press', 'Pull-ups', 'Incline Dumbbell Press', 'Triceps Pushdown'] }] },
 };
 
@@ -261,7 +261,7 @@ A.logSet = d => {
   UI.justSet = set.id; clearTimeout(UI.justT); UI.justT = setTimeout(() => { UI.justSet = UI.justDone = null; }, 1200);
   const btnEl = d && document.querySelector(`.exb [data-act=logSet][data-ex="${CSS.escape(d.ex)}"]`);
   put('workouts', w.id, { ...clone(w), sets: [...(w.sets || []), set] });
-  if (isPR) setTimeout(() => celebratePR(btnEl), 60); else sparkle(btnEl);
+  if (isPR) setTimeout(() => celebratePR(btnEl), 60); else { sparkle(btnEl); if (typeof sfx === 'function') sfx('set'); }
   if (isPR) toast(`PR! ${d.ex}: ${r === 1 ? 'new 1-rep max' : `new ${r}-rep max`}, ${bwf ? `≈${fw(eff, 0)} ${U.wu} total` : fwu(lb)}`, { pr: true, ms: 3600 });
   const base = S().restSec || 120, rest = warm ? 60 : isCompound(d.ex) ? (r <= 6 ? Math.max(base, 180) : base) : Math.max(60, Math.min(base, 90));
   const names = sessionNames(activeWorkout() || w), doneSets = n => [...(w.sets || []), set].filter(s => keyOf(s.ex) === keyOf(n) && !s.warm && s.hit !== false).length;
@@ -430,11 +430,11 @@ const DAY_PRESETS = [
   { name: 'Legs', e: '🦵', groups: ['Quads', 'Hamstrings', 'Glutes', 'Calves'], ex: [['Smith Squat', 3, '6-10'], ['Romanian Deadlift', 3, '8-10'], ['Leg Press', 3, '10-12'], ['Lying Leg Curl', 3, '10-12'], ['Leg Extension', 2, '12-15'], ['Standing Calf Raise', 4, '10-15']] },
   { name: 'Shoulders & Arms', e: '💪', groups: ['Shoulders', 'Biceps', 'Triceps'], ex: [['Dumbbell Shoulder Press', 3, '6-10'], ['Cable Lateral Raise', 4, '12-20'], ['Rear Delt Fly', 3, '12-20'], ['EZ-Bar Curl', 3, '8-12'], ['Rope Pushdown', 3, '10-15'], ['Hammer Curl', 2, '10-12'], ['Overhead Rope Extension', 2, '10-15']] },
   { name: 'Shoulders, Forearms & Core', e: '🔥', groups: ['Shoulders', 'Forearms', 'Core'], ex: [['Dumbbell Shoulder Press', 3, '6-10'], ['Cable Lateral Raise', 3, '12-20'], ['Rear Delt Fly', 3, '12-20'], ['Reverse Curl', 3, '10-12'], ['Wrist Curl', 3, '12-20'], ['Reverse Wrist Curl', 2, '12-20'], ['Dead Hang', 2, '30-60s'], ['Hanging Leg Raise', 3, '10-15'], ['Cable Crunch', 3, '10-15'], ['Pallof Press', 2, '10-12']] },
-  { name: 'Push', e: '⬆️', groups: ['Chest', 'Shoulders', 'Triceps'], ex: [['Bench Press', 3, '5-8'], ['Incline Dumbbell Press', 3, '8-10'], ['Dumbbell Shoulder Press', 3, '8-10'], ['Lateral Raise', 3, '12-20'], ['Rope Pushdown', 3, '10-15'], ['Overhead Rope Extension', 2, '10-15']] },
+  { name: 'Push', e: '⬆️', groups: ['Chest', 'Shoulders', 'Triceps'], ex: [['Bench Press', 3, '5-8'], ['Incline Dumbbell Press', 3, '8-10'], ['Dumbbell Shoulder Press', 3, '8-10'], ['Dumbbell Lateral Raise', 3, '12-20'], ['Rope Pushdown', 3, '10-15'], ['Overhead Rope Extension', 2, '10-15']] },
   { name: 'Pull', e: '⬇️', groups: ['Back', 'Biceps'], ex: [['Pull-ups', 3, '6-10'], ['Barbell Row', 3, '6-10'], ['Lat Pulldown', 3, '8-12'], ['Face Pull', 3, '12-20'], ['Dumbbell Curl', 3, '8-12'], ['Hammer Curl', 2, '10-12']] },
   { name: 'Upper', e: '🧍', groups: ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps'], ex: [['Bench Press', 3, '5-8'], ['Barbell Row', 3, '6-10'], ['Dumbbell Shoulder Press', 3, '8-10'], ['Lat Pulldown', 3, '8-12'], ['Dumbbell Curl', 2, '10-12'], ['Rope Pushdown', 2, '10-15']] },
   { name: 'Lower', e: '🏃', groups: ['Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core'], ex: [['Squat', 3, '5-8'], ['Romanian Deadlift', 3, '8-10'], ['Bulgarian Split Squat', 3, '8-10'], ['Lying Leg Curl', 3, '10-12'], ['Standing Calf Raise', 3, '10-15'], ['Hanging Leg Raise', 3, '10-15']] },
-  { name: 'Full Body', e: '⚡', groups: ['Quads', 'Chest', 'Back', 'Shoulders', 'Hamstrings'], ex: [['Squat', 3, '5-8'], ['Bench Press', 3, '5-8'], ['Lat Pulldown', 3, '8-12'], ['Romanian Deadlift', 2, '8-10'], ['Lateral Raise', 2, '12-20'], ['Hammer Curl', 2, '10-12']] },
+  { name: 'Full Body', e: '⚡', groups: ['Quads', 'Chest', 'Back', 'Shoulders', 'Hamstrings'], ex: [['Squat', 3, '5-8'], ['Bench Press', 3, '5-8'], ['Lat Pulldown', 3, '8-12'], ['Romanian Deadlift', 2, '8-10'], ['Dumbbell Lateral Raise', 2, '12-20'], ['Hammer Curl', 2, '10-12']] },
 ];
 /* Quick "+" from the Train tab: pick a ready-made day (or blank), it's saved right away, then you can tweak it. */
 A.dayNew = () => {
@@ -527,3 +527,16 @@ let wakeSentinel = null;
 async function wakeLock() { try { if (navigator.wakeLock && !wakeSentinel) { wakeSentinel = await navigator.wakeLock.request('screen'); wakeSentinel.addEventListener('release', () => { wakeSentinel = null; }); } } catch (e) { wakeSentinel = null; } }
 function releaseWake() { try { wakeSentinel && wakeSentinel.release(); } catch (e) {} wakeSentinel = null; }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && UI.session && activeWorkout()) wakeLock(); });
+
+/* ---------- exercise renames: keep old logs, plans and settings pointing at the new name ---------- */
+const EX_RENAMES = [['Lateral Raise', 'Dumbbell Lateral Raise']];
+function migrateExNames() {
+  const done = S().exRenamed || [], todo = EX_RENAMES.filter(([a]) => !done.includes(keyOf(a))); if (!todo.length) return;
+  const map = new Map(todo.map(([a, b]) => [keyOf(a), b])), ren = n => map.get(keyOf(n)) || n, renKeys = o => o ? Object.fromEntries(Object.entries(o).map(([k, v]) => [map.has(k) ? keyOf(map.get(k)) : k, v])) : o;
+  for (const w of Store.list('workouts')) {
+    const hit = (w.sets || []).some(x => map.has(keyOf(x.ex))) || (w.plan || []).some(n => map.has(keyOf(n))) || Object.keys(w.targets || {}).some(k => map.has(k));
+    if (hit) put('workouts', w.id, { ...clone(w), sets: (w.sets || []).map(x => map.has(keyOf(x.ex)) ? { ...x, ex: ren(x.ex) } : x), plan: (w.plan || []).map(ren), ...(w.targets ? { targets: renKeys(w.targets) } : {}) });
+  }
+  const s = S(), split = s.split ? { ...clone(s.split), days: (s.split.days || []).map(d => ({ ...d, exercises: (d.exercises || []).map(ren) })) } : s.split;
+  saveSettings({ split, exTargets: renKeys(s.exTargets), pain: renKeys(s.pain), exRenamed: [...done, ...todo.map(([a]) => keyOf(a))] });
+}
