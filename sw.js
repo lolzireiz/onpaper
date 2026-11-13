@@ -1,6 +1,6 @@
 // Network first, always revalidating with the server (GitHub Pages tells browsers to cache for 10 min),
 // so a new version shows up on the next open. The cached copy keeps the app working with no signal.
-const CACHE = 'onpaper-v6.7';
+const CACHE = 'onpaper-v6.8';
 self.addEventListener('install', e => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil((async () => { for (const k of await caches.keys()) if (k !== CACHE) await caches.delete(k); await self.clients.claim(); })()));
 self.addEventListener('fetch', e => {

@@ -1,7 +1,7 @@
 {
- "version": "6.7",
+ "version": "6.8",
  "notes": [
-  "\ud83e\ude79 Check-in now lets you mark exactly where you're sore (chest, triceps, quads, and so on) and how much, shown on the body diagram. Sore muscles count as less recovered, so Smart pick steers around them.",
-  "\ud83d\ude34 Enter any amount of sleep with the slider or +/\u2212 in 15-minute steps."
+  "\ud83d\udd0b Readiness now weighs each sore muscle by its size and how sore it is. A bit of sore biceps nudges the score, very sore legs drop it a lot, and the tip tells you what to go easy on.",
+  "\ud83d\udcca The check-in shows a live breakdown (sleep, soreness, energy, training load) that updates as you tap."
  ]
 }

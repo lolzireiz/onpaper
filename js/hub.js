@@ -28,7 +28,7 @@ const GROUP_IDS = { Chest: ['chest'], Back: ['lats', 'upper_back'], Shoulders: [
 const SORE_GROUPS = { Chest: ['chest'], Shoulders: ['delts', 'side_delts', 'rear_delts'], Triceps: ['triceps'], Biceps: ['biceps'], Forearms: ['forearms'], 'Upper back': ['lats', 'upper_back', 'traps'], 'Lower back': ['lower_back'], Core: ['abs', 'obliques'], Glutes: ['glutes'], Quads: ['quads'], Hamstrings: ['hamstrings'], 'Inner thighs': ['adductors'], Calves: ['calves'] };
 const SORE_LV = [['None', ''], ['A bit', '#f5b915'], ['Sore', '#ff8a3d'], ['Very', '#f0302e']];
 /* Fatigue per muscle: each hard set adds 1 (main mover) or 0.5 (helper) and fades with a ~30 hour half-life-ish curve. */
-function muscleRecovery() {
+function baseRecovery() {
   return Store.cached('mrec', () => {
     const now = Date.now(), fat = {};
     for (const w of Store.list('workouts')) {
@@ -38,12 +38,16 @@ function muscleRecovery() {
       if (w.marked) for (const g of w.groups || []) for (const id of GROUP_IDS[g] || []) fat[id] = (fat[id] || 0) + MARK_SETS * k;
     }
     const out = {}; for (const id of Object.keys(MUSCLE_NAMES)) out[id] = Math.round(clamp(100 - (fat[id] || 0) * 11, 0, 100));
-    // what you said hurts today overrides the estimate: a bit ≤ 75%, sore ≤ 55%, very ≤ 35%
-    const sm = dailyOf().soreMap || {}; for (const [g, lv] of Object.entries(sm)) for (const id of SORE_GROUPS[g] || []) if (lv > 0) out[id] = Math.min(out[id], 95 - lv * 20);
     return out;
   });
 }
-const groupRecovery = g => { const r = muscleRecovery(), ids = GROUP_IDS[g] || []; return ids.length ? Math.round(ids.reduce((a, i) => a + r[i], 0) / ids.length) : 100; };
+/* what you said hurts overrides the estimate: a bit ≤ 75%, sore ≤ 55%, very ≤ 35% */
+function muscleRecovery(sm) {
+  const base = baseRecovery(); sm = sm || dailyOf().soreMap; if (!sm) return base;
+  const out = { ...base }; for (const [g, lv] of Object.entries(sm)) for (const id of SORE_GROUPS[g] || []) if (lv > 0) out[id] = Math.min(out[id], 95 - lv * 20);
+  return out;
+}
+const groupRecovery = (g, sm) => { const r = muscleRecovery(sm), ids = GROUP_IDS[g] || []; return ids.length ? Math.round(ids.reduce((a, i) => a + r[i], 0) / ids.length) : 100; };
 const MARK_SETS = 8;   // a day marked as trained (no details) counts as about this many hard sets per muscle group
 function trainingLoad(days) { // hard sets (+ sport minutes / 10) in the last `days` days
   const since = addDays(todayStr(), -(days - 1)); let n = 0;
@@ -51,20 +55,25 @@ function trainingLoad(days) { // hard sets (+ sport minutes / 10) in the last `d
   for (const a of Store.list('acts')) if (a.date >= since) n += (a.duration || 1800) / 600;
   return n;
 }
-function readiness(date = todayStr()) {
-  return Store.cached('ready:' + date, () => {
-    const d = dailyOf(date), has = d.sleep != null || d.sore != null || d.energy != null || d.soreMap != null;
-    const acute = trainingLoad(3) / 3, chronic = trainingLoad(28) / 28, ratio = chronic > 0.5 ? acute / chronic : 1;
-    const load = ratio <= 1.1 ? 30 : Math.max(0, 30 - (ratio - 1.1) * 40);
-    const sleep = d.sleep != null ? Math.min(1, d.sleep / 8) * 35 : 26;
-    const lvls = Object.values(d.soreMap || {}).filter(v => v > 0), mx = Math.max(0, ...lvls), sum = lvls.reduce((a, b) => a + b, 0);
-    const sore = d.soreMap ? Math.max(0, 20 - (mx * 4 + (sum - mx) * 1.2)) : d.sore != null ? (5 - d.sore) / 4 * 20 : 14;
-    const energy = d.energy != null ? (d.energy - 1) / 4 * 15 : 10;
-    const score = Math.round(load + sleep + sore + energy);
-    const [lbl, tip, col] = score >= 80 ? ['Ready to push', 'Good day to go for PRs.', 'var(--ok)'] : score >= 62 ? ['Train normally', 'Solid day. Stick to the plan.', 'var(--accent)'] : score >= 45 ? ['Go a bit lighter', 'Do the workout but drop a set per exercise, or keep 2–3 reps in the tank.', '#f5b915'] : ['Recover today', 'Mobility, a walk, or a light session will pay off more than grinding.', 'var(--miss)'];
-    return { score, lbl, tip, col, has, d, ratio, parts: { load, sleep, sore, energy } };
-  });
+/* how much each muscle's soreness drags readiness down (big movers count more) */
+const SORE_W = { Quads: 1.3, Hamstrings: 1.1, Glutes: 1.1, 'Lower back': 1.2, 'Upper back': 1.1, Chest: 1, Shoulders: 0.9, Core: 0.6, Triceps: 0.6, Biceps: 0.5, Calves: 0.5, 'Inner thighs': 0.5, Forearms: 0.4 };
+const SORE_PTS = [0, 1, 2.4, 4];
+function sorePenalty(sm) { return Object.entries(sm || {}).reduce((a, [g, lv]) => a + (SORE_W[g] ?? 0.7) * (SORE_PTS[lv] || 0), 0); }
+function readinessFrom(d) {
+  const has = d.sleep != null || d.sore != null || d.energy != null || d.soreMap != null;
+  const acute = trainingLoad(3) / 3, chronic = trainingLoad(28) / 28, ratio = chronic > 0.5 ? acute / chronic : 1;
+  const load = ratio <= 1.1 ? 20 : Math.max(0, 20 - (ratio - 1.1) * 27);
+  const sleep = d.sleep != null ? Math.min(1, d.sleep / 8) ** 1.4 * 30 : 22;
+  const sore = d.soreMap ? 35 * Math.exp(-sorePenalty(d.soreMap) / 6) : d.sore != null ? (5 - d.sore) / 4 * 35 : 26;
+  const energy = d.energy != null ? (d.energy - 1) / 4 * 15 : 10;
+  const score = Math.round(load + sleep + sore + energy);
+  const worst = Object.entries(d.soreMap || {}).filter(([, v]) => v >= 2).sort((a, b) => b[1] - a[1] || (SORE_W[b[0]] ?? 0.7) - (SORE_W[a[0]] ?? 0.7)).map(([g]) => g.toLowerCase());
+  const avoid = worst.length ? ` Go easy on ${worst.slice(0, 3).join(', ').replace(/, ([^,]*)$/, ' and $1')}.` : '';
+  const [lbl, tip, col] = score >= 80 ? ['Ready to push', 'Good day to go for PRs.' + avoid, 'var(--ok)'] : score >= 62 ? ['Train normally', 'Solid day. Stick to the plan.' + avoid, 'var(--accent)'] : score >= 45 ? ['Go a bit lighter', 'Drop a set per exercise, or keep 2–3 reps in the tank.' + avoid, '#f5b915'] : ['Recover today', 'Mobility, a walk, or a light session will pay off more than grinding.', 'var(--miss)'];
+  return { score, lbl, tip, col, has, d, ratio, parts: { load, sleep, sore, energy } };
 }
+function readiness(date = todayStr()) { return Store.cached('ready:' + date, () => readinessFrom(dailyOf(date))); }
+
 const ring = (pct, col, size = 56, w = 6, inner = '') => { const r = (size - w) / 2, c = 2 * Math.PI * r; return `<span class="pring" style="width:${size}px;height:${size}px"><svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--s3)" stroke-width="${w}"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - clamp(pct, 0, 100) / 100)}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg><b>${inner}</b></span>`; };
 function readinessRowHTML() {
   const r = readiness();
@@ -75,18 +84,21 @@ A.readyOpen = () => {
   const d = dailyOf();
   Sheet.rd = { sleep: d.sleep ?? null, energy: d.energy ?? null, soreMap: { ...(d.soreMap || {}) } };
   // first check-in of the day: suggest soreness from what you trained in the last 3 days
-  if (!d.soreMap) { const rec = muscleRecovery(); for (const [g, ids] of Object.entries(SORE_GROUPS)) { const v = Math.min(...ids.map(i => rec[i] ?? 100)); Sheet.rd.sug = Sheet.rd.sug || {}; if (v < 80) Sheet.rd.sug[g] = v < 50 ? 2 : 1; } }
+  if (!d.soreMap) { const rec = baseRecovery(); for (const [g, ids] of Object.entries(SORE_GROUPS)) { const v = Math.min(...ids.map(i => rec[i] ?? 100)); Sheet.rd.sug = Sheet.rd.sug || {}; if (v < 80) Sheet.rd.sug[g] = v < 50 ? 2 : 1; } }
   openSheet('Readiness', '');
   drawReady();
 };
 const fmtSleep = h => h == null ? '—' : `${Math.floor(h)}h${Math.round((h % 1) * 60) ? ' ' + Math.round((h % 1) * 60) + 'm' : ''}`;
 function drawReady() {
-  const r = readiness(), R = Sheet.rd; if (!R) return;
-  const grp = Object.keys(GROUP_IDS).map(g => [g, groupRecovery(g)]).sort((a, b) => a[1] - b[1]);
+  const R = Sheet.rd; if (!R) return;
+  const draft = { ...dailyOf(), ...(R.sleep != null ? { sleep: R.sleep } : {}), ...(R.energy != null ? { energy: R.energy } : {}), ...(Object.keys(R.soreMap).length || R.noSore || dailyOf().soreMap ? { soreMap: R.soreMap } : {}) }, r = readinessFrom(draft);
+  const grp = Object.keys(GROUP_IDS).map(g => [g, groupRecovery(g, draft.soreMap || {})]).sort((a, b) => a[1] - b[1]);
+  const P = r.parts, part = (k, v, max) => `<div class="rp"><span>${k}</span><span class="bar"><i style="width:${v / max * 100}%;background:${v / max >= 0.75 ? 'var(--ok)' : v / max >= 0.45 ? '#f5b915' : 'var(--miss)'}"></i></span><b>${Math.round(v)}<small>/${max}</small></b></div>`;
   const sleepV = R.sleep ?? 7, heat = {}; for (const [g, lv] of Object.entries(R.soreMap)) for (const id of SORE_GROUPS[g] || []) if (lv) heat[id] = [0, 2, 6, 12][lv];
   const sex = S().bodyModel || 'male', fig = v => `<div style="--fig-h:170px">${bodySVG(v, sex, { p: new Set(), s: new Set(), heat })}</div>`;
   const y = $('#sheet .sheet-b')?.scrollTop || 0;
   sheetBody(`<div class="ready-hero">${ring(r.score, r.has ? r.col : 'var(--tx3)', 104, 10, r.has ? r.score : '?')}<div><b style="font-size:20px">${r.has ? r.lbl : 'Check in'}</b><p class="muted small" style="margin:4px 0 0">${r.has ? esc(r.tip) : 'Tell it how you slept and what hurts.'}</p></div></div>
+    <div class="rparts">${part('Sleep', P.sleep, 30)}${part('Soreness', P.sore, 35)}${part('Energy', P.energy, 15)}${part('Training load', P.load, 20)}</div>
     <div class="field"><div class="card-h"><span class="lbl">Sleep last night</span><b class="rnum" id="rd-sv" style="font-size:20px">${R.sleep == null ? '—' : fmtSleep(R.sleep)}</b></div>
       <div class="sl-row"><button class="btn ghost pl-step" data-act="rdSleep" data-d="-0.25" aria-label="15 minutes less">−</button><input type="range" id="rd-sleep" class="sim-range" min="0" max="12" step="0.25" value="${sleepV}" aria-label="Hours of sleep"><button class="btn ghost pl-step" data-act="rdSleep" data-d="0.25" aria-label="15 minutes more">+</button></div>
       <div class="chips">${[4, 5, 6, 7, 8, 9].map(h => `<button class="chip" data-act="rdSleepSet" data-v="${h}" aria-pressed="${R.sleep === h}">${h}h</button>`).join('')}</div></div>
@@ -97,9 +109,10 @@ function drawReady() {
     <div class="field"><span class="lbl">Energy</span><div class="seg">${[[1, '😴'], [2, '😕'], [3, '😐'], [4, '🙂'], [5, '⚡']].map(([v, l]) => `<button data-act="rdEnergy" data-v="${v}" aria-pressed="${R.energy === v}">${l}</button>`).join('')}</div></div>
     <button class="btn block" data-act="readySave">Save check-in</button>
     <div class="field"><span class="lbl">Muscle recovery</span><div class="recov">${grp.map(([g, v]) => `<div class="recov-r"><span>${g}</span><span class="bar"><i style="width:${v}%;background:${v >= 85 ? 'var(--ok)' : v >= 60 ? '#f5b915' : 'var(--miss)'}"></i></span><b>${v}%</b></div>`).join('')}</div></div>
-    <p class="faint tiny">The score mixes sleep, soreness and energy with your training load over the last 3 days compared to your usual. Muscles you mark as sore count as less recovered, so Smart pick steers around them.</p>`);
+    <p class="faint tiny">Out of 100: soreness (35), sleep (30), energy (15) and training load over the last 3 days vs your usual (20). Soreness counts more for big muscles (legs, back, chest) and for how sore you are, so a bit of sore biceps nudges the score while very sore quads drop it a lot. Sore muscles also count as less recovered, so Smart pick steers around them.</p>`);
   const b = $('#sheet .sheet-b'); if (b) b.scrollTop = y;
-  const sl = $('#rd-sleep'); if (sl) sl.addEventListener('input', () => { R.sleep = +sl.value; $('#rd-sv').textContent = fmtSleep(R.sleep); $$('#sheet [data-act=rdSleepSet]').forEach(c => c.setAttribute('aria-pressed', String(+c.dataset.v === R.sleep))); });
+  const sl = $('#rd-sleep'); if (sl) sl.addEventListener('change', () => drawReady());
+  if (sl) sl.addEventListener('input', () => { R.sleep = +sl.value; $('#rd-sv').textContent = fmtSleep(R.sleep); $$('#sheet [data-act=rdSleepSet]').forEach(c => c.setAttribute('aria-pressed', String(+c.dataset.v === R.sleep))); });
 }
 A.rdSleep = d => { const R = Sheet.rd; R.sleep = clamp((R.sleep ?? 7) + +d.d, 0, 14); drawReady(); };
 A.rdSleepSet = d => { Sheet.rd.sleep = +d.v; drawReady(); };
