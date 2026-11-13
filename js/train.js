@@ -92,7 +92,7 @@ function lastSessionSets(name, excludeWid) {
 /* ---------- view ---------- */
 Views.train = {
   title() { const w = activeWorkout(); return UI.session && w ? `<h1>${esc(w.dayName || 'Workout')}</h1>` : '<h1>Train</h1>'; },
-  actions() { return UI.session && activeWorkout() ? `<button class="btn sm" data-act="finishWorkout">Finish</button>` : ''; },
+  actions() { return UI.session && activeWorkout() ? `<button class="btn sm" data-act="finishWorkout">Finish</button>` : `<button class="iconbtn add-day" data-act="dayNew" aria-label="Add a workout day">${ICON.plus}</button>`; },
   render() { const w = activeWorkout(); if (UI.session && w) return sessionHTML(w); UI.session = false; return overviewHTML(); },
 };
 function overviewHTML() {
@@ -137,8 +137,8 @@ function weekCardHTML() {
 }
 function splitCardHTML() {
   const days = splitDays();
-  return `<section class="card"><div class="card-h"><h2 class="sec-t">Your split</h2><button class="linkbtn" data-act="editSplit">${days.length ? 'Edit' : 'Set up'}</button></div>
-  ${days.length ? `<ol class="split">${days.map((d, i) => `<li><span class="n">${i + 1}</span><div class="grow"><b>${esc(d.name)}</b><div class="faint small">${esc((d.exercises || []).slice(0, 4).join(' · '))}${(d.exercises || []).length > 4 ? ` +${d.exercises.length - 4}` : ''}</div></div></li>`).join('')}</ol><p class="faint small">Days rotate in order. Up next is the day after your last workout.</p>`
+  return `<section class="card"><div class="card-h"><h2 class="sec-t">Your split</h2><div style="display:flex;gap:14px;align-items:center"><button class="linkbtn" data-act="editSplit">${days.length ? 'Edit' : 'Set up'}</button><button class="iconbtn sm add-day" data-act="dayNew" aria-label="Add a workout day">${ICON.plus}</button></div></div>
+  ${days.length ? `<ol class="split">${days.map((d, i) => `<li data-act="splitDayOpen" data-i="${i}" style="cursor:pointer"><span class="n">${i + 1}</span><div class="grow"><b>${esc(d.name)}</b><div class="faint small">${esc((d.exercises || []).slice(0, 4).join(' · '))}${(d.exercises || []).length > 4 ? ` +${d.exercises.length - 4}` : ''}</div></div></li>`).join('')}</ol><button class="btn ghost block" data-act="dayNew">${ICON.plus} Add a workout day</button><p class="faint small">Days rotate in order. Up next is the day after your last workout.</p>`
     : `<p class="muted small">Start from Push / Pull / Legs or another template, then change each day's exercises.</p>`}</section>`;
 }
 function gymsCardHTML() {
@@ -420,8 +420,32 @@ A.splitAdd = () => { Sheet.split.push({ id: newId(), name: `Day ${Sheet.split.le
 A.splitDay = d => drawDay(+d.i);
 /* Ready-made days: [exercise, sets, reps]. Adding one also sets those sets × reps targets. */
 const DAY_PRESETS = [
-  { name: 'Chest & Triceps', groups: ['Chest', 'Triceps', 'Shoulders'], ex: [['Smith Incline Press', 3, '6-10'], ['Smith Bench Press', 3, '6-10'], ['Dips', 3, '8-12'], ['Pec Deck Fly', 2, '10-15'], ['Cable Fly', 2, '12-15'], ['Overhead Rope Extension', 3, '10-15'], ['Rope Pushdown', 3, '10-15'], ['Cable Lateral Raise', 3, '12-20']] },
+  { name: 'Chest & Triceps', e: '🏋️', groups: ['Chest', 'Triceps', 'Shoulders'], ex: [['Smith Incline Press', 3, '6-10'], ['Smith Bench Press', 3, '6-10'], ['Dips', 3, '8-12'], ['Pec Deck Fly', 2, '10-15'], ['Cable Fly', 2, '12-15'], ['Overhead Rope Extension', 3, '10-15'], ['Rope Pushdown', 3, '10-15'], ['Cable Lateral Raise', 3, '12-20']] },
+  { name: 'Back & Biceps', e: '🦍', groups: ['Back', 'Biceps', 'Shoulders'], ex: [['Lat Pulldown', 3, '6-10'], ['Seated Cable Row', 3, '8-12'], ['Chest-Supported Row', 3, '8-12'], ['Straight-Arm Pulldown', 2, '12-15'], ['Face Pull', 3, '12-20'], ['Incline Dumbbell Curl', 3, '8-12'], ['Hammer Curl', 3, '10-12']] },
+  { name: 'Legs', e: '🦵', groups: ['Quads', 'Hamstrings', 'Glutes', 'Calves'], ex: [['Smith Squat', 3, '6-10'], ['Romanian Deadlift', 3, '8-10'], ['Leg Press', 3, '10-12'], ['Lying Leg Curl', 3, '10-12'], ['Leg Extension', 2, '12-15'], ['Standing Calf Raise', 4, '10-15']] },
+  { name: 'Shoulders & Arms', e: '💪', groups: ['Shoulders', 'Biceps', 'Triceps'], ex: [['Dumbbell Shoulder Press', 3, '6-10'], ['Cable Lateral Raise', 4, '12-20'], ['Rear Delt Fly', 3, '12-20'], ['EZ-Bar Curl', 3, '8-12'], ['Rope Pushdown', 3, '10-15'], ['Hammer Curl', 2, '10-12'], ['Overhead Rope Extension', 2, '10-15']] },
+  { name: 'Push', e: '⬆️', groups: ['Chest', 'Shoulders', 'Triceps'], ex: [['Bench Press', 3, '5-8'], ['Incline Dumbbell Press', 3, '8-10'], ['Dumbbell Shoulder Press', 3, '8-10'], ['Lateral Raise', 3, '12-20'], ['Rope Pushdown', 3, '10-15'], ['Overhead Rope Extension', 2, '10-15']] },
+  { name: 'Pull', e: '⬇️', groups: ['Back', 'Biceps'], ex: [['Pull-ups', 3, '6-10'], ['Barbell Row', 3, '6-10'], ['Lat Pulldown', 3, '8-12'], ['Face Pull', 3, '12-20'], ['Dumbbell Curl', 3, '8-12'], ['Hammer Curl', 2, '10-12']] },
+  { name: 'Upper', e: '🧍', groups: ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps'], ex: [['Bench Press', 3, '5-8'], ['Barbell Row', 3, '6-10'], ['Dumbbell Shoulder Press', 3, '8-10'], ['Lat Pulldown', 3, '8-12'], ['Dumbbell Curl', 2, '10-12'], ['Rope Pushdown', 2, '10-15']] },
+  { name: 'Lower', e: '🏃', groups: ['Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core'], ex: [['Squat', 3, '5-8'], ['Romanian Deadlift', 3, '8-10'], ['Bulgarian Split Squat', 3, '8-10'], ['Lying Leg Curl', 3, '10-12'], ['Standing Calf Raise', 3, '10-15'], ['Hanging Leg Raise', 3, '10-15']] },
+  { name: 'Full Body', e: '⚡', groups: ['Quads', 'Chest', 'Back', 'Shoulders', 'Hamstrings'], ex: [['Squat', 3, '5-8'], ['Bench Press', 3, '5-8'], ['Lat Pulldown', 3, '8-12'], ['Romanian Deadlift', 2, '8-10'], ['Lateral Raise', 2, '12-20'], ['Hammer Curl', 2, '10-12']] },
 ];
+/* Quick "+" from the Train tab: pick a ready-made day (or blank), it's saved right away, then you can tweak it. */
+A.dayNew = () => {
+  const have = new Set(splitDays().map(d => keyOf(d.name)));
+  openSheet('Add a workout day', `<p class="muted small" style="margin:0">Pick one to start from. You can change the exercises, sets and reps right after. Anything your gym doesn't have gets swapped automatically.</p>
+    <button class="row day-new" data-act="dayNewPick" data-i="-1"><span class="li-ic">＋</span><span class="grow"><b>Blank day</b><div class="faint small">Name it and pick your own exercises</div></span></button>
+    ${DAY_PRESETS.map((p, i) => `<button class="row day-new" data-act="dayNewPick" data-i="${i}"><span class="li-ic">${p.e}</span><span class="grow"><b>${esc(p.name)}</b>${have.has(keyOf(p.name)) ? ' <span class="faint small">· already in your split</span>' : ''}<div class="faint small">${esc(p.ex.map(x => x[0]).join(' · '))}</div></span></button>`).join('')}`);
+};
+A.dayNewPick = d => {
+  const i = +d.i, p = DAY_PRESETS[i], days = clone(splitDays()), exT = clone(S().exTargets || {});
+  const day = p ? { id: newId(), name: p.name, groups: [...p.groups], exercises: p.ex.map(x => x[0]) } : { id: newId(), name: `Day ${days.length + 1}`, groups: [], exercises: [] };
+  if (p) for (const [n, sets, reps] of p.ex) exT[keyOf(n)] = { sets, reps };
+  days.push(day); saveSettings({ split: { days }, exTargets: exT });
+  Sheet.split = days; Sheet.exT = exT; sheetTitle('Your split'); drawDay(days.length - 1);
+  toast(p ? `${p.name} added to your split` : 'New day added. Name it and add exercises.');
+};
+A.splitDayOpen = d => { A.editSplit(); drawDay(+d.i); };
 A.splitPreset = d => {
   const p = DAY_PRESETS[+d.i]; if (!p) return;
   Sheet.split.push({ id: newId(), name: p.name, groups: [...p.groups], exercises: p.ex.map(x => x[0]) });

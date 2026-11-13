@@ -38,7 +38,7 @@ overviewHTML = function () {
   if (sub === 'history') return h + weekCardHTML() + heatmapCardHTML() + recentWorkoutsHTML();
   h += deloadBannerHTML();
   if (w) h += `<section class="card hero-card"><div class="card-h"><div><div class="eyebrow">In progress</div><h2 class="lift-h" style="font-size:30px">${esc(w.dayName || 'Workout')}</h2><p class="muted small">${esc(w.gymName || 'No gym')} · started ${fmtClock(w.startTs)} · ${plural((w.sets || []).length, 'set')}</p></div><button class="btn" data-act="resumeWorkout">Resume</button></div></section>`;
-  else { h += smartCardHTML(); h += `<details class="card more-start"${smartPlan().ex.length ? '' : ' open'}><summary><b>Pick a different workout</b><span class="faint small">Any day of your split, or an empty workout</span></summary>${startCardHTML().replace(/^<section class="card">/, '<div class="inner-start">').replace(/<\/section>$/, '</div>')}</details>`; }
+  else { h += smartCardHTML(); h += `<details class="card more-start"${smartPlan().ex.length ? '' : ' open'}><summary><b>Pick a different workout</b><span class="faint small">Any day of your split, or an empty workout</span></summary>${startCardHTML().replace('<button class="btn block" data-act="startWorkout">', '<button class="btn ghost block" data-act="dayNew">' + ICON.plus + ' Add a workout day</button><button class="btn block" data-act="startWorkout">').replace(/^<section class="card">/, '<div class="inner-start">').replace(/<\/section>$/, '</div>')}</details>`; }
   const nx = dunkNext(); if (nx) h += dunkProgramHTML(true);
   return h + actsCardHTML();
 };
