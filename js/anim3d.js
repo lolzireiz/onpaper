@@ -148,7 +148,15 @@ function propGeo(def, q, J, m) {
     face(t[3], t[2], t[1], t[0]); face(bt[0], bt[1], bt[2], bt[3]); for (let k = 0; k < 4; k++) face(t[k], t[(k + 1) % 4], bt[(k + 1) % 4], bt[k]); };
   const disc = (c, r, col, y, n = 40) => { const up = [0, 1, 0]; for (let k = 0; k < n; k++) { const a0 = k / n * Math.PI * 2, a1 = (k + 1) / n * Math.PI * 2; tri([c[0], y, c[2]], [c[0] + Math.cos(a1) * r, y, c[2] + Math.sin(a1) * r], [c[0] + Math.cos(a0) * r, y, c[2] + Math.sin(a0) * r], up, up, up, col); } };
   // floor (drawn unlit: marked by a zero normal)
-  const flatStart = 0; disc(def.c, def.r * 0.98, C3.ring, -0.004); disc(def.c, def.r * 0.965, C3.floor, -0.003); disc(def.c, def.r * 0.56, C3.ring, -0.002); disc(def.c, def.r * 0.545, C3.floor, -0.001); disc(q.p, 0.27 + Math.max(0, 0.6 - q.p[1]) * 0.25, C3.shadow, 0);
+  const rectY = (x0, x1, z0, z1, y, col) => { const up = [0, 1, 0]; tri([x0, y, z0], [x1, y, z1], [x1, y, z0], up, up, up, col); tri([x0, y, z0], [x0, y, z1], [x1, y, z1], up, up, up, col); };
+  if (def.court) { const C = def.court, L = 0.006 * C.k * 39.37 / 2, line = [0.62, 0.55, 0.47];   // flat court: floor, painted lane, baseline, free-throw line
+    rectY(-6, 6, C.z0, C.z1, -0.005, [0.16, 0.13, 0.115]); rectY(-C.lane / 2, C.lane / 2, C.ft, C.base, -0.004, [0.19, 0.12, 0.11]);
+    rectY(-6, 6, C.base - L, C.base + L, -0.003, line); rectY(-C.lane / 2, C.lane / 2, C.ft - L, C.ft + L, -0.003, line);
+    for (const sx of [-1, 1]) rectY(sx * C.lane / 2 - L, sx * C.lane / 2 + L, C.ft, C.base, -0.003, line);
+    for (let i = 0; i < 28; i++) { const a0 = Math.PI * i / 28, a1 = Math.PI * (i + 1) / 28, R = C.ftr, cx = 0, cz = C.ft; const up = [0, 1, 0], p0 = [cx + Math.cos(a0) * R, -0.003, cz - Math.sin(a0) * R], p1 = [cx + Math.cos(a1) * R, -0.003, cz - Math.sin(a1) * R], n0 = V.mul(V.norm(V.sub(p0, [cx, -0.003, cz])), L), n1 = V.mul(V.norm(V.sub(p1, [cx, -0.003, cz])), L); tri(V.sub(p0, n0), V.add(p0, n0), V.add(p1, n1), up, up, up, line); tri(V.sub(p0, n0), V.add(p1, n1), V.sub(p1, n1), up, up, up, line); }
+  } else { disc(def.c, def.r * 0.98, C3.ring, -0.004); disc(def.c, def.r * 0.965, C3.floor, -0.003); disc(def.c, def.r * 0.56, C3.ring, -0.002); disc(def.c, def.r * 0.545, C3.floor, -0.001); }
+  disc(q.p, Math.max(0.12, 0.27 - Math.max(0, q.p[1] - 0.95) * 0.12 + Math.max(0, 0.6 - q.p[1]) * 0.25), C3.shadow, 0);
+  if (def._ball) disc(def._ball, Math.max(0.03, (def.ballR || 0.12) * (1.1 - def._ball[1] * 0.25)), C3.shadow, 0.0005);
   const nFlat = o.length / 9;
   const fist = s => { const rf = m && m.rest && m.rest['fist' + s]; if (!rf || !grips(def)) return null; const [ar, fr] = m.rest['fa' + s], fc = frame3(J['el' + s], J['ha' + s], J['eb' + s]), d = V.sub(rf, ar); return V.add(J['el' + s], V.add(V.mul(fc[0], V.dot(d, fr[0])), V.add(V.mul(fc[1], V.dot(d, fr[1])), V.mul(fc[2], V.dot(d, fr[2]))))); };
   const grip = s => fist(s) || V.add(J['ha' + s], V.mul(V.norm(V.sub(J['ha' + s], J['el' + s])), 0.075)), gR = grip('R'), gL = grip('L'), mid = V.mul(V.add(gR, gL), 0.5), G = { R: gR, L: gL };
@@ -162,14 +170,14 @@ function propGeo(def, q, J, m) {
     else if (pr.t === 'barhip') { const c = V.add(q.p, [0, 0.15, 0.08]); barbell(0, c[1], c[2]); }
     else if (pr.t === 'db' && pr.side) { const s = pr.side, h = G[s], ax = GA[s], P = d => V.add(h, V.mul(ax, d)); cyl(P(-0.12), P(0.12), 0.017, C3.bar); for (const dz of [-0.12, 0.12]) cyl(P(dz - 0.035), P(dz + 0.035), 0.062, C3.dark, 14, 1); }
     else if (pr.t === 'hoop') { // regulation hoop scaled to the figure: 18" rim, 72"x42" board, 15" from board to rim centre
-      const k = pr.k, y = pr.y, z = pr.z, rr = 9 * k, bz = z + 15 * k, col = [0.95, 0.42, 0.13], nn = 24;
+      const k = pr.k, y0 = pr.y, y = pr.y - (def._rimDy || 0), z = pr.z, rr = 9 * k, bz = z + 15 * k, col = [0.95, 0.42, 0.13], nn = 24;
       for (let i = 0; i < nn; i++) { const a0 = i / nn * Math.PI * 2, a1 = (i + 1) / nn * Math.PI * 2; cyl([Math.cos(a0) * rr, y, z + Math.sin(a0) * rr], [Math.cos(a1) * rr, y, z + Math.sin(a1) * rr], 0.45 * k, col, 6); }
       for (let i = 0; i < 12; i++) { const a0 = i / 12 * Math.PI * 2; cyl([Math.cos(a0) * rr, y, z + Math.sin(a0) * rr], [Math.cos(a0 + 0.5) * rr * 0.62, y - 15 * k, z + Math.sin(a0 + 0.5) * rr * 0.62], 0.18 * k, [0.92, 0.93, 0.96], 4); }
-      cyl([0, y, z + rr], [0, y, bz], 0.6 * k, col, 6);
-      slab([0, y - 6 * k, bz + 1 * k], [0, y + 36 * k, bz + 1 * k], 72 * k, [0.9, 0.92, 0.96], 2 * k);
-      slab([0, y, bz], [0, y + 18 * k, bz], 24 * k, [0.95, 0.42, 0.13], 0.6 * k);
-      cyl([0, y + 10 * k, bz + 3 * k], [0, y + 10 * k, bz + 40 * k], 2.5 * k, C3.dark, 10); cyl([0, 0, bz + 40 * k], [0, y + 10 * k, bz + 40 * k], 3 * k, C3.dark, 12, 1); }
-    else if (pr.t === 'ball') { const h = G.R, up = V.norm(V.sub(J.haR, J.elR)); ball(V.add(h, V.mul(up, pr.r * 0.9)), pr.r, [0.88, 0.42, 0.14], 10, 16); }
+      cyl([0, y, z + rr], [0, y0, bz], 0.6 * k, col, 6);
+      slab([0, y0 - 6 * k, bz + 1 * k], [0, y0 + 36 * k, bz + 1 * k], 72 * k, [0.9, 0.92, 0.96], 2 * k);
+      slab([0, y0, bz], [0, y0 + 18 * k, bz], 24 * k, [0.95, 0.42, 0.13], 0.6 * k);
+      cyl([0, y0 + 10 * k, bz + 3 * k], [0, y0 + 10 * k, bz + 40 * k], 2.5 * k, C3.dark, 10); cyl([0, 0, bz + 40 * k], [0, y0 + 10 * k, bz + 40 * k], 3 * k, C3.dark, 12, 1); }
+    else if (pr.t === 'ball') { const h = G.R, up = V.norm(V.sub(J.haR, J.elR)), c = def._ball || V.add(h, V.mul(up, pr.r * 0.9)); ball(c, pr.r, [0.88, 0.42, 0.14], 10, 16); for (const [ax, ay] of [[1, 0], [0, 1]]) { for (let i = 0; i < 16; i++) { const a0 = i / 16 * Math.PI * 2, a1 = (i + 1) / 16 * Math.PI * 2, P = a => ax ? [c[0], c[1] + Math.cos(a) * pr.r * 1.01, c[2] + Math.sin(a) * pr.r * 1.01] : [c[0] + Math.cos(a) * pr.r * 1.01, c[1] + Math.sin(a) * pr.r * 1.01, c[2]]; cyl(P(a0), P(a1), pr.r * 0.04, [0.18, 0.1, 0.06], 4); } } }
     else if (pr.t === 'hline') { const c = pr.col || C3.on; cyl([pr.x || 0, pr.y, pr.z - pr.w], [pr.x || 0, pr.y, pr.z + pr.w * 0.4], pr.th || 0.008, c, 6); }
     else if (pr.t === 'smith') { const z = pr.z ?? JA.mid[2], top = 2.15; for (const sx of [-1, 1]) { cyl([sx * 0.7, 0, z], [sx * 0.7, top, z], 0.03, C3.dark, 10, 1); cyl([sx * 0.7, 0, z - 0.32], [sx * 0.7, 0, z + 0.32], 0.035, C3.dark, 8, 1); cyl([sx * 0.66, mid[1] - 0.04, z], [sx * 0.66, mid[1] + 0.04, z], 0.04, C3.bar, 10, 1); } cyl([-0.72, top, z], [0.72, top, z], 0.03, C3.dark, 10, 1); }
     else if (pr.t === 'rack') { const z = pr.z ?? JA.mid[2], y = pr.y ?? JA.mid[1] - 0.05; for (const sx of [-1, 1]) for (const dz of [-0.32, 0.32]) cyl([sx * 0.62, 0, z + dz], [sx * 0.62, 2.25, z + dz], 0.028, C3.dark, 8, 1); for (const sx of [-1, 1]) { cyl([sx * 0.62, 2.25, z - 0.32], [sx * 0.62, 2.25, z + 0.32], 0.026, C3.dark); cyl([sx * 0.62, y, z + 0.32], [sx * 0.62, y, z + 0.42], 0.022, C3.bar); cyl([sx * 0.62, 0.95, z - 0.32], [sx * 0.62, 0.95, z + 0.32], 0.024, C3.bar); } cyl([-0.62, 2.25, z - 0.32], [0.62, 2.25, z - 0.32], 0.026, C3.dark); }
