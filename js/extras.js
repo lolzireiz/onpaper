@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '5.9';
+const APP_VERSION = '6.0';
 const CHANGELOG = [
+  ['6.0', ['🎬 Exercise animations polished: palms-up grip on curls, a real dip station and pull-up rig, leg press frame, solid plyo box, back-extension foot pads, low-to-high cable fly, single dumbbell for overhead extensions, ropes on rope exercises, decline sit-ups hooked in properly, and more.']],
   ['5.9', ['🏀 Dunk simulator rebuilt: a run-up, a two-foot takeoff from farther out, a real slam (ball through the net, rim flex), a court floor and a camera that follows the jump.']],
   ['5.8', ['🏀 Dunk simulator (Progress → Athlete): a figure your height jumps at a 10′ rim (or your goal rim). Slide your vertical to see where you touch, how far you are from a dunk, and how much vert you need. Your height and reach are saved.', '✨ Exercise animations load the detailed figure straight away (no more flash of the simple one).']],
   ['5.7', ['✅ Mark a day as trained without the details: pick the muscles (or split day) and it counts as a gym day, and recovery and Smart pick know those muscles are worked.']],
