@@ -797,6 +797,19 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 .sw .row{border-bottom:1px solid var(--line)}.sw:last-child .row,.sw:has(+ .fl-g) .row{border-bottom:0}
 .fa-list .sw:last-child .fa-row{border-bottom:0}
 .sw.sw-gone{height:0!important;opacity:0;transition:height .22s ease,opacity .18s ease}
+
+/* naps */
+.nap-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.nap-chip{min-height:34px;font-size:13px}.nap-sum{margin-left:auto}
+.nap-run{flex-wrap:nowrap;background:color-mix(in srgb,#8b7cf6 14%,transparent);border:1px solid color-mix(in srgb,#8b7cf6 40%,transparent);border-radius:14px;padding:10px 12px}
+.nap-run .grow{display:flex;flex-direction:column}.nap-z{font-size:22px;animation:napz 2.4s ease-in-out infinite}@keyframes napz{50%{transform:translateY(-3px) rotate(-6deg)}}
+.rp-nap span.faint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rp-nap b{color:var(--ok)}
+.nap-r{min-height:48px;gap:10px}
+.nap-dur{display:flex;align-items:center;justify-content:space-between;gap:12px}.nap-big{display:flex;flex-direction:column;align-items:center}.nap-big b{font-size:34px;font-weight:750;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.nap-chips{justify-content:center;margin-top:10px}
+.nap-prev{display:flex;align-items:center;gap:10px;background:var(--s1);border-radius:14px;padding:12px}.nap-prev .grow{display:flex;flex-direction:column;gap:2px}.nap-arrow{color:var(--tx3);font-size:18px}
+.nap-how{margin-top:12px}.nap-how summary{cursor:pointer;list-style:none}.nap-how summary::-webkit-details-marker{display:none}.nap-how summary::before{content:'ⓘ ';}
+@media (prefers-reduced-motion:reduce){.nap-z{animation:none}}
 </style>
 </head>
 <body>
@@ -840,6 +853,7 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 <script src="js/hub.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/foodui.js"></script>
+<script src="js/nap.js"></script>
 <script src="js/anim.js"></script>
 <script src="js/anim3d.js"></script>
 <script src="js/dunk.js"></script>

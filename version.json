@@ -1,8 +1,8 @@
 {
- "version": "7.3",
+ "version": "7.4",
  "notes": [
-  "\ud83d\udc48 Swipe left on a food to delete it, like any iPhone list. Swipe a little to show Delete, or all the way to delete straight away.",
-  "\ud83d\uddd1\ufe0f In Add food \u2192 Your foods, deleting removes it from your list and usuals. Your past logs stay, and it comes back if you ever log it again.",
-  "\ud83c\udf7d\ufe0f Swipe left on anything in the day's food to remove it, or hold a usual and pick Delete from your foods."
+  "\ud83d\ude34 Naps: log as many as you like from Today (under Readiness) or your check-in, or start a nap timer and tap \u201cI\u2019m up\u201d when you wake.",
+  "\ud83d\udcc8 Naps lift today\u2019s readiness realistically. Short naps help the most per minute, a ~90-min full cycle helps most overall, a nap can make up at most ~60% of a short night, and the lift fades 6\u201310 hours later.",
+  "The nap screen shows your readiness before \u2192 after while you set it up."
  ]
 }

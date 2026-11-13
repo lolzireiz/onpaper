@@ -53,7 +53,7 @@ Views.home.render = function () {
   const lw = latestWeighin(), s = S(), w = activeWorkout(), hr = new Date().getHours();
   let h = `<div class="hdr-hello"><b>${hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening'}${s.name ? `, ${esc(s.name)}` : ''}</b><span>${fmtDay(todayStr())}</span></div>`;
   h += alertsHTML(lw);
-  h += `<section class="card ready-card">${readinessRowHTML()}</section>`;
+  h += `<section class="card ready-card">${readinessRowHTML()}${napFootHTML()}</section>`;
   if (w) h += `<section class="card hero-card"><div class="card-h"><div><div class="eyebrow">Workout in progress</div><h2 class="lift-h" style="font-size:30px">${esc(w.dayName || 'Workout')}</h2><p class="muted small">${plural((w.sets || []).length, 'set')} · started ${fmtClock(w.startTs)}</p></div><button class="btn" data-act="resumeWorkout">Resume</button></div></section>`;
   else h += todayCardHTML(lw);
   h += habitStripHTML();

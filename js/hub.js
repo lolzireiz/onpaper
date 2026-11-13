@@ -60,7 +60,7 @@ const SORE_W = { Quads: 1.3, Hamstrings: 1.1, Glutes: 1.1, 'Lower back': 1.2, 'U
 const SORE_PTS = [0, 1, 2.4, 4];
 function sorePenalty(sm) { return Object.entries(sm || {}).reduce((a, [g, lv]) => a + (SORE_W[g] ?? 0.7) * (SORE_PTS[lv] || 0), 0); }
 function readinessFrom(d) {
-  const has = d.sleep != null || d.sore != null || d.energy != null || d.soreMap != null;
+  const has = d.sleep != null || d.sore != null || d.energy != null || d.soreMap != null || !!(d.naps && d.naps.length);
   // training load: last 3 days vs your usual. Needs ~2 weeks of history to know "usual", so it stays neutral until then
   const first = Store.list('workouts').concat(Store.list('acts')).reduce((m, w) => !m || w.date < m ? w.date : m, null), known = first && daysBetween(first, todayStr()) >= 14;
   const acute = trainingLoad(3) / 3, chronic = trainingLoad(28) / Math.min(28, Math.max(1, first ? daysBetween(first, todayStr()) + 1 : 28)), ratio = known && chronic > 0.5 ? acute / chronic : 1;
@@ -68,13 +68,15 @@ function readinessFrom(d) {
   const sleep = d.sleep != null ? Math.min(1, d.sleep / 8) ** 1.4 * 30 : 22;
   const sore = d.soreMap ? 35 * Math.exp(-sorePenalty(d.soreMap) / 6) : d.sore != null ? (5 - d.sore) / 4 * 35 : 26;
   const energy = d.energy != null ? (d.energy - 1) / 4 * 15 : 10;
-  const score = Math.round(load + sleep + sore + energy);
+  const nap = napBoost(d, sleep);   // naps: partial, temporary credit toward a short night (see nap.js)
+  const score = Math.round(Math.min(100, load + sleep + nap.pts + sore + energy));
   const worst = Object.entries(d.soreMap || {}).filter(([, v]) => v >= 2).sort((a, b) => b[1] - a[1] || (SORE_W[b[0]] ?? 0.7) - (SORE_W[a[0]] ?? 0.7)).map(([g]) => g.toLowerCase());
   const avoid = worst.length ? ` Go easy on ${worst.slice(0, 3).join(', ').replace(/, ([^,]*)$/, ' and $1')}.` : '';
   const [lbl, tip, col] = score >= 80 ? ['Ready to push', 'Good day to go for PRs.' + avoid, 'var(--ok)'] : score >= 62 ? ['Train normally', 'Solid day. Stick to the plan.' + avoid, 'var(--accent)'] : score >= 45 ? ['Go a bit lighter', 'Drop a set per exercise, or keep 2–3 reps in the tank.' + avoid, '#f5b915'] : ['Recover today', 'Mobility, a walk, or a light session will pay off more than grinding.', 'var(--miss)'];
-  return { score, lbl, tip, col, has, d, ratio, parts: { load, sleep, sore, energy } };
+  return { score, lbl, tip: tip + nap.tip, col, has, d, ratio, nap, parts: { load, sleep, sore, energy, nap: nap.pts } };
 }
-function readiness(date = todayStr()) { return Store.cached('ready:' + date, () => readinessFrom(dailyOf(date))); }
+/* a nap's lift fades over the afternoon, so today's score is re-worked every 15 minutes */
+function readiness(date = todayStr()) { return Store.cached('ready:' + date + (date === todayStr() && dailyOf(date).naps?.length ? ':' + Math.floor(Date.now() / 9e5) : ''), () => readinessFrom(dailyOf(date))); }
 
 const ring = (pct, col, size = 56, w = 6, inner = '') => { const r = (size - w) / 2, c = 2 * Math.PI * r; return `<span class="pring" style="width:${size}px;height:${size}px"><svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--s3)" stroke-width="${w}"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - clamp(pct, 0, 100) / 100)}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg><b>${inner}</b></span>`; };
 function readinessRowHTML() {
@@ -100,10 +102,11 @@ function drawReady() {
   const sex = S().bodyModel || 'male', fig = v => `<div style="--fig-h:170px">${bodySVG(v, sex, { p: new Set(), s: new Set(), heat })}</div>`;
   const y = $('#sheet .sheet-b')?.scrollTop || 0;
   sheetBody(`<div class="ready-hero">${ring(r.score, r.has ? r.col : 'var(--tx3)', 104, 10, r.has ? r.score : '?')}<div><b style="font-size:20px">${r.has ? r.lbl : 'Check in'}</b><p class="muted small" style="margin:4px 0 0">${r.has ? esc(r.tip) : 'Tell it how you slept and what hurts.'}</p></div></div>
-    <div class="rparts">${part('Sleep', P.sleep, 30)}${part('Soreness', P.sore, 35)}${part('Energy', P.energy, 15)}${part('Training load', P.load, 20)}</div>
+    <div class="rparts">${part('Sleep', P.sleep, 30)}${P.nap ? `<div class="rp rp-nap"><span>Naps</span><span class="faint small">${esc(r.nap.why)}</span><b>+${Math.round(P.nap)}</b></div>` : ''}${part('Soreness', P.sore, 35)}${part('Energy', P.energy, 15)}${part('Training load', P.load, 20)}</div>
     <div class="field"><div class="card-h"><span class="lbl">Sleep last night</span><b class="rnum" id="rd-sv" style="font-size:20px">${R.sleep == null ? '—' : fmtSleep(R.sleep)}</b></div>
       <div class="sl-row"><button class="btn ghost pl-step" data-act="rdSleep" data-d="-0.25" aria-label="15 minutes less">−</button><input type="range" id="rd-sleep" class="sim-range" min="0" max="12" step="0.25" value="${sleepV}" aria-label="Hours of sleep"><button class="btn ghost pl-step" data-act="rdSleep" data-d="0.25" aria-label="15 minutes more">+</button></div>
       <div class="chips">${[4, 5, 6, 7, 8, 9].map(h => `<button class="chip" data-act="rdSleepSet" data-v="${h}" aria-pressed="${R.sleep === h}">${h}h</button>`).join('')}</div></div>
+    ${napSectionHTML()}
     <div class="field"><span class="lbl">Where are you sore?</span><p class="faint small" style="margin:-2px 0 6px">Tap a muscle to cycle: none → a bit → sore → very.${R.sug && Object.keys(R.sug).length && !Object.keys(R.soreMap).length ? ` <button class="linkbtn" data-act="rdSug">Fill from recent workouts</button>` : ''}</p>
       <div class="sore-wrap"><div class="sore-figs">${fig('front')}${fig('back')}</div>
       <div class="sore-grid">${Object.keys(SORE_GROUPS).map(g => { const lv = R.soreMap[g] || 0; return `<button class="sore-b lv${lv}" data-act="rdSore" data-g="${esc(g)}" aria-label="${esc(g)}: ${SORE_LV[lv][0]}"><span>${esc(g)}</span><i>${lv ? SORE_LV[lv][0] : ''}</i></button>`; }).join('')}</div></div>
