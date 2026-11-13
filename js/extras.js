@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '5.2';
+const APP_VERSION = '5.3';
 const CHANGELOG = [
+  ['5.3', ['🛠️ Closing an exercise\'s info (ⓘ) now takes you back to where you were, like the day editor, instead of closing everything.']],
   ['5.2', ['🛠️ Fixed the dunk progress buttons running off the screen.']],
   ['5.1', ['➕ Add a workout day from the + at the top of Train: pick Chest & Triceps, Back & Biceps, Legs, Shoulders & Arms, Push, Pull, Upper, Lower, Full Body or a blank day.', '👆 Tap any day in your split to edit it.']],
   ['5.0', ['🧭 New layout: Today · Train · Food · Progress · You. Lifts, weight, photos, body and athlete stats now live together under Progress, and settings moved to You.', '🔍 Search everything from the magnifier at the top: exercises, foods, workouts and settings.', '🔋 Readiness score from a 10-second check-in (sleep, soreness, energy) plus your recent training load, with recovery per muscle.', '✨ Smart pick: Train suggests today\'s workout based on which muscles are recovered, and lightens it on low-readiness days.', '🧮 Plate & warm-up calculator for barbell and Smith lifts, with one-tap warm-up sets.', '🏁 New workout summary with volume vs last time, PRs, muscles worked and a shareable image.', '🏀 12-week dunk program: two jump sessions a week across Foundation, Power and Peak blocks, with vertical tests.', '🧘 Follow-along mobility routines with a timer and beeps.', '✅ Habits with streaks. Some check themselves off (sleep, protein, stretching).', '🍽️ Save meals and recipes (split into servings) and log them in one tap.', '📊 Macro trends: calories by protein, carbs and fat, plus where your calories come from.', '🎨 Themes: dark, true black or light, plus 6 accent colours (You → Appearance).']],
@@ -156,7 +157,7 @@ function guideGoalsHTML(name) {
 }
 const IRL_ICONS = [[/dunk|jump|rebound|hoop|basketball|leap/i, '🏀'], [/sprint|run|chase|bus|race|faster/i, '🏃'], [/climb|ledge|rope|tree|wall|hang|fence|loft/i, '🧗'], [/box|groceries|carry|bag|suitcase|luggage|furniture|couch|move/i, '📦'], [/boulder|rock|tire|car|trapped|stuck|heavy/i, '🪨'], [/stair|hike|hill|uphill|step/i, '🥾'], [/kid|child|baby|toddler|shoulder|dog|hug/i, '🧒'], [/door|push|shove|open/i, '🚪'], [/throw|punch|swing|ball/i, '🥊'], [/shelf|overhead|cabinet|reach|high/i, '📚'], [/posture|slouch|back pain|desk|sit/i, '🪑'], [/balance|ankle|knee|injur|fall|trip/i, '🛡️'], [/water|jug|bucket/i, '🪣']];
 const irlIcon = x => (IRL_ICONS.find(([re]) => re.test(x)) || [0, '💪'])[1];
-A.muscles = d => { Sheet.musEx = d.ex; Sheet.musView = 'both'; Sheet.musSex = S().bodyModel || 'male'; openSheet(d.ex, '', {}); drawMuscles(); };
+A.muscles = d => peekSheet(() => { Sheet.musEx = d.ex; Sheet.musView = 'both'; Sheet.musSex = S().bodyModel || 'male'; openSheet(d.ex, '', {}); drawMuscles(); });
 A.musSex = d => { Sheet.musSex = d.s; drawMuscles(); };
 A.musView = d => { Sheet.musView = d.v; drawMuscles(); };
 function drawMuscles() {

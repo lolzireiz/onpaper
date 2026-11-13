@@ -75,7 +75,7 @@ function liftsListHTML() {
     return `<button class="row" data-act="openLift" data-key="${esc(L.key)}"><div class="ring ${lastPR && daysBetween(lastPR.date, todayStr()) <= 14 ? 'is-pr' : ''}"><span>${esc(initials(L.name))}</span></div><div class="grow"><b>${esc(L.name)}</b><div class="faint small">${L.heavy ? (L.bwf ? `Best ${loadTxt(L.heavy)} ×${L.heavy.r}` : `Heaviest ${fw(L.heavy.w)}×${L.heavy.r}`) : 'No completed sets'}${lastPR ? ` · last PR ${fmtDate(lastPR.date)}` : ''}</div></div><div class="rnum"><div style="font:700 22px/1 var(--f-display)">${L.e1 ? fw(L.e1, 0) : '—'}</div><div class="faint tiny">est. 1RM</div></div></button>`;
   }).join('')}</section>`;
 }
-A.openLift = d => { closeSheet(); UI.tab = 'lifts'; UI.liftKey = d.key; UI.liftFilter = 'key'; $('#view').scrollTop = 0; render(); };
+A.openLift = d => { closeAllSheets(); UI.tab = 'lifts'; UI.liftKey = d.key; UI.liftFilter = 'key'; $('#view').scrollTop = 0; render(); };
 A.liftBack = () => { UI.liftKey = null; render(); };
 A.liftFilter = d => { UI.liftFilter = d.f; render(); };
 

@@ -1,6 +1,6 @@
 {
- "version": "5.2",
+ "version": "5.3",
  "notes": [
-  "\ud83d\udee0\ufe0f Fixed the dunk progress buttons running off the screen."
+  "\ud83d\udee0\ufe0f Closing an exercise's info (\u24d8) now takes you back to where you were, like the day editor, instead of closing everything."
  ]
 }

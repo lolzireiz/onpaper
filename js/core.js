@@ -292,12 +292,29 @@ function openSheet(title, body, { onMount, onClose } = {}) {
 }
 const sheetBody = html => { const b = $('#sheet .sheet-b'); if (b) { b.innerHTML = html; b.scrollTop = 0; } };
 const sheetTitle = t => { const h = $('#sheet-title'); if (h) h.textContent = t; };
+/* Peek: open a sheet on top of the current one (e.g. an exercise's info from inside the split editor).
+   Closing it brings back the sheet underneath exactly as it was, typed values and all. */
+Sheet.stack = [];
+function peekSheet(open) {
+  const L = $('#sheet');
+  if (L.hidden || !L.classList.contains('open')) return open();
+  const b = $('.sheet-b', L);
+  Sheet.stack.push({ nodes: [...L.childNodes], onClose: Sheet.onClose, scroll: b ? b.scrollTop : 0 });
+  Sheet.onClose = null; L.replaceChildren(); open(); Sheet.peeking = Sheet.stack.length;
+}
 function closeSheet() {
   const L = $('#sheet'); if (L.hidden) return;
+  if (Sheet.stack.length && Sheet.peeking === Sheet.stack.length) {
+    const f = Sheet.onClose, prev = Sheet.stack.pop(); Sheet.onClose = null; if (f) f();
+    L.replaceChildren(...prev.nodes); Sheet.onClose = prev.onClose; Sheet.peeking = Sheet.stack.length || 0;
+    const b = $('.sheet-b', L); if (b) b.scrollTop = prev.scroll; return;
+  }
+  Sheet.stack = []; Sheet.peeking = 0;
   L.classList.remove('open'); const f = Sheet.onClose; Sheet.onClose = null; if (f) f();
   setTimeout(() => { if (!L.classList.contains('open')) { L.hidden = true; L.innerHTML = ''; } }, 240);
 }
 A.closeSheet = closeSheet;
+function closeAllSheets() { Sheet.stack = []; Sheet.peeking = 0; closeSheet(); }
 function ask(msg, { ok = 'OK', danger = false, cancel = 'Cancel' } = {}) {
   return new Promise(res => {
     const L = $('#dialog');
