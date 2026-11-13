@@ -237,7 +237,7 @@ function recapRows(r) {
 }
 function recapCardHTML(full) {
   const r = recapData(), rows = recapRows(r);
-  return `<section class="card recap"><div class="card-h"><div><div class="eyebrow">Weekly recap</div><h2 class="sec-t" style="margin:0">${fmtDate(r.wk, { rel: false })} – ${fmtDate(r.end, { rel: false })}</h2></div>${full ? '' : '<button class="iconbtn" data-act="recapHide" aria-label="Hide recap">✕</button>'}</div>
+  return `<section class="card recap"><div class="card-h"><div>${full ? '' : '<div class="eyebrow">Weekly recap</div>'}<h2 class="sec-t" style="margin:0">${fmtDate(r.wk, { rel: false })} – ${fmtDate(r.end, { rel: false })}</h2></div>${full ? '' : '<button class="iconbtn" data-act="recapHide" aria-label="Hide recap">✕</button>'}</div>
     ${rows.map(([ic, k, v, sub]) => `<div class="row"><span class="ic" aria-hidden="true">${ic}</span><span class="grow"><b>${esc(k)}</b><div class="faint small">${esc(sub)}</div></span><b class="rnum">${esc(v)}</b></div>`).join('')}
     <button class="btn block" data-act="recapShare">Share as image</button></section>`;
 }

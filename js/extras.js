@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '6.3';
+const APP_VERSION = '6.4';
 const CHANGELOG = [
+  ['6.4', ['🌙 Overnight polish: smoother dunk simulator, a cleaner animation for nearly every exercise (real machines, benches, racks, grips), a fully working light theme, ringed Food summary, live workout strip, lift trend lines, and lots of small fixes.', '🎬 Exercise info now opens with the animation first.', '🦵 Leg curl and extension machines have handles to hold.']],
   ['6.3', ['⏱️ Workouts show a live strip at the top: time, volume and sets done out of planned, with a progress bar.', '📏 Dunk simulator works in centimetres for metric users.']],
   ['6.2', ['☀️ Light theme fixed everywhere: pop-up sheets, selected chips, badges and hints are all readable now.', '📈 Each lift in Progress shows a mini trend line of your estimated 1RM.', '🦋 Pec deck animation now uses real swinging machine arms.']],
   ['6.1', ['🍽️ Food tab shows calories and protein as rings, with carbs and fat underneath.', '🧹 Long lists (weigh-ins, lift history, milestones) are trimmed with a “Show all”.', '⚡ Faster Today screen.', '🔔 Pop-up messages no longer cover the Finish button or wrap into tall boxes.', '📏 New users can enter their height during setup.']],
@@ -175,14 +176,13 @@ function drawMuscles() {
   const names = set => [...set].map(m => MUSCLE_NAMES[m]).join(', ');
   const fig = (view, label) => `<div><div style="--fig-h:${v === 'both' ? '330px' : '520px'}">${bodySVG(view, sex, mus)}</div><div class="faint tiny" style="text-align:center">${label}</div></div>`;
   const L = liftByKey(keyOf(name));
-  sheetBody(`<div class="guide-hero">${lib ? `<span class="gchip">${esc(lib.group)}</span>` : ''}${lib && lib.equip.length ? `<span class="gchip">${esc(lib.equip.map(q => EQ_LABEL[q]).join(' + '))}</span>` : ''}${bwFactor(name) ? `<span class="gchip">Counts ${Math.round(bwFactor(name) * 100)}% bodyweight</span>` : ''}</div>${guideGoalsHTML(name)}
-    ${g ? `<p style="font-size:16px;line-height:1.45">${esc(g.a)}</p>
-    ${animHTML(name, sex)}
+  sheetBody(`<div class="guide-hero">${lib ? `<span class="gchip">${esc(lib.group)}</span>` : ''}${lib && lib.equip.length ? `<span class="gchip">${esc(lib.equip.map(q => EQ_LABEL[q]).join(' + '))}</span>` : ''}${bwFactor(name) ? `<span class="gchip">Counts ${Math.round(bwFactor(name) * 100)}% bodyweight</span>` : ''}</div>
+    ${g ? `${animHTML(name, sex)}<p style="font-size:16px;line-height:1.45;margin:0">${esc(g.a)}</p>${guideGoalsHTML(name)}
     <div class="field"><span class="lbl">Builds</span><div class="chips">${g.i.map(x => `<span class="chip" style="pointer-events:none">${esc(x)}</span>`).join('')}</div></div>
-    <div class="field"><span class="lbl">In real life, it helps you…</span><ul class="irl">${g.e.map((x, i) => `<li><i aria-hidden="true">${irlIcon(x)}</i><span>${esc(x)}</span></li>`).join('')}</ul></div>` : '<p class="muted">A custom exercise you added.</p>'}
+    <div class="field"><span class="lbl">In real life, it helps you…</span><ul class="irl">${g.e.map((x, i) => `<li><i aria-hidden="true">${irlIcon(x)}</i><span>${esc(x)}</span></li>`).join('')}</ul></div>` : `${guideGoalsHTML(name)}<p class="muted">A custom exercise you added.</p>`}
     ${L && L.e1 ? `<button class="row" data-act="openLift" data-key="${esc(L.key)}" style="background:var(--s2);border-radius:12px;padding:10px 12px;border:0"><div class="grow"><b>Your best</b><div class="faint small">${L.bwf ? loadTxt(L.heavy) : fw(L.heavy.w)} × ${L.heavy.r} · est. 1RM ${fw(L.e1, 0)} ${U.wu} · ${L.prs} PRs</div></div>${ICON.chevR.replace('<svg', '<svg width="18" height="18"')}</button>` : ''}
     ${mus ? `<div class="field" style="margin-top:4px"><span class="lbl">Muscles worked</span></div>
-    <div class="seg">${[['male', 'Male'], ['female', 'Female']].map(([k, l]) => `<button data-act="musSex" data-s="${k}" aria-pressed="${sex === k}">${l}</button>`).join('')}</div>
+    ${g ? '' : `<div class="seg">${[['male', 'Male'], ['female', 'Female']].map(([k, l]) => `<button data-act="musSex" data-s="${k}" aria-pressed="${sex === k}">${l}</button>`).join('')}</div>`}
     <div style="display:grid;grid-template-columns:${v === 'both' ? '1fr 1fr' : '1fr'};gap:6px">${v !== 'back' ? fig('front', 'Front') : ''}${v !== 'front' ? fig('back', 'Back') : ''}</div>
     <div class="chips" style="justify-content:center">${[['both', 'Both'], ['front', 'Front'], ['back', 'Back']].map(([k, l]) => `<button class="chip" data-act="musView" data-v="${k}" aria-pressed="${v === k}">${l}</button>`).join('')}</div>
     <div class="legend" style="justify-content:center"><span><i style="background:#f0302e;box-shadow:0 0 8px #ff2a2a"></i>Main muscles</span><span><i style="background:#8c2d33"></i>Helping muscles</span></div>

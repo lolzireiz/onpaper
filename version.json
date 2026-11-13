@@ -1,7 +1,8 @@
 {
- "version": "6.3",
+ "version": "6.4",
  "notes": [
-  "\u23f1\ufe0f Workouts show a live strip at the top: time, volume and sets done out of planned, with a progress bar.",
-  "\ud83d\udccf Dunk simulator works in centimetres for metric users."
+  "\ud83c\udf19 Overnight polish: smoother dunk simulator, a cleaner animation for nearly every exercise (real machines, benches, racks, grips), a fully working light theme, ringed Food summary, live workout strip, lift trend lines, and lots of small fixes.",
+  "\ud83c\udfac Exercise info now opens with the animation first.",
+  "\ud83e\uddb5 Leg curl and extension machines have handles to hold."
  ]
 }
