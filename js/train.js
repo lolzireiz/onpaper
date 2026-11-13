@@ -170,7 +170,7 @@ const COMPOUND = new Set(['Bench Press', 'Incline Bench Press', 'Dumbbell Bench 
 const isCompound = n => COMPOUND.has(keyOf(n));
 const defaultTarget = n => ({ sets: S().defaultSets || 3, reps: isCompound(n) ? '6-8' : '8-12' });
 const tgtFor = n => ({ ...defaultTarget(n), ...((S().exTargets || {})[keyOf(n)] || {}) });
-const exTarget = (w, n) => tgtFor(n);
+const exTarget = (w, n) => ({ ...tgtFor(n), ...((w && w.targets || {})[keyOf(n)] || {}) });
 const repRange = r => { const m = String(r || '').match(/(\d+)\s*[-–to]+\s*(\d+)/); if (m) return [+m[1], +m[2]]; const n = parseInt(r, 10); return n ? [n, n] : [8, 12]; };
 function weightStep(name) { const e = library().get(keyOf(name)); if (bwFactor(name) && e && (e.equip || []).includes('db')) return U.metric ? 4 : 10; const lower = e && ['Quads', 'Hamstrings', 'Glutes'].includes(e.group) && !(e.equip || []).includes('db'); return U.metric ? (lower ? 5 : 2.5) : (lower ? 10 : 5); }
 function suggestion(w, name) {
@@ -200,6 +200,7 @@ function exBlockHTML(w, name) {
   ${sug ? `<p class="small" style="background:rgba(51,146,245,.12);color:#9cc8ff;border-radius:10px;padding:8px 10px"><b>Try ${fw(sug.w)} × ${sug.r}.</b> ${esc(sug.why)}</p>` : ''}
   ${all.length ? `<ol class="sets">${all.map((s, j) => { const rec = setRec(L, s.id); return `<li class="${UI.justSet === s.id ? 'just' : ''}"><button class="setrow" data-act="editSet" data-wid="${w.id}" data-sid="${s.id}"><span class="n">${s.warm ? 'W' : j + 1 - all.slice(0, j).filter(x => x.warm).length}</span><span class="v grow">${bwf ? `${s.w ? '+' + fw(s.w) : 'BW'} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r} <span class="faint small">≈${fw(bwf * (s.bwt || bwNow) + (s.w || 0), 0)} ${U.wu}</span>` : `${fw(s.w)} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r}`}</span>${rec?.pr ? '<span class="pr">PR</span>' : ''}${s.hit === false ? '<span class="missb">Missed</span>' : ''}${s.warm ? '<span class="baseb">Warm-up</span>' : ''}</button></li>`; }).join('')}</ol>` : ''}
   <div class="addset2"><div class="stepper"><button data-act="step" data-t="sw-${k}" data-d="-${step}" aria-label="Less weight">−</button><input id="sw-${k}" data-keep inputmode="decimal" value="${pre ? plain(U.w(pre.w)) : ''}" placeholder="${bwf ? '+' + U.wu : U.wu}" aria-label="${bwf ? 'Added weight (both dumbbells together)' : 'Weight'} in ${U.wu} for ${esc(name)}"><button data-act="step" data-t="sw-${k}" data-d="${step}" aria-label="More weight">+</button></div><span class="x">×</span><div class="stepper"><button data-act="step" data-t="sr-${k}" data-d="-1" aria-label="One less rep">−</button><input id="sr-${k}" data-keep inputmode="numeric" value="${pre ? pre.r : ''}" placeholder="reps" aria-label="Reps for ${esc(name)}"><button data-act="step" data-t="sr-${k}" data-d="1" aria-label="One more rep">+</button></div></div>
+  ${plateable(name) ? `<button class="linkbtn plate-btn" data-act="plates" data-ex="${esc(name)}">🧮 Plates &amp; warm-ups</button>` : ''}
   ${bwf ? `<div class="bwrow"><label class="faint small" for="sb-${k}">Bodyweight</label><input id="sb-${k}" data-keep inputmode="decimal" value="${bwNow ? plain(U.w(bwNow)) : ''}" placeholder="${U.wu}" aria-label="Your bodyweight in ${U.wu}"><span class="faint small">${U.wu} · weight box = <b>both dumbbells</b> total</span><span class="est" id="est-${k}" data-f="${bwf}">${estTxt(bwf, bwNow ? U.w(bwNow) : 0, pre ? U.w(pre.w) : 0)}</span></div>` : ''}
   <div class="addset-b"><button class="missbtn" id="swu-${k}" data-act="toggle" aria-pressed="false">Warm-up</button><button class="missbtn" id="sh-${k}" data-act="toggle" aria-pressed="false">Missed</button><button class="btn" data-act="logSet" data-ex="${esc(name)}">Log set ${Math.min(work.length + 1, 99)}${work.length < t.sets ? ` of ${t.sets}` : ''}</button></div></section>`;
 }
@@ -306,7 +307,7 @@ A.finishWorkout = async () => {
     return;
   }
   put('workouts', w.id, { ...clone(w), endTs: Date.now() });
-  UI.session = false; UI.unlocked = null; A.restSkip(); releaseWake(); render(); prepBackup(); showWorkout(w.id, true); setTimeout(() => { confetti({ n: 120 }); countUps($('#sheet')); }, 250);
+  UI.session = false; UI.unlocked = null; A.restSkip(); releaseWake(); render(); prepBackup(); showSummary(w.id); setTimeout(() => { if (!REDUCED()) confetti({ n: 120 }); countUps($('#sheet')); }, 250);
 };
 A.discardWorkout = async () => {
   const w = activeWorkout(); if (!w) return;

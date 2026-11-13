@@ -55,7 +55,7 @@ const fw = (lb, dp = 1) => lb === 0 ? 'BW' : trim(U.w(lb), dp);
 const fwu = (lb, dp = 1) => lb === 0 ? 'Bodyweight' : `${trim(U.w(lb), dp)} ${U.wu}`;
 
 /* ---------- data store ---------- */
-const COLLS = ['weighins', 'workouts', 'body', 'photos', 'food', 'gyms', 'myfoods', 'jumps', 'skills', 'acts'];
+const COLLS = ['weighins', 'workouts', 'body', 'photos', 'food', 'gyms', 'myfoods', 'jumps', 'skills', 'acts', 'daily'];
 const DEFAULTS = {
   unit: 'imperial', weeklyGoal: 4, restSec: 120, calTarget: 2500, proteinTarget: 160, nudgeDays: 3,
   activeGym: null, split: null, defaultSets: 3, exTargets: {}, bodyModel: 'male', watchReminder: true, customEx: [], buddy: false, goals: [], sports: [], big3: { squat: 'Squat', bench: 'Bench Press', deadlift: 'Deadlift' },
@@ -260,8 +260,8 @@ function render() {
   view.innerHTML = ready ? v.render() : `<div class="loading"><div class="thinking">Loading your data…</div></div>`;
   for (const [id, val] of Object.entries(keep)) { const el = document.getElementById(id); if (el && el.dataset.keep !== undefined) el.value = val; }
   if (focusId) { const el = document.getElementById(focusId); if (el) { el.focus({ preventScroll: true }); try { if (sel) el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } }
-  $('#top').innerHTML = `<div class="top-l">${v.title()}</div><div class="top-r">${ready && v.actions ? v.actions() : ''}<button class="iconbtn" data-act="openSettings" aria-label="Settings">${ICON.gear}</button></div>`;
-  $$('.tab').forEach(t => t.setAttribute('aria-current', t.dataset.tab === UI.tab ? 'page' : 'false'));
+  $('#top').innerHTML = `<div class="top-l">${v.title()}</div><div class="top-r">${ready && v.actions ? v.actions() : ''}<button class="iconbtn" data-act="search" aria-label="Search">${ICON.search}</button></div>`;
+  $$('.tab').forEach(t => t.setAttribute('aria-current', t.dataset.tab === tabOf(UI.tab) ? 'page' : 'false'));
   $('#banner').innerHTML = (typeof updBannerHTML === 'function' ? updBannerHTML() : '') + (Store.note ? `<div class="banner">${esc(Store.note)}</div>` : '');
   mountCharts();
   if (typeof fxEnter === 'function') fxEnter(view);

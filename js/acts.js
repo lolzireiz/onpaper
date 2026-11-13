@@ -22,7 +22,7 @@ const ACTS = [
   ]],
   ['Outdoors & movement', [
     ['climbing', '🧗', 'Climbing', 0, ['grip', 'relative', 'vback'], /climb|boulder/], ['skiing', '🎿', 'Skiing / snowboarding', 1, ['legs', 'balance'], /ski|snowboard/], ['skate', '🛹', 'Skating', 1, ['balance', 'legs'], /skat/], ['surfing', '🏄', 'Surfing / paddling', 0, ['balance', 'shoulders'], /surf|paddl|kayak/],
-    ['dance', '💃', 'Dance', 0, ['balance', 'mobility', 'endurance'], /danc|zumba|barre/], ['yoga', '🧘', 'Yoga / pilates', 0, ['mobility', 'core', 'balance'], /yoga|pilates/], ['stretch', '🤸', 'Stretching / mobility', 0, ['mobility', 'injury'], /stretch|flexib|mobility|cooldown|cool down/], ['other', '⭐', 'Other activity', 0, [], /$^/],
+    ['plyo', '🦘', 'Jump training / plyos', 0, ['jump', 'power', 'sprint'], /plyo|jump train|box jump|depth jump/], ['dance', '💃', 'Dance', 0, ['balance', 'mobility', 'endurance'], /danc|zumba|barre/], ['yoga', '🧘', 'Yoga / pilates', 0, ['mobility', 'core', 'balance'], /yoga|pilates/], ['stretch', '🤸', 'Stretching / mobility', 0, ['mobility', 'injury'], /stretch|flexib|mobility|cooldown|cool down/], ['other', '⭐', 'Other activity', 0, [], /$^/],
   ]],
 ];
 const ACT = Object.fromEntries(ACTS.flatMap(([, xs]) => xs.map(([id, e, l, dist, g, re]) => [id, { id, e, l, dist, g, re }])));

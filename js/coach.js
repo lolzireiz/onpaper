@@ -331,9 +331,10 @@ function checkMilestones() {
 function milestonesCardHTML() {
   const have = S().badges || {}, m = msStats(), n = MILESTONES.filter(x => have[x[0]]).length;
   return `<section class="card"><div class="card-h"><h2 class="sec-t">Milestones</h2><span class="faint small">${n} of ${MILESTONES.length}</span></div>
-    <div class="badges">${MILESTONES.map(([id, ic, name, desc, f]) => { const got = have[id], [v, t] = f(m), pct = Math.min(100, Math.round(v / t * 100));
-      return `<button class="badge${got ? ' got' : ''}" data-act="badgeInfo" data-id="${id}" aria-label="${esc(name)}${got ? ', earned' : `, ${pct}%`}"><span class="bi">${ic}</span><span class="bn">${esc(name)}</span>${got ? '' : `<span class="bp"><i style="width:${pct}%"></i></span>`}</button>`; }).join('')}</div></section>`;
+    <div class="badges">${MILESTONES.map(x => { const [v, t] = x[4](m); return [x, have[x[0]] ? 2 : Math.min(1, v / t)]; }).sort((a, b) => b[1] - a[1]).slice(0, UI.msAll ? 99 : 8).map(([[id, ic, name, desc, f]]) => { const got = have[id], [v, t] = f(m), pct = Math.min(100, Math.round(v / t * 100));
+      return `<button class="badge${got ? ' got' : ''}" data-act="badgeInfo" data-id="${id}" aria-label="${esc(name)}${got ? ', earned' : `, ${pct}%`}"><span class="bi">${ic}</span><span class="bn">${esc(name)}</span>${got ? '' : `<span class="bp"><i style="width:${pct}%"></i></span>`}</button>`; }).join('')}</div>${UI.msAll ? '' : `<button class="linkbtn" data-act="msAll" style="align-self:center">Show all ${MILESTONES.length}</button>`}</section>`;
 }
+A.msAll = () => { UI.msAll = true; render(); };
 A.badgeInfo = d => {
   const x = MILESTONES.find(q => q[0] === d.id); if (!x) return; const [id, ic, name, desc, f] = x, got = (S().badges || {})[id], [v, t] = f(msStats());
   toast(got ? `${ic} ${name}: earned ${fmtDate(got)}` : `${ic} ${desc} (${trim(Math.min(v, t), 1)} / ${trim(t, 1)})`);

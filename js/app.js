@@ -1,10 +1,11 @@
 'use strict';
 /* Boot: tab bar, file inputs, capabilities, keep the view across app updates. */
 
-const TABS = [['home', 'Home'], ['train', 'Train'], ['food', 'Food'], ['lifts', 'Lifts'], ['body', 'Body']];
+const TABS = [['home', 'Today'], ['train', 'Train'], ['food', 'Food'], ['progress', 'Progress'], ['you', 'You']];
 $('#tabs').innerHTML = TABS.map(([k, l]) => `<button class="tab" data-act="tab" data-tab="${k}" aria-label="${l}">${ICON[k]}<span>${l}</span></button>`).join('');
 A.tab = (d, el) => {
   if (el) { el.classList.remove('bounce'); void el.offsetWidth; el.classList.add('bounce'); }
+  if (d.tab === 'progress') { if (tabOf(UI.tab) === 'progress') { UI.liftKey = null; $('#view').scrollTo({ top: 0, behavior: 'smooth' }); render(); return; } UI.tab = UI.progLast === 'athlete' ? 'athlete' : ['weight', 'photos', 'measure'].includes(UI.progLast) ? 'body' : 'lifts'; $('#view').scrollTop = 0; render(); return; }
   if (UI.tab === d.tab) { // tapping the current tab goes back to its top level
     if (d.tab === 'lifts') UI.liftKey = null;
     $('#view').scrollTo({ top: 0, behavior: 'smooth' });
