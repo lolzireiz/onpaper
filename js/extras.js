@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '7.4';
+const APP_VERSION = '7.5';
 const CHANGELOG = [
+  ['7.5', ['The version number now sits quietly at the bottom of every screen.']],
   ['7.4', ['😴 Naps: log as many as you like from Today (under Readiness) or your check-in, or start a nap timer and tap “I’m up” when you wake.', '📈 Naps lift today’s readiness realistically. Short naps help the most per minute, a ~90-min full cycle helps most overall, a nap can make up at most ~60% of a short night, and the lift fades 6–10 hours later.', 'The nap screen shows your readiness before → after while you set it up.']],
   ['7.3', ['👈 Swipe left on a food to delete it, like any iPhone list. Swipe a little to show Delete, or all the way to delete straight away.', '🗑️ In Add food → Your foods, deleting removes it from your list and usuals. Your past logs stay, and it comes back if you ever log it again.', '🍽️ Swipe left on anything in the day\'s food to remove it, or hold a usual and pick Delete from your foods.']],
   ['7.2', ['🍽️ Food tab rebuilt and cleaned up.', '⭐ Your usuals: anything you eat on 2+ days shows up as a one-tap tile, same amount as last time. Hold a tile to change the amount, pin it or hide it.', '📌 Pin your daily staples (shakes, snacks) and add them all with one tap.', '➕ One Add food button: search everything you\'ve ever logged, or scan, enter, build a meal or copy yesterday. It stays open so you can add several things in a row.', '🕐 The day\'s food is grouped into morning, afternoon, evening and late night.', '🔥 Calories burned now sits inside the summary card.']],

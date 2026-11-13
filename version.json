@@ -1,8 +1,6 @@
 {
- "version": "7.4",
+ "version": "7.5",
  "notes": [
-  "\ud83d\ude34 Naps: log as many as you like from Today (under Readiness) or your check-in, or start a nap timer and tap \u201cI\u2019m up\u201d when you wake.",
-  "\ud83d\udcc8 Naps lift today\u2019s readiness realistically. Short naps help the most per minute, a ~90-min full cycle helps most overall, a nap can make up at most ~60% of a short night, and the lift fades 6\u201310 hours later.",
-  "The nap screen shows your readiness before \u2192 after while you set it up."
+  "The version number now sits quietly at the bottom of every screen."
  ]
 }
