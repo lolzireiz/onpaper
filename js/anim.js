@@ -147,14 +147,14 @@ const ARCH = {
 };
 const BAR = [{ t: 'bar' }], DB = [{ t: 'db' }], NONE = [];
 const EX_ANIM = {
-  'Bench Press': ['bench'], 'Incline Bench Press': ['incline'], 'Dumbbell Bench Press': ['bench', { props: DB }], 'Incline Dumbbell Press': ['incline', { props: DB }], 'Machine Chest Press': ['mpress'], 'Smith Incline Press': ['incline'],
+  'Bench Press': ['bench'], 'Incline Bench Press': ['incline'], 'Dumbbell Bench Press': ['bench', { props: DB }], 'Incline Dumbbell Press': ['incline', { props: DB }], 'Machine Chest Press': ['mpress'], 'Smith Incline Press': ['incline'], 'Smith Bench Press': ['bench'], 'Low-to-High Cable Fly': ['cfly'],
   'Pec Deck Fly': ['pecdeck'], 'Cable Fly': ['cfly'], 'Dips': ['dips'], 'Push-ups': ['pushup'], 'Close-Grip Bench Press': ['bench', { x: 0.13 }],
   'Deadlift': ['hinge', { dead: 1 }], 'Romanian Deadlift': ['hinge'], 'Dumbbell RDL': ['hinge', { props: DB }], 'Kettlebell Swing': ['swing'], 'Back Extension': ['backext'], 'Single-Leg RDL': ['slrdl'],
   'Pull-ups': ['pullup'], 'Chin-ups': ['pullup', { x: 0.17 }], 'Hanging Leg Raise': ['hlr'], 'Lat Pulldown': ['pulldown'], 'Straight-Arm Pulldown': ['sapd'], 'Seated Cable Row': ['srow'],
   'Barbell Row': ['brow'], 'Dumbbell Row': ['brow', { props: DB }], 'T-Bar Row': ['brow', { x: 0.12 }], 'Chest-Supported Row': ['brow', { props: DB }], 'Face Pull': ['facepull'], 'Rear Delt Fly': ['rdf'],
   'Overhead Press': ['ohp'], 'Dumbbell Shoulder Press': ['ohp', { seat: 1, props: DB }], 'Machine Shoulder Press': ['ohp', { seat: 1, props: [{ t: 'grips' }] }], 'Lateral Raise': ['latraise'], 'Cable Lateral Raise': ['latraise'], 'Dumbbell Shrug': ['shrug'],
   'Barbell Curl': ['curl', { props: BAR }], 'EZ-Bar Curl': ['curl', { props: [{ t: 'bar', short: 1 }] }], 'Dumbbell Curl': ['curl'], 'Hammer Curl': ['curl'], 'Preacher Curl': ['curl', { props: [{ t: 'bar', short: 1 }] }], 'Cable Curl': ['curl', { props: [{ t: 'bar', short: 1 }, { t: 'cable', a: [0, 0.08, 0.7] }] }], 'Incline Dumbbell Curl': ['curl'],
-  'Triceps Pushdown': ['pushdown'], 'Overhead Cable Extension': ['ohext', { props: [{ t: 'cable', a: [0, 0.3, -0.9] }] }], 'Skull Crushers': ['skull'], 'Dumbbell Overhead Extension': ['ohext'],
+  'Triceps Pushdown': ['pushdown'], 'Rope Pushdown': ['pushdown'], 'Overhead Rope Extension': ['ohext', { props: [{ t: 'cable', a: [0, 0.3, -0.9] }] }], 'Overhead Cable Extension': ['ohext', { props: [{ t: 'cable', a: [0, 0.3, -0.9] }] }], 'Skull Crushers': ['skull'], 'Dumbbell Overhead Extension': ['ohext'],
   'Squat': ['squat'], 'Smith Squat': ['squat'], 'Front Squat': ['squat', { hl: [0.21, -0.02, 0.13], lean: 22 }], 'Goblet Squat': ['squat', { hl: [0.07, -0.14, 0.2], lean: 22, props: [{ t: 'kb' }] }], 'Hack Squat': ['squat', { hl: [0.2, 0, 0.1], lean: 14, props: NONE }],
   'Leg Press': ['legpress'], 'Leg Extension': ['legext'], 'Bulgarian Split Squat': ['lunge', { back: 1 }], 'Walking Lunge': ['lunge'], 'Jump Squat': ['jumpsquat'], 'Lateral Bounds': ['bounds'], 'Lateral Lunge': ['latlunge'], 'Step-up': ['stepup'],
   'Lying Leg Curl': ['llcurl'], 'Seated Leg Curl': ['slcurl'], 'Hip Thrust': ['thrust'], 'Machine Hip Thrust': ['thrust'], 'Cable Kickback': ['kickback'], 'Hip Abduction': ['abduct'],

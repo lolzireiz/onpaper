@@ -67,7 +67,7 @@ const MAIN_GOALS = [
 /* Which goals each exercise helps, strongest first */
 const EX_GOALS = {
   'Bench Press': ['chest', 'strength', 'power', 'everyday'], 'Incline Bench Press': ['chest', 'shoulders', 'strength', 'power'], 'Dumbbell Bench Press': ['chest', 'strength', 'everyday'],
-  'Incline Dumbbell Press': ['chest', 'shoulders', 'strength'], 'Machine Chest Press': ['chest', 'strength'], 'Smith Incline Press': ['chest', 'shoulders'], 'Pec Deck Fly': ['chest'], 'Cable Fly': ['chest'],
+  'Incline Dumbbell Press': ['chest', 'shoulders', 'strength'], 'Machine Chest Press': ['chest', 'strength'], 'Smith Incline Press': ['chest', 'shoulders'], 'Smith Bench Press': ['chest', 'strength'], 'Low-to-High Cable Fly': ['chest'], 'Pec Deck Fly': ['chest'], 'Cable Fly': ['chest'],
   'Dips': ['relative', 'chest', 'arms', 'strength'], 'Push-ups': ['relative', 'chest', 'core', 'everyday'],
   'Deadlift': ['strength', 'everyday', 'grip', 'jump', 'backhealth', 'glutes'], 'Pull-ups': ['relative', 'vback', 'grip', 'arms'], 'Chin-ups': ['relative', 'arms', 'vback', 'grip'],
   'Barbell Row': ['vback', 'strength', 'posture', 'grip'], 'Lat Pulldown': ['vback', 'relative', 'posture'], 'Seated Cable Row': ['vback', 'posture', 'backhealth'], 'Dumbbell Row': ['vback', 'posture', 'grip'],
@@ -76,7 +76,7 @@ const EX_GOALS = {
   'Lateral Raise': ['shoulders'], 'Cable Lateral Raise': ['shoulders'], 'Rear Delt Fly': ['posture', 'shoulders', 'injury'], 'Face Pull': ['posture', 'injury', 'shoulders', 'backhealth'],
   'Dumbbell Shrug': ['vback', 'grip', 'everyday', 'injury'],
   'Barbell Curl': ['arms', 'grip'], 'EZ-Bar Curl': ['arms'], 'Dumbbell Curl': ['arms'], 'Hammer Curl': ['arms', 'grip', 'everyday'], 'Preacher Curl': ['arms'], 'Cable Curl': ['arms'], 'Incline Dumbbell Curl': ['arms'],
-  'Triceps Pushdown': ['arms'], 'Overhead Cable Extension': ['arms'], 'Skull Crushers': ['arms'], 'Close-Grip Bench Press': ['arms', 'chest', 'strength', 'power'], 'Dumbbell Overhead Extension': ['arms'],
+  'Triceps Pushdown': ['arms'], 'Overhead Cable Extension': ['arms'], 'Rope Pushdown': ['arms'], 'Overhead Rope Extension': ['arms'], 'Skull Crushers': ['arms'], 'Close-Grip Bench Press': ['arms', 'chest', 'strength', 'power'], 'Dumbbell Overhead Extension': ['arms'],
   'Squat': ['legs', 'strength', 'jump', 'sprint', 'everyday', 'longevity'], 'Front Squat': ['legs', 'core', 'jump', 'posture', 'mobility'], 'Leg Press': ['legs', 'jump', 'strength'], 'Hack Squat': ['legs', 'jump'],
   'Leg Extension': ['legs', 'injury'], 'Smith Squat': ['legs', 'strength'], 'Bulgarian Split Squat': ['legs', 'balance', 'jump', 'sprint', 'injury', 'glutes'], 'Goblet Squat': ['legs', 'mobility', 'core', 'longevity'],
   'Walking Lunge': ['legs', 'balance', 'glutes', 'sprint', 'everyday'], 'Romanian Deadlift': ['glutes', 'sprint', 'jump', 'backhealth', 'injury'], 'Dumbbell RDL': ['glutes', 'backhealth', 'sprint', 'injury'],

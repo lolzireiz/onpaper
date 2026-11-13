@@ -12,8 +12,8 @@ const EQ_LABEL = Object.fromEntries(EQUIP.flatMap(g => g[1]));
 const BASIC_EQ = ['barbell', 'rack', 'bench', 'incline', 'db', 'pullup'];
 const LIBRARY = [
   ['Bench Press', 'Chest', ['barbell', 'bench']], ['Incline Bench Press', 'Chest', ['barbell', 'incline']], ['Dumbbell Bench Press', 'Chest', ['db', 'bench']],
-  ['Incline Dumbbell Press', 'Chest', ['db', 'incline']], ['Machine Chest Press', 'Chest', ['chestpress']], ['Smith Incline Press', 'Chest', ['smith', 'incline']],
-  ['Pec Deck Fly', 'Chest', ['pecdeck']], ['Cable Fly', 'Chest', ['cable']], ['Dips', 'Chest', ['dip']], ['Push-ups', 'Chest', []],
+  ['Incline Dumbbell Press', 'Chest', ['db', 'incline']], ['Machine Chest Press', 'Chest', ['chestpress']], ['Smith Incline Press', 'Chest', ['smith', 'incline']], ['Smith Bench Press', 'Chest', ['smith', 'bench']],
+  ['Pec Deck Fly', 'Chest', ['pecdeck']], ['Cable Fly', 'Chest', ['cable']], ['Low-to-High Cable Fly', 'Chest', ['cable']], ['Dips', 'Chest', ['dip']], ['Push-ups', 'Chest', []],
   ['Deadlift', 'Back', ['barbell']], ['Pull-ups', 'Back', ['pullup']], ['Chin-ups', 'Back', ['pullup']], ['Barbell Row', 'Back', ['barbell']], ['Lat Pulldown', 'Back', ['lat']],
   ['Seated Cable Row', 'Back', ['row']], ['Dumbbell Row', 'Back', ['db', 'bench']], ['T-Bar Row', 'Back', ['tbar']], ['Chest-Supported Row', 'Back', ['db', 'incline']],
   ['Straight-Arm Pulldown', 'Back', ['cable']], ['Back Extension', 'Back', ['ghd']],
@@ -21,7 +21,7 @@ const LIBRARY = [
   ['Lateral Raise', 'Shoulders', ['db']], ['Cable Lateral Raise', 'Shoulders', ['cable']], ['Rear Delt Fly', 'Shoulders', ['pecdeck']], ['Face Pull', 'Shoulders', ['cable']], ['Dumbbell Shrug', 'Shoulders', ['db']],
   ['Barbell Curl', 'Biceps', ['barbell']], ['EZ-Bar Curl', 'Biceps', ['ez']], ['Dumbbell Curl', 'Biceps', ['db']], ['Hammer Curl', 'Biceps', ['db']],
   ['Preacher Curl', 'Biceps', ['preacher', 'ez']], ['Cable Curl', 'Biceps', ['cable']], ['Incline Dumbbell Curl', 'Biceps', ['db', 'incline']],
-  ['Triceps Pushdown', 'Triceps', ['cable']], ['Overhead Cable Extension', 'Triceps', ['cable']], ['Skull Crushers', 'Triceps', ['ez', 'bench']],
+  ['Triceps Pushdown', 'Triceps', ['cable']], ['Overhead Cable Extension', 'Triceps', ['cable']], ['Rope Pushdown', 'Triceps', ['cable']], ['Overhead Rope Extension', 'Triceps', ['cable']], ['Skull Crushers', 'Triceps', ['ez', 'bench']],
   ['Close-Grip Bench Press', 'Triceps', ['barbell', 'bench']], ['Dumbbell Overhead Extension', 'Triceps', ['db']],
   ['Squat', 'Quads', ['barbell', 'rack']], ['Front Squat', 'Quads', ['barbell', 'rack']], ['Leg Press', 'Quads', ['legpress']], ['Hack Squat', 'Quads', ['hack']],
   ['Leg Extension', 'Quads', ['legext']], ['Smith Squat', 'Quads', ['smith']], ['Bulgarian Split Squat', 'Quads', ['db', 'bench']], ['Goblet Squat', 'Quads', ['db']], ['Walking Lunge', 'Quads', ['db']],
@@ -166,7 +166,7 @@ function sessionHTML(w) {
   h += `<button class="btn ghost block" data-act="addExercise">${ICON.plus} Add exercise</button><button class="linkbtn danger center" data-act="discardWorkout">Discard workout</button>`;
   return h;
 }
-const COMPOUND = new Set(['Bench Press', 'Incline Bench Press', 'Dumbbell Bench Press', 'Incline Dumbbell Press', 'Machine Chest Press', 'Smith Incline Press', 'Dips', 'Deadlift', 'Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Seated Cable Row', 'Dumbbell Row', 'T-Bar Row', 'Chest-Supported Row', 'Overhead Press', 'Dumbbell Shoulder Press', 'Machine Shoulder Press', 'Close-Grip Bench Press', 'Squat', 'Front Squat', 'Leg Press', 'Hack Squat', 'Smith Squat', 'Bulgarian Split Squat', 'Goblet Squat', 'Walking Lunge', 'Romanian Deadlift', 'Dumbbell RDL', 'Hip Thrust', 'Machine Hip Thrust'].map(keyOf));
+const COMPOUND = new Set(['Bench Press', 'Incline Bench Press', 'Dumbbell Bench Press', 'Incline Dumbbell Press', 'Machine Chest Press', 'Smith Incline Press', 'Smith Bench Press', 'Dips', 'Deadlift', 'Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Seated Cable Row', 'Dumbbell Row', 'T-Bar Row', 'Chest-Supported Row', 'Overhead Press', 'Dumbbell Shoulder Press', 'Machine Shoulder Press', 'Close-Grip Bench Press', 'Squat', 'Front Squat', 'Leg Press', 'Hack Squat', 'Smith Squat', 'Bulgarian Split Squat', 'Goblet Squat', 'Walking Lunge', 'Romanian Deadlift', 'Dumbbell RDL', 'Hip Thrust', 'Machine Hip Thrust'].map(keyOf));
 const isCompound = n => COMPOUND.has(keyOf(n));
 const defaultTarget = n => ({ sets: S().defaultSets || 3, reps: isCompound(n) ? '6-8' : '8-12' });
 const tgtFor = n => ({ ...defaultTarget(n), ...((S().exTargets || {})[keyOf(n)] || {}) });
@@ -406,6 +406,7 @@ function drawSplit() {
   sheetBody(`<div class="field"><span class="lbl">Start from a template</span><div class="chips"><button class="chip" data-act="buildProgram" style="box-shadow:inset 0 0 0 1px rgba(255,120,110,.5)">✨ Built for me</button>${Object.entries(TEMPLATES).map(([k, t]) => `<button class="chip" data-act="splitTemplate" data-t="${k}">${t.label}</button>`).join('')}</div></div>
     ${days.length ? `<div>${days.map((d, i) => `<div class="row"><span class="n" style="width:26px;height:26px;border-radius:8px;background:var(--s2);display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--tx2)">${i + 1}</span><button class="grow" data-act="splitDay" data-i="${i}" style="text-align:left"><b>${esc(d.name)}</b><div class="faint small">${plural((d.exercises || []).length, 'exercise')}</div></button><div class="reorder"><button class="iconbtn sm" data-act="splitMove" data-i="${i}" data-d="-1" aria-label="Move ${esc(d.name)} up" ${i === 0 ? 'disabled style="opacity:.3"' : ''}>${ICON.up}</button><button class="iconbtn sm" data-act="splitMove" data-i="${i}" data-d="1" aria-label="Move ${esc(d.name)} down" ${i === days.length - 1 ? 'disabled style="opacity:.3"' : ''}>${ICON.down}</button><button class="iconbtn sm" data-act="splitDel" data-i="${i}" aria-label="Delete ${esc(d.name)}">${ICON.x}</button></div></div>`).join('')}</div>` : '<p class="muted small">No days yet. Pick a template or add a day.</p>'}
     <button class="btn ghost block" data-act="splitAdd">${ICON.plus} Add a day</button>
+    <div class="field"><span class="lbl">Or add a ready-made day</span><div class="chips">${DAY_PRESETS.map((p, i) => `<button class="chip" data-act="splitPreset" data-i="${i}">${ICON.plus.replace('<svg', '<svg width="14" height="14"')} ${esc(p.name)}</button>`).join('')}</div></div>
     <button class="btn block" data-act="splitSave">Save split</button>`);
 }
 A.splitTemplate = async d => {
@@ -416,6 +417,16 @@ A.splitMove = d => { const i = +d.i, j = i + (+d.d), a = Sheet.split; if (j < 0 
 A.splitDel = async d => { const day = Sheet.split[+d.i]; if (await ask(`Delete ${day.name} from your split?`, { ok: 'Delete', danger: true })) { Sheet.split.splice(+d.i, 1); drawSplit(); } };
 A.splitAdd = () => { Sheet.split.push({ id: newId(), name: `Day ${Sheet.split.length + 1}`, groups: [], exercises: [] }); drawDay(Sheet.split.length - 1); };
 A.splitDay = d => drawDay(+d.i);
+/* Ready-made days: [exercise, sets, reps]. Adding one also sets those sets × reps targets. */
+const DAY_PRESETS = [
+  { name: 'Chest & Triceps', groups: ['Chest', 'Triceps', 'Shoulders'], ex: [['Smith Incline Press', 3, '6-10'], ['Smith Bench Press', 3, '6-10'], ['Dips', 3, '8-12'], ['Pec Deck Fly', 2, '10-15'], ['Cable Fly', 2, '12-15'], ['Overhead Rope Extension', 3, '10-15'], ['Rope Pushdown', 3, '10-15'], ['Cable Lateral Raise', 3, '12-20']] },
+];
+A.splitPreset = d => {
+  const p = DAY_PRESETS[+d.i]; if (!p) return;
+  Sheet.split.push({ id: newId(), name: p.name, groups: [...p.groups], exercises: p.ex.map(x => x[0]) });
+  for (const [n, sets, reps] of p.ex) Sheet.exT[keyOf(n)] = { sets, reps };
+  drawDay(Sheet.split.length - 1); toast(`Added ${p.name}. Tap Done, then Save split.`);
+};
 A.splitSave = () => { if (Sheet.di != null && $('#dn')) keepDayName(); saveSettings({ split: { days: Sheet.split }, exTargets: Sheet.exT }); closeSheet(); toast('Split saved'); };
 function drawDay(i) {
   Sheet.di = i; const d = Sheet.split[i]; sheetTitle(d.name || 'Day');
