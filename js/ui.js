@@ -38,7 +38,7 @@ overviewHTML = function () {
   if (sub === 'history') return h + weekCardHTML() + heatmapCardHTML() + recentWorkoutsHTML();
   h += deloadBannerHTML();
   if (w) h += `<section class="card hero-card"><div class="card-h"><div><div class="eyebrow">In progress</div><h2 class="lift-h" style="font-size:30px">${esc(w.dayName || 'Workout')}</h2><p class="muted small">${esc(w.gymName || 'No gym')} · started ${fmtClock(w.startTs)} · ${plural((w.sets || []).length, 'set')}</p></div><button class="btn" data-act="resumeWorkout">Resume</button></div></section>`;
-  else { h += smartCardHTML(); h += `<details class="card more-start"${smartPlan().ex.length ? '' : ' open'}><summary><b>Pick a different workout</b><span class="faint small">Any day of your split, or an empty workout</span></summary>${startCardHTML().replace('<button class="btn block" data-act="startWorkout">', '<button class="btn ghost block" data-act="dayNew">' + ICON.plus + ' Add a workout day</button><button class="btn ghost block" data-act="pastStart">🗓️ Log a past workout</button><button class="btn block" data-act="startWorkout">').replace(/^<section class="card">/, '<div class="inner-start">').replace(/<\/section>$/, '</div>')}</details>`; }
+  else { h += smartCardHTML(); h += `<details class="card more-start"${smartPlan().ex.length && !UI.moreStart ? '' : ' open'}><summary><b>Pick a different workout</b><span class="faint small">Any day of your split, or an empty workout</span></summary>${startCardHTML().replace('<button class="btn block" data-act="startWorkout">', '<button class="btn ghost block" data-act="dayNew">' + ICON.plus + ' Add a workout day</button><button class="btn ghost block" data-act="pastStart">🗓️ Log a past workout</button><button class="btn block" data-act="startWorkout">').replace(/^<section class="card">/, '<div class="inner-start">').replace(/<\/section>$/, '</div>')}</details>`; }
   const nx = dunkNext(); if (nx) h += dunkProgramHTML(true);
   return h + actsCardHTML();
 };
@@ -117,3 +117,33 @@ A.pastGo = () => {
   const cd = A.calDay;
   A.calDay = d => { cd(d); if (d.date < todayStr() && !$('#sheet').hidden && !$('#sheet [data-act=pastStart]')) { const b = $('#sheet .sheet-b'); if (b) b.insertAdjacentHTML('beforeend', `<button class="btn block${b.querySelector('.row') ? ' ghost' : ''}" data-act="pastStart" data-date="${d.date}">🏋️ Log a workout for this day</button>`); } };
 }
+
+/* ---------- "I trained, but no details": mark a day with what you worked ---------- */
+A.markDay = d => {
+  const date = d.date || todayStr(), days = splitDays(); Sheet.mark = { date, groups: new Set(), dayId: null, dayName: '' };
+  const body = `<p class="muted small" style="margin:0">Don't remember the exercises or weights? Just say what you trained on <b>${fmtDay(date)}</b>. It counts as a gym day, and recovery and Smart pick will know those muscles are worked.</p>
+    ${days.length ? `<div class="field"><span class="lbl">Which day of your split?</span><div class="chips">${days.map(x => `<button class="chip" data-act="markSplit" data-id="${x.id}" aria-pressed="false">${esc(x.name)}</button>`).join('')}</div></div>` : ''}
+    <div class="field"><span class="lbl">Muscles you trained</span><div class="chips" id="mark-g">${GROUPS.map(g => `<button class="chip" data-act="markGroup" data-g="${g}" aria-pressed="false">${g}</button>`).join('')}</div></div>
+    <button class="btn block" data-act="markSave">Save</button>`;
+  if ($('#sheet').hidden) openSheet('Mark as trained', body); else { sheetTitle('Mark as trained'); sheetBody(body); }
+};
+A.markSplit = (d, el) => {
+  const day = splitDays().find(x => x.id === d.id); if (!day) return; const on = el.getAttribute('aria-pressed') !== 'true';
+  $$('#sheet [data-act=markSplit]').forEach(b => b.setAttribute('aria-pressed', String(b === el && on)));
+  Sheet.mark.dayId = on ? day.id : null; Sheet.mark.dayName = on ? day.name : '';
+  const gs = (day.groups || []).length ? day.groups : [...new Set((day.exercises || []).map(n => library().get(keyOf(n))?.group).filter(Boolean))];
+  Sheet.mark.groups = new Set(on ? gs : []); $$('#mark-g .chip').forEach(b => b.setAttribute('aria-pressed', String(Sheet.mark.groups.has(b.dataset.g))));
+};
+A.markGroup = (d, el) => { const g = Sheet.mark.groups; if (g.has(d.g)) g.delete(d.g); else g.add(d.g); el.setAttribute('aria-pressed', String(g.has(d.g))); };
+A.markSave = () => {
+  const m = Sheet.mark, groups = [...m.groups], t = parseDate(m.date).getTime() + 17 * 36e5, name = m.dayName || (groups.length ? groups.slice(0, 3).join(' & ') : 'Gym day');
+  put('workouts', newId(), { date: m.date, marked: true, sets: [], groups, dayId: m.dayId, dayName: name, startTs: t, endTs: t + 36e5, ts: Date.now() });
+  closeAllSheets(); toast(`${fmtDate(m.date)}: ${name} marked ✓`);
+};
+{
+  const ps = A.pastStart;
+  A.pastStart = d => { ps(d); const b = $('#sheet .sheet-b'); if (b && $('#past-d')) { b.insertAdjacentHTML('beforeend', `<button class="linkbtn center" data-act="markFromPast">Don't remember the details? Just mark it as trained</button>`); } };
+  A.markFromPast = () => A.markDay({ date: $('#past-d')?.value || addDays(todayStr(), -1) });
+}
+
+document.addEventListener('toggle', e => { if (e.target.classList && e.target.classList.contains('more-start')) UI.moreStart = e.target.open; }, true);

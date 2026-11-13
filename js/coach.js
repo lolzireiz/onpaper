@@ -86,6 +86,7 @@ function muscleSets(days = 7) {
     for (const id of m.p) heat[id] = (heat[id] || 0) + 1;
     for (const id of m.s) if (!m.p.has(id)) heat[id] = (heat[id] || 0) + 0.5;
   }
+  for (const w of Store.list('workouts')) if (w.date >= since && w.marked) for (const g of w.groups || []) for (const id of (typeof GROUP_IDS !== 'undefined' && GROUP_IDS[g]) || []) heat[id] = (heat[id] || 0) + 8;
   return heat;
 }
 function heatmapCardHTML() {

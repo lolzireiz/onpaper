@@ -32,15 +32,17 @@ function muscleRecovery() {
       const t = w.endTs || w.startTs || parseDate(w.date).getTime() + 18 * 36e5, hrs = (now - t) / 36e5; if (hrs > 120 || hrs < -1) continue;
       const k = Math.exp(-Math.max(0, hrs) / 30);
       for (const s of w.sets || []) { if (s.warm || s.hit === false) continue; const m = musclesFor(s.ex); if (!m) continue; for (const id of m.p) fat[id] = (fat[id] || 0) + k; for (const id of m.s) if (!m.p.has(id)) fat[id] = (fat[id] || 0) + 0.5 * k; }
+      if (w.marked) for (const g of w.groups || []) for (const id of GROUP_IDS[g] || []) fat[id] = (fat[id] || 0) + MARK_SETS * k;
     }
     const out = {}; for (const id of Object.keys(MUSCLE_NAMES)) out[id] = Math.round(clamp(100 - (fat[id] || 0) * 11, 0, 100));
     return out;
   });
 }
 const groupRecovery = g => { const r = muscleRecovery(), ids = GROUP_IDS[g] || []; return ids.length ? Math.round(ids.reduce((a, i) => a + r[i], 0) / ids.length) : 100; };
+const MARK_SETS = 8;   // a day marked as trained (no details) counts as about this many hard sets per muscle group
 function trainingLoad(days) { // hard sets (+ sport minutes / 10) in the last `days` days
   const since = addDays(todayStr(), -(days - 1)); let n = 0;
-  for (const w of Store.list('workouts')) if (w.date >= since) for (const s of w.sets || []) if (!s.warm && s.hit !== false) n++;
+  for (const w of Store.list('workouts')) if (w.date >= since) { for (const s of w.sets || []) if (!s.warm && s.hit !== false) n++; if (w.marked) n += (w.groups || []).length ? w.groups.length * MARK_SETS : 15; }
   for (const a of Store.list('acts')) if (a.date >= since) n += (a.duration || 1800) / 600;
   return n;
 }
