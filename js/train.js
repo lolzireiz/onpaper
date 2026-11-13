@@ -159,9 +159,11 @@ function recentWorkoutsHTML() {
 
 /* ---------- session ---------- */
 function sessionNames(w) { const names = [...(w.plan || [])]; for (const s of w.sets || []) if (!names.some(n => keyOf(n) === keyOf(s.ex))) names.push(s.ex); return names; }
+const fmtMins = m => m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m} min`;
 function sessionHTML(w) {
   const mins = Math.max(0, Math.round((Date.now() - w.startTs) / 6e4));
-  let h = `<p class="muted small">${esc(w.gymName || 'No gym')} · ${w.past ? "" : mins + " min · "}${plural((w.sets || []).length, 'set')}</p>`;
+  const names = sessionNames(w), planned = names.reduce((a, n) => a + exTarget(w, n).sets, 0), work = (w.sets || []).filter(x => !x.warm && x.hit !== false), vol = work.reduce((a, x) => a + (+x.w || 0) * x.r, 0), pct = planned ? Math.min(100, work.length / planned * 100) : 0;
+  let h = `<div class="sess-strip"><div><span class="k">${w.past ? 'Date' : 'Time'}</span><b>${w.past ? fmtDate(w.date, { rel: false }) : `<span id="sess-t">${fmtMins(mins)}</span>`}</b></div><div><span class="k">Volume</span><b>${fmtN(U.w(vol))}<small>${U.wu}</small></b></div><div><span class="k">Sets</span><b>${work.length}<small>/${planned}</small></b></div><i class="sess-bar" style="--p:${pct}%"></i></div>${w.gymName ? `<p class="faint small" style="margin:-6px 2px 0">${esc(w.gymName)}</p>` : ''}`;
   for (const n of sessionNames(w)) h += exBlockHTML(w, n);
   h += `<button class="btn ghost block" data-act="addExercise">${ICON.plus} Add exercise</button><button class="linkbtn danger center" data-act="discardWorkout">Discard workout</button>`;
   return h;

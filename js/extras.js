@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '6.2';
+const APP_VERSION = '6.3';
 const CHANGELOG = [
+  ['6.3', ['⏱️ Workouts show a live strip at the top: time, volume and sets done out of planned, with a progress bar.', '📏 Dunk simulator works in centimetres for metric users.']],
   ['6.2', ['☀️ Light theme fixed everywhere: pop-up sheets, selected chips, badges and hints are all readable now.', '📈 Each lift in Progress shows a mini trend line of your estimated 1RM.', '🦋 Pec deck animation now uses real swinging machine arms.']],
   ['6.1', ['🍽️ Food tab shows calories and protein as rings, with carbs and fat underneath.', '🧹 Long lists (weigh-ins, lift history, milestones) are trimmed with a “Show all”.', '⚡ Faster Today screen.', '🔔 Pop-up messages no longer cover the Finish button or wrap into tall boxes.', '📏 New users can enter their height during setup.']],
   ['6.0', ['🎬 Exercise animations polished: palms-up grip on curls, a real dip station and pull-up rig, leg press frame, solid plyo box, back-extension foot pads, low-to-high cable fly, single dumbbell for overhead extensions, ropes on rope exercises, decline sit-ups hooked in properly, and more.']],

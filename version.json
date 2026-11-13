@@ -1,8 +1,7 @@
 {
- "version": "6.2",
+ "version": "6.3",
  "notes": [
-  "\u2600\ufe0f Light theme fixed everywhere: pop-up sheets, selected chips, badges and hints are all readable now.",
-  "\ud83d\udcc8 Each lift in Progress shows a mini trend line of your estimated 1RM.",
-  "\ud83e\udd8b Pec deck animation now uses real swinging machine arms."
+  "\u23f1\ufe0f Workouts show a live strip at the top: time, volume and sets done out of planned, with a progress bar.",
+  "\ud83d\udccf Dunk simulator works in centimetres for metric users."
  ]
 }

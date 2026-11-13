@@ -74,34 +74,36 @@ function simDef(sex, o) {
   return def;
 }
 
+const dLen = i => U.metric ? `${Math.round(i * 2.54)} cm` : ftin(i), dIn = i => U.metric ? `${Math.round(i * 2.54)} cm` : `${trim(i, 1)}″`;
 function dunkSimHTML() {
   const s = S(), h = userHeight(), rim = s.dunkGoal || 120, bv = bestVert(), v = UI.simVert ?? (bv || 24), reach = userReach();
   const touch = reach + v, needDunk = rim + 6 - reach, needTouch = rim - reach;
-  const st = touch >= rim + 6 ? ['🔥 Dunk!', touch - rim - 6 < 0.25 ? 'Right at the dunk line' : `You clear the dunk line by ${trim(touch - rim - 6, 1)}″`, 'var(--ok)'] : touch >= rim ? ['✋ Rim touch', `${trim(rim + 6 - touch, 1)}″ more to dunk`, '#f5b915'] : ['📏 Short', `${trim(rim - touch, 1)}″ below the rim · ${trim(rim + 6 - touch, 1)}″ from a dunk`, 'var(--miss)'];
-  return `<section class="card dsim"><div class="card-h"><div><div class="eyebrow">🏀 Dunk simulator</div><h2 class="sec-t" style="margin:0">You at ${ftin(h)} vs a ${ftin(rim)} rim</h2></div><button class="linkbtn" data-act="simSetup">Edit</button></div>
-    <div class="dsim-stage"><canvas class="dsim-cv" role="img" aria-label="A figure your height jumping at the rim"></canvas><div class="dsim-badge" style="--c:${st[2]}"><b>${st[0]}</b><span>${st[1]}</span></div><div class="dsim-leg"><span><i style="background:#3392f5"></i>Your peak ${ftin(Math.round(touch * 2) / 2)}</span><span><i style="background:#3ccf82"></i>Dunk line ${ftin(rim + 6)}</span></div></div>
-    <div class="field"><div class="card-h"><span class="lbl">Vertical jump</span><b class="rnum" id="sim-v">${trim(v, 1)}″</b></div><input type="range" class="sim-range" min="0" max="50" step="0.5" value="${v}" aria-label="Vertical jump in inches">
-      <div class="chips">${bv ? `<button class="chip" data-act="simVert" data-v="${bv}" aria-pressed="${v === bv}">My best ${trim(bv, 1)}″</button>` : ''}<button class="chip" data-act="simVert" data-v="${Math.max(0, needTouch)}" aria-pressed="${v === Math.max(0, needTouch)}">Touch rim ${trim(Math.max(0, needTouch), 1)}″</button><button class="chip" data-act="simVert" data-v="${Math.max(0, needDunk)}" aria-pressed="${v === Math.max(0, needDunk)}">Dunk ${trim(Math.max(0, needDunk), 1)}″</button></div></div>
-    <div class="stats"><div class="stat"><span class="k">Standing reach</span><span class="v">${ftin(reach)}</span>${s.reach ? '' : '<span class="faint tiny">estimated</span>'}</div><div class="stat"><span class="k">Touch at ${trim(v, 1)}″</span><span class="v">${ftin(Math.round(touch * 2) / 2)}</span></div><div class="stat"><span class="k">Vert to dunk</span><span class="v">${trim(Math.max(0, needDunk), 1)}″</span>${bv ? `<span class="faint tiny">${needDunk - bv > 0 ? trim(needDunk - bv, 1) + '″ to go' : 'you have it'}</span>` : ''}</div></div>
+  const st = touch >= rim + 6 ? ['🔥 Dunk!', touch - rim - 6 < 0.25 ? 'Right at the dunk line' : `You clear the dunk line by ${dIn(touch - rim - 6)}`, 'var(--ok)'] : touch >= rim ? ['✋ Rim touch', `${dIn(rim + 6 - touch)} more to dunk`, '#f5b915'] : ['📏 Short', `${dIn(rim - touch)} below the rim · ${dIn(rim + 6 - touch)} from a dunk`, 'var(--miss)'];
+  return `<section class="card dsim"><div class="card-h"><div><div class="eyebrow">🏀 Dunk simulator</div><h2 class="sec-t" style="margin:0">You at ${dLen(h)} vs a ${dLen(rim)} rim</h2></div><button class="linkbtn" data-act="simSetup">Edit</button></div>
+    <div class="dsim-stage"><canvas class="dsim-cv" role="img" aria-label="A figure your height jumping at the rim"></canvas><div class="dsim-badge" style="--c:${st[2]}"><b>${st[0]}</b><span>${st[1]}</span></div><div class="dsim-leg"><span><i style="background:#3392f5"></i>Your peak ${dLen(Math.round(touch * 2) / 2)}</span><span><i style="background:#3ccf82"></i>Dunk line ${dLen(rim + 6)}</span></div></div>
+    <div class="field"><div class="card-h"><span class="lbl">Vertical jump</span><b class="rnum" id="sim-v">${dIn(v)}</b></div><input type="range" class="sim-range" min="0" max="50" step="0.5" value="${v}" aria-label="Vertical jump in inches">
+      <div class="chips">${bv ? `<button class="chip" data-act="simVert" data-v="${bv}" aria-pressed="${v === bv}">My best ${dIn(bv)}</button>` : ''}<button class="chip" data-act="simVert" data-v="${Math.max(0, needTouch)}" aria-pressed="${v === Math.max(0, needTouch)}">Touch rim ${dIn(Math.max(0, needTouch))}</button><button class="chip" data-act="simVert" data-v="${Math.max(0, needDunk)}" aria-pressed="${v === Math.max(0, needDunk)}">Dunk ${dIn(Math.max(0, needDunk))}</button></div></div>
+    <div class="stats"><div class="stat"><span class="k">Standing reach</span><span class="v">${dLen(reach)}</span>${s.reach ? '' : '<span class="faint tiny">estimated</span>'}</div><div class="stat"><span class="k">Touch at ${dIn(v)}</span><span class="v">${dLen(Math.round(touch * 2) / 2)}</span></div><div class="stat"><span class="k">Vert to dunk</span><span class="v">${dIn(Math.max(0, needDunk))}</span>${bv ? `<span class="faint tiny">${needDunk - bv > 0 ? dIn(needDunk - bv) + ' to go' : 'you have it'}</span>` : ''}</div></div>
   </section>`;
 }
 A.simVert = d => { UI.simVert = +d.v; render(); };
 document.addEventListener('input', e => {
-  const r = e.target.closest && e.target.closest('.sim-range'); if (!r) return; UI.simVert = +r.value; const l = $('#sim-v'); if (l) l.textContent = trim(UI.simVert, 1) + '″';
+  const r = e.target.closest && e.target.closest('.sim-range'); if (!r) return; UI.simVert = +r.value; const l = $('#sim-v'); if (l) l.textContent = dIn(UI.simVert);
   clearTimeout(simInput.t); simInput.t = setTimeout(() => { const y = $('#view').scrollTop; render(); $('#view').scrollTop = y; }, 180);
 });
 function simInput() {}
 A.simSetup = () => {
   const s = S(), h = userHeight(), r = s.reach || 0;
   openSheet('Dunk simulator setup', `<p class="muted small" style="margin:0">Your height sets the size of the figure. Standing reach (flat-footed, one arm straight up, fingertips) makes it exact. If you skip it, it's estimated from your height.</p>
-    <div class="field"><span class="lbl">Your height</span><div class="fields"><select id="sim-hf">${[4, 5, 6, 7].map(f => `<option value="${f}" ${Math.floor(h / 12) === f ? 'selected' : ''}>${f} ft</option>`).join('')}</select><select id="sim-hi">${[...Array(12)].map((_, i) => `<option value="${i}" ${h % 12 === i ? 'selected' : ''}>${i} in</option>`).join('')}</select></div></div>
-    <div class="field"><span class="lbl">Standing reach (optional)</span><div class="fields"><select id="sim-rf"><option value="">—</option>${[6, 7, 8, 9].map(f => `<option value="${f}" ${r && Math.floor(r / 12) === f ? 'selected' : ''}>${f} ft</option>`).join('')}</select><input id="sim-ri" inputmode="decimal" placeholder="in" value="${r ? trim(r % 12, 1) : ''}"></div></div>
-    <div class="field"><span class="lbl">Rim height</span><div class="seg">${[[96, "8′"], [108, "9′"], [114, "9′6″"], [120, "10′"]].map(([v, l]) => `<button data-act="pick" data-group="simrim" data-value="${v}" aria-pressed="${(s.dunkGoal || 120) === v}">${l}</button>`).join('')}</div></div>
+    ${U.metric ? `<div class="field"><span class="lbl">Your height (cm)</span><input id="sim-hcm" inputmode="decimal" value="${Math.round(h * 2.54)}"></div><div class="field"><span class="lbl">Standing reach in cm (optional)</span><input id="sim-rcm" inputmode="decimal" placeholder="e.g. 236" value="${r ? Math.round(r * 2.54) : ''}"></div>` : `<div class="field"><span class="lbl">Your height</span><div class="fields"><select id="sim-hf">${[4, 5, 6, 7].map(f => `<option value="${f}" ${Math.floor(h / 12) === f ? 'selected' : ''}>${f} ft</option>`).join('')}</select><select id="sim-hi">${[...Array(12)].map((_, i) => `<option value="${i}" ${h % 12 === i ? 'selected' : ''}>${i} in</option>`).join('')}</select></div></div>
+    <div class="field"><span class="lbl">Standing reach (optional)</span><div class="fields"><select id="sim-rf"><option value="">—</option>${[6, 7, 8, 9].map(f => `<option value="${f}" ${r && Math.floor(r / 12) === f ? 'selected' : ''}>${f} ft</option>`).join('')}</select><input id="sim-ri" inputmode="decimal" placeholder="in" value="${r ? trim(r % 12, 1) : ''}"></div></div>`}
+    <div class="field"><span class="lbl">Rim height</span><div class="seg">${[[96, "8′"], [108, "9′"], [114, "9′6″"], [120, "10′"]].map(([v, l]) => [v, U.metric ? (v * 0.0254).toFixed(2) + ' m' : l]).map(([v, l]) => `<button data-act="pick" data-group="simrim" data-value="${v}" aria-pressed="${(s.dunkGoal || 120) === v}">${l}</button>`).join('')}</div></div>
     <button class="btn block" data-act="simSave">Save</button>`);
 };
 A.simSave = () => {
-  const h = (+$('#sim-hf').value) * 12 + (+$('#sim-hi').value), rf = $('#sim-rf').value, ri = num($('#sim-ri').value) || 0, rim = +picked($('#sheet'), 'simrim') || S().dunkGoal || 120;
-  const patch = { heightIn: h, dunkGoal: rim }; if (rf) patch.reach = (+rf) * 12 + ri;
+  const met = !!$('#sim-hcm'), h = met ? Math.round(num($('#sim-hcm').value) / 2.54) : (+$('#sim-hf').value) * 12 + (+$('#sim-hi').value), rcm = met ? num($('#sim-rcm').value) : 0, rf = met ? (rcm ? 1 : '') : $('#sim-rf').value, ri = met ? 0 : num($('#sim-ri').value) || 0, rim = +picked($('#sheet'), 'simrim') || S().dunkGoal || 120;
+  if (!(h > 48 && h < 96)) { toast('Check your height.', { bad: true }); return; }
+  const patch = { heightIn: h, dunkGoal: rim }; if (rf) patch.reach = met ? Math.round(rcm / 2.54 * 2) / 2 : (+rf) * 12 + ri;
   if (patch.reach && (patch.reach < h || patch.reach > h * 1.5)) { toast('That reach looks off. It\'s usually about 1.3× your height.', { bad: true }); return; }
   saveSettings(patch); closeSheet(); toast('Saved');
 };
