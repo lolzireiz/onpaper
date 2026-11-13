@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '5.1';
+const APP_VERSION = '5.2';
 const CHANGELOG = [
+  ['5.2', ['🛠️ Fixed the dunk progress buttons running off the screen.']],
   ['5.1', ['➕ Add a workout day from the + at the top of Train: pick Chest & Triceps, Back & Biceps, Legs, Shoulders & Arms, Push, Pull, Upper, Lower, Full Body or a blank day.', '👆 Tap any day in your split to edit it.']],
   ['5.0', ['🧭 New layout: Today · Train · Food · Progress · You. Lifts, weight, photos, body and athlete stats now live together under Progress, and settings moved to You.', '🔍 Search everything from the magnifier at the top: exercises, foods, workouts and settings.', '🔋 Readiness score from a 10-second check-in (sleep, soreness, energy) plus your recent training load, with recovery per muscle.', '✨ Smart pick: Train suggests today\'s workout based on which muscles are recovered, and lightens it on low-readiness days.', '🧮 Plate & warm-up calculator for barbell and Smith lifts, with one-tap warm-up sets.', '🏁 New workout summary with volume vs last time, PRs, muscles worked and a shareable image.', '🏀 12-week dunk program: two jump sessions a week across Foundation, Power and Peak blocks, with vertical tests.', '🧘 Follow-along mobility routines with a timer and beeps.', '✅ Habits with streaks. Some check themselves off (sleep, protein, stretching).', '🍽️ Save meals and recipes (split into servings) and log them in one tap.', '📊 Macro trends: calories by protein, carbs and fat, plus where your calories come from.', '🎨 Themes: dark, true black or light, plus 6 accent colours (You → Appearance).']],
   ['4.2', ['💪 New exercises: Smith Bench Press, Rope Pushdown, Overhead Rope Extension and Low-to-High Cable Fly.', '📋 Ready-made Chest & Triceps day: Train → split → “Or add a ready-made day”.']],

@@ -75,7 +75,7 @@ function dunkCountdownHTML() {
     lines.push(`📈 At your recent pace (<b>+${trim(pace * 30.4, 1)}″ a month</b>${kind === 'vert' ? ' of vertical' : ''}), you'd dunk ${ftin(goal)} in about <b>${weeks} ${weeks === 1 ? 'week' : 'weeks'}</b> (around ${when.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: when.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined })}).`);
   } else if (pace != null && pace <= 0.002) lines.push(`⏸️ No progress in your recent tests. Plateaus are normal: try a deload week, more sleep, or more explosive work (jump squats, bounds).`);
   else lines.push(`📈 Log a couple of tests at least 10 days apart and you'll get a countdown to ${ftin(goal)}.`);
-  return `<div class="dunk-cd">${lines.map(l => `<p>${l}</p>`).join('')}<div class="btnrow" style="margin-top:2px"><button class="btn ghost sm" data-act="vertTest">🎥 Test vertical from video</button><button class="btn ghost sm" data-act="setReach">${reach ? 'Dunk setup' : 'Set standing reach'}</button></div></div>`;
+  return `<div class="dunk-cd">${lines.map(l => `<p>${l}</p>`).join('')}<div class="dunk-btns"><button class="btn ghost sm" data-act="vertTest">🎥 Test vertical</button><button class="btn ghost sm" data-act="setReach">${reach ? '⚙️ Dunk setup' : '📏 Standing reach'}</button></div></div>`;
 }
 A.setReach = () => {
   const r = S().reach || 0;

@@ -1,7 +1,6 @@
 {
- "version": "5.1",
+ "version": "5.2",
  "notes": [
-  "\u2795 Add a workout day from the + at the top of Train: pick Chest & Triceps, Back & Biceps, Legs, Shoulders & Arms, Push, Pull, Upper, Lower, Full Body or a blank day.",
-  "\ud83d\udc46 Tap any day in your split to edit it."
+  "\ud83d\udee0\ufe0f Fixed the dunk progress buttons running off the screen."
  ]
 }

@@ -36,7 +36,7 @@ function big3CardHTML() {
 const ftin = i => `${Math.floor(i / 12)}′ ${trim(i % 12, 2)}″`;
 function dunkCardHTML() {
   const js = Store.list('jumps').sort((a, b) => a.date.localeCompare(b.date) || (a.ts || 0) - (b.ts || 0)), goal = S().dunkGoal || 120;
-  if (!js.length) return `<section class="card"><div class="card-h"><h2 class="sec-t">🏀 Dunk progress</h2><button class="btn sm" data-act="logJump">Log</button></div><p class="muted small">Log the highest rim you've dunked on (like 8′ 9″) and your vertical whenever you test it. You'll see your progress toward ${ftin(goal)}.</p><div class="btnrow"><button class="btn ghost sm" data-act="vertTest">🎥 Test vertical from video</button><button class="btn ghost sm" data-act="setReach">Set standing reach</button></div></section>`;
+  if (!js.length) return `<section class="card"><div class="card-h"><h2 class="sec-t">🏀 Dunk progress</h2><button class="btn sm" data-act="logJump">Log</button></div><p class="muted small">Log the highest rim you've dunked on (like 8′ 9″) and your vertical whenever you test it. You'll see your progress toward ${ftin(goal)}.</p><div class="dunk-btns"><button class="btn ghost sm" data-act="vertTest">🎥 Test vertical</button><button class="btn ghost sm" data-act="setReach">📏 Standing reach</button></div></section>`;
   const rims = js.filter(j => j.rim > 0), best = rims.length ? Math.max(...rims.map(j => j.rim)) : null, start = rims.length ? rims[0].rim : null;
   const verts = js.filter(j => j.vert > 0), bestV = verts.length ? Math.max(...verts.map(j => j.vert)) : null;
   const pct = best != null ? clamp((best - Math.min(start, best)) / Math.max(1, goal - Math.min(start, best)), 0, 1) : 0;
