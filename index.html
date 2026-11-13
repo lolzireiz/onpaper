@@ -777,7 +777,7 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 .fa-way{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:74px;padding:8px 4px;border-radius:14px;background:var(--s2);font-size:13px;font-weight:600;color:var(--tx);text-align:center;line-height:1.2}
 .fa-way:active{transform:scale(.96)}.fa-ic{font-size:20px;line-height:1;display:grid;place-items:center;height:22px}.fa-ic svg{width:21px;height:21px}
 .fa-lbl{display:block;margin:14px 0 2px}
-.fa-row{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}.fa-row:last-child{border-bottom:0}
+.fa-row{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
 .fa-main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:10px 0;text-align:left;color:var(--tx)}
 .fa-main b{font-size:16px;line-height:1.25}.fa-main .small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .fa-c{font-size:12px;font-weight:650;color:var(--accent)}
@@ -785,7 +785,18 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 .fa-row.on .fa-plus{background:color-mix(in srgb,var(--accent) 22%,var(--s2));color:var(--accent)}
 .fl-h{padding:10px 0 2px}.fl-empty{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0 12px}
 .fl-g{display:flex;justify-content:space-between;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--tx3);padding:14px 0 2px}
-.fl-card .fl-row:last-child{border-bottom:0}
+
+
+/* swipe left to delete */
+.sw{position:relative;overflow:hidden;--sw-bg:var(--s1)}
+#sheet .sw{--sw-bg:#17171a}[data-theme=light] #sheet .sw{--sw-bg:var(--bg)}
+.sw-c{position:relative;z-index:1;background:var(--sw-bg);transition:transform .28s cubic-bezier(.2,.9,.3,1);touch-action:pan-y}
+.sw-drag .sw-c{transition:none}
+.sw-del{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding-right:20px;background:#e5484d;color:#fff;font-weight:700;font-size:15px}
+.sw-del svg{width:16px;height:16px}.sw-full .sw-del{background:#d63a3f}
+.sw .row{border-bottom:1px solid var(--line)}.sw:last-child .row,.sw:has(+ .fl-g) .row{border-bottom:0}
+.fa-list .sw:last-child .fa-row{border-bottom:0}
+.sw.sw-gone{height:0!important;opacity:0;transition:height .22s ease,opacity .18s ease}
 </style>
 </head>
 <body>

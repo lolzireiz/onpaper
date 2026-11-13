@@ -1,11 +1,8 @@
 {
- "version": "7.2",
+ "version": "7.3",
  "notes": [
-  "\ud83c\udf7d\ufe0f Food tab rebuilt and cleaned up.",
-  "\u2b50 Your usuals: anything you eat on 2+ days shows up as a one-tap tile, same amount as last time. Hold a tile to change the amount, pin it or hide it.",
-  "\ud83d\udccc Pin your daily staples (shakes, snacks) and add them all with one tap.",
-  "\u2795 One Add food button: search everything you've ever logged, or scan, enter, build a meal or copy yesterday. It stays open so you can add several things in a row.",
-  "\ud83d\udd50 The day's food is grouped into morning, afternoon, evening and late night.",
-  "\ud83d\udd25 Calories burned now sits inside the summary card."
+  "\ud83d\udc48 Swipe left on a food to delete it, like any iPhone list. Swipe a little to show Delete, or all the way to delete straight away.",
+  "\ud83d\uddd1\ufe0f In Add food \u2192 Your foods, deleting removes it from your list and usuals. Your past logs stay, and it comes back if you ever log it again.",
+  "\ud83c\udf7d\ufe0f Swipe left on anything in the day's food to remove it, or hold a usual and pick Delete from your foods."
  ]
 }

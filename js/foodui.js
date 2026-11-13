@@ -17,14 +17,15 @@ function amtShort(it) {
 /* every food you've logged (latest copy = "same as last time"), plus saved foods and meals */
 function foodIndex() {
   return Store.cached('foodIndex', () => {
-    const m = new Map(), since = addDays(todayStr(), -(USUAL_DAYS - 1));
+    const m = new Map(), since = addDays(todayStr(), -(USUAL_DAYS - 1)), gone = S().foodGone || {};
     for (const d of Store.list('food').sort((a, b) => a.date.localeCompare(b.date))) for (const it of (d.items || []).slice().sort((a, b) => (a.ts || 0) - (b.ts || 0))) {
       const k = keyOf(it.name); if (!k) continue;
+      if (gone[k] && (it.ts || parseDate(d.date).getTime()) <= gone[k]) continue;
       let u = m.get(k); if (!u) m.set(k, u = { k, n: 0, recent: new Set(), last: '' });
       u.it = it; u.last = d.date; u.n++; if (d.date >= since) u.recent.add(d.date);
     }
     for (const f of myFoods()) {
-      const k = keyOf(f.name); if (!k) continue; let u = m.get(k);
+      const k = keyOf(f.name); if (!k) continue; if (gone[k] && (f.lastUsed || f.ts || 0) <= gone[k]) continue; let u = m.get(k);
       if (!u) m.set(k, u = { k, n: 0, recent: new Set(), last: '', it: f.kind === 'meal'
         ? { name: f.name, serving: f.serving, servingSize: 1, servingUnit: 'serving', qty: 1, mode: 'servings', cal: f.cal, p: f.p, c: f.c, f: f.f, src: 'meal', parts: f.parts, myId: f.id }
         : { name: f.name, serving: f.serving, servingSize: f.servingSize, servingUnit: f.servingUnit, altSize: f.altSize, altUnit: f.altUnit, cal: f.cal, p: f.p, c: f.c, f: f.f, qty: 1, mode: 'servings', src: 'mine', myId: f.id } });
@@ -114,14 +115,14 @@ A.usualStaples = () => {
   let t = null, fired = false, sx = 0, sy = 0;
   const stop = () => clearTimeout(t);
   document.addEventListener('pointerdown', e => {
-    const b = e.target.closest && e.target.closest('.ut-main'); if (!b) return;
+    const b = e.target.closest && e.target.closest('.ut-main, .fa-main'); if (!b || b.closest('.sw-open')) return;
     fired = false; sx = e.clientX; sy = e.clientY; stop();
-    t = setTimeout(() => { fired = true; b.closest('.ut')?.classList.remove('just'); A.usualMore({ k: b.dataset.k }); }, 480);
+    t = setTimeout(() => { if (b.closest('.sw-drag')) return; fired = true; b.closest('.ut')?.classList.remove('just'); A.usualMore({ k: b.dataset.k }); }, 480);
   });
   document.addEventListener('pointerup', stop); document.addEventListener('pointercancel', stop);
   document.addEventListener('pointermove', e => { if (Math.hypot(e.clientX - sx, e.clientY - sy) > 10) stop(); });
-  window.addEventListener('click', e => { if (fired && e.target.closest && e.target.closest('.ut-main')) { e.stopPropagation(); e.preventDefault(); fired = false; } }, true);
-  document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('.ut')) e.preventDefault(); });
+  window.addEventListener('click', e => { if (fired && e.target.closest && e.target.closest('.ut-main, .fa-main')) { e.stopPropagation(); e.preventDefault(); fired = false; } }, true);
+  document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('.ut, .sw')) e.preventDefault(); });
 }
 A.usualMore = d => {
   const u = foodIndex().get(d.k); if (!u) return;
@@ -131,7 +132,8 @@ A.usualMore = d => {
     <button class="btn ghost block" data-act="faForm" data-k="${k}">Add a different amount</button>
     <button class="btn ghost block" data-act="usualPin" data-k="${k}">${pinned ? 'Unpin from daily staples' : '📌 Pin as a daily staple'}</button>
     ${c ? `<button class="btn ghost block" data-act="usualUndo" data-k="${k}">Remove one from ${date === todayStr() ? 'today' : 'this day'} <span class="faint">(${c} logged)</span></button>` : ''}
-    <button class="linkbtn danger center" style="width:100%;text-align:center;justify-content:center" data-act="usualHide" data-k="${k}">Hide from usuals</button></div>`);
+    ${usualsList().some(x => x.k === u.k) ? `<button class="btn ghost block" data-act="usualHide" data-k="${k}">Hide from usuals</button>` : ''}
+    <button class="linkbtn danger center" style="width:100%;text-align:center;justify-content:center" data-act="foodForget" data-k="${k}">Delete from your foods</button></div>`);
 };
 A.usualAddClose = d => { closeSheet(); quickAdd(d.k); };
 function setPin(k, on) { const s = S(), pins = (s.foodPins || []).filter(x => x !== k); if (on) pins.push(k); saveSettings({ foodPins: pins, foodHide: (s.foodHide || []).filter(x => x !== k) }); }
@@ -184,17 +186,17 @@ function faListHTML(q) {
   xs.sort((a, b) => (words.length ? (b.k.startsWith(words[0]) - a.k.startsWith(words[0])) : 0) || b.recent.size - a.recent.size || (b.last || '').localeCompare(a.last || '') || b.n - a.n);
   if (!xs.length) return ql ? `<p class="muted small center" style="margin:14px 0 10px">Nothing saved called “${esc(q.trim())}”.</p><button class="btn ghost block" data-act="faManual" data-n="${esc(q.trim())}">${ICON.plus} Enter “${esc(q.trim())}” manually</button>`
     : '<p class="faint small" style="margin:12px 0 0">Foods you log show up here, so next time it’s one tap.</p>';
-  return `<span class="lbl fa-lbl">${ql ? `${xs.length} ${xs.length === 1 ? 'match' : 'matches'}` : 'Your foods'}</span><div class="fa-list">${xs.slice(0, 40).map(u => faRowHTML(u, date)).join('')}</div>`;
+  return `<div class="fa-lblrow"><span class="lbl">${ql ? `${xs.length} ${xs.length === 1 ? 'match' : 'matches'}` : 'Your foods'}</span><span class="faint tiny">Swipe left to delete</span></div><div class="fa-list">${xs.slice(0, 40).map(u => faRowHTML(u, date)).join('')}</div>`;
 }
 function faRowHTML(u, date) {
   const it = u.it, c = cntOn(u.k, date), sub = [amtShort(it), `${fmtN(itK(it))} kcal`, `${trim(itP(it), 0)} g protein`].filter(Boolean).join(' · ');
-  return `<div class="fa-row${c ? ' on' : ''}"><button class="fa-main" data-act="faForm" data-k="${esc(u.k)}"><b>${u.meal ? '🍽 ' : ''}${esc(it.name)}</b><span class="faint small">${esc(sub)}</span>${c ? `<span class="fa-c">✓ ${c > 1 ? c + ' ' : ''}logged ${date === todayStr() ? 'today' : 'this day'}</span>` : ''}</button><button class="fa-plus" data-act="faAdd" data-k="${esc(u.k)}" aria-label="Add ${esc(it.name)}">${ICON.plus}</button></div>`;
+  return `<div class="sw"><button class="sw-del" data-act="foodForget" data-k="${esc(u.k)}" aria-label="Delete ${esc(it.name)} from your foods">${ICON.x}<span>Delete</span></button><div class="sw-c fa-row${c ? ' on' : ''}"><button class="fa-main" data-act="faForm" data-k="${esc(u.k)}"><b>${u.meal ? '🍽 ' : ''}${esc(it.name)}</b><span class="faint small">${esc(sub)}</span>${c ? `<span class="fa-c">✓ ${c > 1 ? c + ' ' : ''}logged ${date === todayStr() ? 'today' : 'this day'}</span>` : ''}</button><button class="fa-plus" data-act="faAdd" data-k="${esc(u.k)}" aria-label="Add ${esc(it.name)}">${ICON.plus}</button></div></div>`;
 }
 A.faAdd = (d, el) => {
-  const row = el.closest('.fa-row'); if (!quickAdd(d.k)) return;
+  const row = el.closest('.sw'); if (!quickAdd(d.k)) return;
   const u = foodIndex().get(d.k); if (!row || !u) return;
   const tmp = document.createElement('div'); tmp.innerHTML = faRowHTML(u, foodDate()); const nr = tmp.firstElementChild; row.replaceWith(nr);
-  if (!REDUCED()) { nr.classList.add('just'); sparkle(nr.querySelector('.fa-plus')); }
+  if (!REDUCED()) { nr.querySelector('.sw-c').classList.add('just'); sparkle(nr.querySelector('.fa-plus')); }
 };
 A.faForm = d => { const u = foodIndex().get(d.k); if (!u) return; Sheet.meal = null; foodForm(foodFrom(u), null, false, true); sheetTitle(u.it.name); };
 A.faManual = d => { Sheet.meal = null; foodForm({ name: d.n || '', servingSize: 1, servingUnit: 'serving', cal: '', p: '', c: '', f: '', qty: 1, mode: 'servings', src: 'manual' }); sheetTitle('Enter manually'); };
@@ -214,8 +216,58 @@ function dayLogHTML(date) {
   let h = '';
   for (const [g, xs] of [...groups.entries()].sort((a, b) => a[0] - b[0])) {
     h += `<div class="fl-g"><span>${g < 0 ? 'Logged' : SLOTS[g][0]}</span><span>${fmtN(xs.reduce((a, x) => a + itK(x), 0))} kcal</span></div>`;
-    h += xs.map(it => `<button class="row fl-row" data-act="foodEdit" data-id="${it.id}"><div class="grow"><b>${esc(it.name)}</b><div class="faint small">${esc(eatenLabel(it))}${it.ts ? ' · ' + fmtClock(it.ts) : ''}${tag(it)}</div></div><div class="rnum"><b>${fmtN(itK(it))}</b> <span class="faint small">kcal</span><div class="faint tiny">${trim(itP(it), 0)} g protein</div></div></button>`).join('');
+    h += xs.map(it => `<div class="sw"><button class="sw-del" data-act="logDel" data-id="${it.id}" aria-label="Delete ${esc(it.name)}">${ICON.x}<span>Delete</span></button><div class="sw-c"><button class="row fl-row" data-act="foodEdit" data-id="${it.id}"><div class="grow"><b>${esc(it.name)}</b><div class="faint small">${esc(eatenLabel(it))}${it.ts ? ' · ' + fmtClock(it.ts) : ''}${tag(it)}</div></div><div class="rnum"><b>${fmtN(itK(it))}</b> <span class="faint small">kcal</span><div class="faint tiny">${trim(itP(it), 0)} g protein</div></div></button></div></div>`).join('');
   }
   return `<section class="card flush fl-card">${head}${h}</section>`;
 }
 PAGES.push(['⭐', 'Your usuals & daily staples', 'usuals staples pin favorites quick add repeat foods shake snacks', () => { UI.tab = 'food'; render(); A.usualsEdit(); }]);
+
+/* ---------- delete: forget a food (it comes back only if you log it again), or delete one logged item ---------- */
+A.foodForget = (d, el) => {
+  const k = d.k, s0 = S(), u = foodIndex().get(k); if (!u) return;
+  const name = u.it.name, mine = myFoods().filter(f => keyOf(f.name) === k), prev = { foodGone: s0.foodGone || {}, foodPins: s0.foodPins || [], foodHide: s0.foodHide || [] };
+  const row = el && el.closest('.sw'), inList = row && $('#fa-list');
+  const go = () => {
+    for (const f of mine) del('myfoods', f.id);
+    saveSettings({ foodGone: { ...prev.foodGone, [k]: Date.now() }, foodPins: prev.foodPins.filter(x => x !== k), foodHide: prev.foodHide.filter(x => x !== k) });
+    if (inList) { const q = $('#fa-q'); $('#fa-list').innerHTML = faListHTML(q ? q.value : ''); } else if (!$('#fa-list')) closeSheet();
+    toastUndo(`Deleted ${name} from your foods`, () => { for (const f of mine) put('myfoods', f.id, f); saveSettings(prev); if ($('#fa-list')) { const q = $('#fa-q'); $('#fa-list').innerHTML = faListHTML(q ? q.value : ''); } });
+  };
+  if (row && !REDUCED()) { row.style.height = row.offsetHeight + 'px'; void row.offsetWidth; row.classList.add('sw-gone'); setTimeout(go, 220); } else go();
+};
+A.logDel = (d, el) => {
+  const date = foodDate(), gone = (foodDay(date).items || []).find(x => x.id === d.id); if (!gone) return;
+  const row = el && el.closest('.sw');
+  const go = () => { removeFoodIds([gone.id], date); toastUndo(`Removed ${gone.name}`, () => { const dd = clone(foodDay(date)); dd.date = date; dd.items = [...(dd.items || []), gone]; put('food', date, dd); }); };
+  if (row && !REDUCED()) { row.style.height = row.offsetHeight + 'px'; void row.offsetWidth; row.classList.add('sw-gone'); setTimeout(go, 220); } else go();
+};
+
+/* ---------- swipe left on a row to reveal Delete (swipe all the way to delete), like iOS lists ---------- */
+{
+  const W = 92; let st = null, open = null, eat = false;
+  const shut = r => { if (!r) return; r.classList.remove('sw-open', 'sw-full'); const c = r.querySelector('.sw-c'); if (c) c.style.transform = ''; };
+  document.addEventListener('pointerdown', e => {
+    const r = e.target.closest && e.target.closest('.sw');
+    if (open && open !== r) { shut(open); open = null; eat = true; setTimeout(() => { eat = false; }, 350); }
+    if (!r || e.target.closest('.sw-del')) return;
+    st = { r, c: r.querySelector('.sw-c'), x0: e.clientX, y0: e.clientY, base: r.classList.contains('sw-open') ? -W : 0, wasOpen: r.classList.contains('sw-open'), x: 0, mode: null, id: e.pointerId };
+  });
+  document.addEventListener('pointermove', e => {
+    if (!st || e.pointerId !== st.id) return;
+    const dx = e.clientX - st.x0, dy = e.clientY - st.y0;
+    if (!st.mode) { if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.3) st.mode = 'x'; else if (Math.abs(dy) > 8) { st = null; return; } else return; }
+    const w = st.r.offsetWidth; let x = Math.min(0, st.base + dx); if (x < -w * 0.85) x = -w * 0.85;
+    st.x = x; st.r.classList.add('sw-drag'); st.c.style.transform = `translateX(${x}px)`; st.r.classList.toggle('sw-full', x < -w * 0.5);
+  });
+  const end = () => {
+    if (!st) return; const s = st; st = null;
+    if (s.mode !== 'x') { if (s.wasOpen) { shut(s.r); open = null; eat = true; setTimeout(() => { eat = false; }, 350); } return; }
+    s.r.classList.remove('sw-drag'); eat = true; setTimeout(() => { eat = false; }, 350);
+    const w = s.r.offsetWidth;
+    if (s.x < -w * 0.5) { s.c.style.transform = `translateX(${-w}px)`; s.r.querySelector('.sw-del').click(); return; }
+    if (s.x < -W / 2) { s.c.style.transform = `translateX(${-W}px)`; s.r.classList.add('sw-open'); open = s.r; } else { shut(s.r); if (open === s.r) open = null; }
+  };
+  document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
+  /* a tap that closes an open row, or the end of a drag, shouldn't also add/open the food */
+  window.addEventListener('click', e => { if (eat && e.target.closest && !e.target.closest('.sw-del')) { e.stopPropagation(); e.preventDefault(); eat = false; } }, true);
+}
