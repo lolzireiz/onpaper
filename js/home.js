@@ -11,6 +11,7 @@ Views.home = {
     else h += todayCardHTML(lw);
     h += `<div class="tiles">${bwTile(lw)}${weekTile()}${goalsTile()}${big3Tile()}</div>`;
     h += insightsHTML();
+    h += recapHomeHTML();
     h += feedHTML();
     return h;
   },
@@ -108,6 +109,7 @@ A.openSettings = () => {
     <details class="sset"><summary><span class="si" aria-hidden="true">💾</span><span class="grow"><b>Backup &amp; updates</b><span class="faint small">${lastBackup() ? `Last backup ${fmtDate(lastBackup())}` : 'No backup yet'} · v${APP_VERSION}</span></span></summary><div class="sset-b">
     <div class="field"><span class="lbl">Your data</span><p class="muted small">Everything is saved on this phone only. Back up now and then, and restore it if you switch phones. Progress photos are included.</p></div>
     <button class="btn block" data-act="backupNow">Back up now</button><p class="faint small" style="margin-top:-6px">Then tap <b>Save to Files → iCloud Drive</b>. ${lastBackup() ? `Last backup: ${fmtDate(lastBackup())}.` : 'No backups yet.'}</p><button class="btn ghost block" data-act="importData">Restore from a backup</button>
+    <div class="field"><span class="lbl">Spreadsheets</span><p class="muted small">Export your sets, weigh-ins, food and activities as CSV files for Excel, Numbers or Google Sheets.</p></div><button class="btn ghost block" data-act="csvExport">Export CSV files</button>
     <div id="upd-box">${updStatusHTML()}</div>
     </div></details>`);
 };

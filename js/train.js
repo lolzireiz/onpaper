@@ -98,7 +98,7 @@ Views.train = {
 function overviewHTML() {
   const w = activeWorkout();
   let h = w ? `<section class="card"><div class="card-h"><div><div class="eyebrow">In progress</div><h2 class="lift-h" style="font-size:34px">${esc(w.dayName || 'Workout')}</h2><p class="muted small">${esc(w.gymName || 'No gym')} · started ${fmtClock(w.startTs)} · ${plural((w.sets || []).length, 'set')}</p></div><button class="btn" data-act="resumeWorkout">Resume</button></div></section>` : startCardHTML();
-  return h + actsCardHTML() + weekCardHTML() + splitCardHTML() + gymsCardHTML() + recentWorkoutsHTML();
+  return deloadBannerHTML() + h + actsCardHTML() + heatmapCardHTML() + weekCardHTML() + splitCardHTML() + gymsCardHTML() + recentWorkoutsHTML();
 }
 function startCardHTML() {
   const days = splitDays(), gs = gyms(), nd = nextDay();
@@ -114,7 +114,7 @@ function startCardHTML() {
       const last = p.use ? lastSessionSets(p.use) : null;
       const lastTxt = last ? `${fw(last.sets[0].w)}×${last.sets[0].r}` : '';
       const tg = tgtFor(p.use || p.name);
-      if (!p.swapped) return `<div class="row"><span class="grow">${esc(p.name)}${goalDot(p.name)} <span class="faint small">${tg.sets}×${esc(tg.reps)}</span></span><span class="faint small rnum">${lastTxt}</span>${musBtn(p.name)}</div>`;
+      if (!p.swapped) return `<div class="row"><span class="grow">${esc(p.name)}${goalDot(p.name)}${painDot(p.name)} <span class="faint small">${tg.sets}×${esc(tg.reps)}</span></span><span class="faint small rnum">${lastTxt}</span>${musBtn(p.name)}</div>`;
       return `<div class="row"><span class="grow">${p.use ? `<s>${esc(p.name)}</s> → ${esc(p.use)}` : `<s>${esc(p.name)}</s>`}<div class="faint small">${p.use ? 'Swapped: not at this gym' : 'Skipped: nothing similar at this gym'}</div></span><span class="faint small rnum">${lastTxt}</span></div>`;
     }).join('')}</div>`;
   }
@@ -194,6 +194,7 @@ function exBlockHTML(w, name) {
     <div class="schips">${all.map(s => { const rec = setRec(L, s.id); return `<span class="schip${s.warm ? ' w' : ''}${s.hit === false ? ' x' : ''}">${s.warm ? '<i>W</i>' : ''}${bwf ? (s.w ? '+' + fw(s.w) : 'BW') : fw(s.w)}×${s.r}${rec?.pr ? ' <b class="pr">PR</b>' : ''}${s.hit === false ? ' ✗' : ''}</span>`; }).join('')}</div></section>`;
   }
   return `<section class="exb${done ? ' done' : ''}${editing ? ' editing' : ''}${UI.justDone === keyOf(name) ? ' just-done' : ''}"><header class="exb-h"><div class="grow"><h3>${done ? '<span style="color:var(--ok)">✓</span> ' : ''}${esc(name)}</h3><button class="faint small" style="text-align:left;padding:2px 0" data-act="editTarget" data-ex="${esc(name)}" aria-label="Change target for ${esc(name)}">Target <u style="text-decoration-style:dotted;text-underline-offset:3px">${t.sets} × ${esc(t.reps)}</u> · <b style="color:${done ? 'var(--ok)' : 'var(--tx2)'}">${work.length}/${t.sets} sets</b> ✎</button>${exHelps(name).length ? `<div>${goalBadges(name)}</div>` : ''}</div>${musBtn(name)}<button class="iconbtn sm" data-act="exMenu" data-ex="${esc(name)}" aria-label="Options for ${esc(name)}">${ICON.dots}</button></header>
+  ${painBarHTML(name)}
   ${editing ? `<div class="unlock-bar"><span>✎ Editing a finished exercise</span><button class="btn sm" data-act="lockEx" data-ex="${esc(name)}">Done</button></div>` : ''}
   ${prev ? `<p class="faint small">Last time (${fmtDate(prev.date)}): ${prev.sets.map(s => `${s.warm ? '<span style="opacity:.6">' : ''}${fw(s.w)}×${s.r}${s.hit === false ? '✗' : ''}${s.warm ? '</span>' : ''}`).join(', ')}</p>` : ''}
   ${sug ? `<p class="small" style="background:rgba(51,146,245,.12);color:#9cc8ff;border-radius:10px;padding:8px 10px"><b>Try ${fw(sug.w)} × ${sug.r}.</b> ${esc(sug.why)}</p>` : ''}
@@ -272,7 +273,7 @@ A.exMenu = d => {
   const w = activeWorkout(); if (!w) return;
   const has = (w.sets || []).some(s => keyOf(s.ex) === keyOf(d.ex));
   const f = bwFactor(d.ex);
-  openSheet(d.ex, `<div class="field"><span class="lbl">Counts your bodyweight?</span><div class="chips">${[[0, 'No'], [0.5, '50%'], [0.64, '64%'], [0.85, '85%'], [1, '100%']].map(([v, l]) => `<button class="chip" data-act="setBwf" data-ex="${esc(d.ex)}" data-f="${v}" aria-pressed="${Math.abs(f - v) < 0.001}">${l}</button>`).join('')}</div><p class="faint tiny">For moves like pull-ups or dumbbell calf raises: you enter the added weight, and the app adds that share of your bodyweight to estimate the total load (and judges PRs on it).</p></div><div class="fields"><button class="btn ghost" data-act="moveEx" data-ex="${esc(d.ex)}" data-d="-1" ${sessionNames(w).findIndex(n => keyOf(n) === keyOf(d.ex)) <= 0 ? 'disabled' : ''}>↑ Move up</button><button class="btn ghost" data-act="moveEx" data-ex="${esc(d.ex)}" data-d="1" ${sessionNames(w).findIndex(n => keyOf(n) === keyOf(d.ex)) >= sessionNames(w).length - 1 ? 'disabled' : ''}>↓ Move down</button></div><button class="btn ghost block" data-act="swapEx" data-ex="${esc(d.ex)}">Swap for another exercise</button><button class="btn ghost block" data-act="openLift" data-key="${esc(keyOf(d.ex))}">See history and PRs</button><button class="linkbtn danger center" data-act="removeEx" data-ex="${esc(d.ex)}">${has ? 'Remove (and its sets)' : 'Remove from this workout'}</button>`);
+  openSheet(d.ex, `<div class="field"><span class="lbl">Counts your bodyweight?</span><div class="chips">${[[0, 'No'], [0.5, '50%'], [0.64, '64%'], [0.85, '85%'], [1, '100%']].map(([v, l]) => `<button class="chip" data-act="setBwf" data-ex="${esc(d.ex)}" data-f="${v}" aria-pressed="${Math.abs(f - v) < 0.001}">${l}</button>`).join('')}</div><p class="faint tiny">For moves like pull-ups or dumbbell calf raises: you enter the added weight, and the app adds that share of your bodyweight to estimate the total load (and judges PRs on it).</p></div><div class="fields"><button class="btn ghost" data-act="moveEx" data-ex="${esc(d.ex)}" data-d="-1" ${sessionNames(w).findIndex(n => keyOf(n) === keyOf(d.ex)) <= 0 ? 'disabled' : ''}>↑ Move up</button><button class="btn ghost" data-act="moveEx" data-ex="${esc(d.ex)}" data-d="1" ${sessionNames(w).findIndex(n => keyOf(n) === keyOf(d.ex)) >= sessionNames(w).length - 1 ? 'disabled' : ''}>↓ Move down</button></div><button class="btn ghost block" data-act="swapEx" data-ex="${esc(d.ex)}">Swap for another exercise</button><button class="btn ghost block" data-act="painFlag" data-ex="${esc(d.ex)}">${painOf(d.ex) ? '⚠️ Edit pain flag' : '⚠️ Flag pain'}</button><button class="btn ghost block" data-act="openLift" data-key="${esc(keyOf(d.ex))}">See history and PRs</button><button class="linkbtn danger center" data-act="removeEx" data-ex="${esc(d.ex)}">${has ? 'Remove (and its sets)' : 'Remove from this workout'}</button>`);
 };
 A.setBwf = d => { const o = clone(S().bwOverride || {}); o[keyOf(d.ex)] = +d.f; saveSettings({ bwOverride: o }); closeSheet(); toast(+d.f ? `${d.ex} now counts ${Math.round(d.f * 100)}% of bodyweight` : `${d.ex} uses weight only`); };
 A.moveEx = d => {
@@ -358,7 +359,7 @@ function exListHTML(q) {
   const gym = Sheet.pickGym, ex = new Set(Sheet.pickExclude), qq = keyOf(q);
   const all = [...library().values()].filter(e => !ex.has(keyOf(e.name)) && (!qq || keyOf(e.name).includes(qq) || keyOf(e.group).includes(qq)));
   const avail = all.filter(e => available(e.name, gym)), missing = qq ? all.filter(e => !available(e.name, gym)) : [];
-  const row = (e, dim) => `<div class="row" style="padding:0;${dim ? 'opacity:.5' : ''}"><button class="grow" style="padding:12px 0;text-align:left" data-act="pickEx" data-name="${esc(e.name)}">${esc(e.name)}<div class="faint small">${esc(e.equip.map(q => EQ_LABEL[q]).join(', ') || (e.custom ? 'Custom' : 'No equipment'))}</div>${goalBadges(e.name)}</button>${musBtn(e.name)}</div>`;
+  const row = (e, dim) => `<div class="row" style="padding:0;${dim ? 'opacity:.5' : ''}"><button class="grow" style="padding:12px 0;text-align:left" data-act="pickEx" data-name="${esc(e.name)}">${esc(e.name)}${painDot(e.name)}<div class="faint small">${esc(e.equip.map(q => EQ_LABEL[q]).join(', ') || (e.custom ? 'Custom' : 'No equipment'))}</div>${goalBadges(e.name)}</button>${musBtn(e.name)}</div>`;
   let h = '';
   if (qq && !library().has(qq)) h += `<button class="row" data-act="newEx" data-name="${esc(q.trim())}"><span class="grow"><b>Add “${esc(q.trim())}”</b><div class="faint small">New custom exercise</div></span>${ICON.plus.replace('<svg', '<svg width="20" height="20"')}</button>`;
   if (!qq && Sheet.pickSuggested.length) h += `<div class="grp">Suggested swaps</div>` + Sheet.pickSuggested.map(n => row(library().get(keyOf(n)) || { name: n, equip: [] })).join('');

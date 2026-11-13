@@ -597,6 +597,33 @@ body.ob-open .tabs{visibility:hidden}
 @media (min-width:600px){
   .photos{margin:0}
 }
+
+/* v4.0 coach, heatmap, photo slider, pain, recap, milestones */
+.gchip.warn{background:rgba(255,176,32,.16);color:#ffc35c}.gchip.ok{background:rgba(60,207,130,.14);color:var(--ok)}
+.wkavg .row{padding:9px 0}
+.heatfig{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.heat-leg{display:flex;gap:14px;justify-content:center;font-size:12px;color:var(--tx2)}.heat-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.heat-skip{color:#ffc35c}
+.cmp-stack{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:3/4;touch-action:none;user-select:none;-webkit-user-select:none}
+.cmp-stack img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.cmp-stack.slide img.top{clip-path:inset(0 0 0 var(--p))}
+.cmp-stack.fade img.top{opacity:var(--o)}
+.cmp-line{position:absolute;top:0;bottom:0;left:var(--p);width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 8px rgba(0,0,0,.6);pointer-events:none}
+.cmp-line i{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:16px}
+.cmp-lbl{position:absolute;bottom:10px;font-size:12px;font-weight:600;background:rgba(0,0,0,.55);color:#fff;padding:3px 8px;border-radius:999px;pointer-events:none}.cmp-lbl.l{left:10px}.cmp-lbl.r{right:10px}
+.cmp-range{-webkit-appearance:auto;appearance:auto;width:100%;height:28px;margin:10px 0 4px;padding:0;border:0;background:none;box-shadow:none;accent-color:var(--accent)}
+.cmp-pick figure{margin:0}
+.pain-bar{background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.3);color:#ffd28a;border-radius:12px;padding:9px 11px;font-size:13px;display:flex;flex-direction:column;gap:8px}
+.pain-act{display:flex;gap:8px}
+.pain-dot{font-size:12px}
+.recap .row{padding:10px 0;gap:12px}.recap .ic{font-size:22px;width:28px;text-align:center}
+.recap-link{display:block;margin:2px auto 10px}
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.badge{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:14px;background:var(--s2,#1d1d22);opacity:.55;text-align:center}
+.badge.got{opacity:1;background:linear-gradient(160deg,rgba(51,146,245,.22),rgba(60,207,130,.12));box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.badge .bi{font-size:26px;filter:grayscale(1)}.badge.got .bi{filter:none}
+.badge .bn{font-size:11px;line-height:1.2;font-weight:600}
+.badge .bp{width:70%;height:3px;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden}.badge .bp i{display:block;height:100%;background:var(--accent)}
 </style>
 </head>
 <body>
@@ -636,6 +663,7 @@ body.ob-open .tabs{visibility:hidden}
 <script src="js/program.js"></script>
 <script src="js/acts.js"></script>
 <script src="js/boost.js"></script>
+<script src="js/coach.js"></script>
 <script src="js/anim.js"></script>
 <script src="js/anim3d.js"></script>
 <script src="js/onboard.js"></script>

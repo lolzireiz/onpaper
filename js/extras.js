@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '3.9';
+const APP_VERSION = '4.0';
 const CHANGELOG = [
+  ['4.0', ['🧮 Calorie coach: compares what you eat to what the scale does, estimates what you really burn, and suggests a new target in one tap.', '⚖️ True weight trend: a smoothed line that ignores water swings, plus weekly averages.', '📸 Photo compare now has a drag slider and a fade between two dates.', '🔥 Muscles this week: a heatmap of sets per muscle on the body diagram, flagging anything you skipped.', '⚠️ Pain flags: mark an exercise that hurts and get a warning plus a swap idea every time it comes up.', '🔋 Lighter-week nudge after many hard weeks in a row with stalled lifts.', '🗓️ Weekly recap with PRs, goal work, weight, protein and dunk progress. Share it as an image.', '🏅 Milestones: 24 badges with confetti when you unlock one.', '📄 Export your sets, weigh-ins, food and activities as CSV spreadsheets (Settings → Backup).']],
   ['3.9', ['🎥 Test your vertical from a video: mark takeoff and landing, and the app works out your jump height from your air time.', '📈 Dunk countdown: how many weeks until you dunk your goal at your current pace, plus your touch height from your standing reach.', '🏋️ Strength levels: see where your squat, bench, deadlift, press and row rank for your bodyweight.', '▥ Scan barcodes for instant nutrition facts, “Hit your protein” suggestions built from your foods, and Copy from yesterday.', '🎙️ “Hey Siri, log my weight”: set it up in Settings → Alerts.']],
   ['3.8.4', ['Figures refined: a more natural fit male build, a slimmer female with narrower shoulders and natural hips, and plain single-colour bodies with no painted clothing.']],
   ['3.8.3', ['Figures: shoulders brought back to realistic widths, and proper athletic wear (fitted shorts, and a sports bra with straps) in a softer tone instead of black bands.']],
@@ -112,6 +113,7 @@ function bodySVG(view, sex, mus) {
   const [vx, , vw] = fig.vb.split(' ').map(Number), mid = vx + vw / 2;
   const level = (slug) => {
     const ids = slug === 'deltoids' ? (view === 'front' ? ['delts', 'side_delts'] : ['rear_delts', 'side_delts']) : (SLUG_MUSCLES[slug] || []);
+    if (mus.heat) { const v = Math.max(0, ...ids.map(i => mus.heat[i] || 0)); return v >= 10 ? 'p' : v >= 4 ? 's' : v > 0 ? 'l' : 'm'; }
     if (ids.some(i => mus.p.has(i))) return 'p'; if (ids.some(i => mus.s.has(i))) return 's'; return 'm';
   };
   const angles = new Set(); let paths = '', glow = '';
@@ -130,6 +132,7 @@ function bodySVG(view, sex, mus) {
     ${rg('p', [[0, '#ff8a78'], [.5, '#f0302e'], [1, '#9e1018']])}
     ${rg('s', [[0, '#c0585a'], [.55, '#8c2d33'], [1, '#561a1f']])}
     ${rg('k', [[0, '#55555e'], [1, '#2c2c32']])}
+    ${rg('l', [[0, '#8a4a4e'], [.55, '#5a2a2e'], [1, '#3a1c1f']])}
     ${[...angles].map(a => `<pattern id="${u}f${a}" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(${a})"><line x1="1" y1="0" x2="1" y2="7" stroke="#000" stroke-opacity=".2" stroke-width="1.3"/><line x1="4.5" y1="0" x2="4.5" y2="7" stroke="#fff" stroke-opacity=".05" stroke-width="1"/></pattern>`).join('')}
     <filter id="${u}g" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="14"/></filter>
     <radialGradient id="${u}bg" cx=".5" cy=".42" r=".55"><stop offset="0" stop-color="#2a2a31" stop-opacity=".9"/><stop offset="1" stop-color="#17171a" stop-opacity="0"/></radialGradient>

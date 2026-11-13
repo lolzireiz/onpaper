@@ -1,10 +1,14 @@
 {
- "version": "3.9",
+ "version": "4.0",
  "notes": [
-  "\ud83c\udfa5 Test your vertical from a video: mark takeoff and landing, and the app works out your jump height from your air time.",
-  "\ud83d\udcc8 Dunk countdown: how many weeks until you dunk your goal at your current pace, plus your touch height from your standing reach.",
-  "\ud83c\udfcb\ufe0f Strength levels: see where your squat, bench, deadlift, press and row rank for your bodyweight.",
-  "\u25a5 Scan barcodes for instant nutrition facts, \u201cHit your protein\u201d suggestions built from your foods, and Copy from yesterday.",
-  "\ud83c\udf99\ufe0f \u201cHey Siri, log my weight\u201d: set it up in Settings \u2192 Alerts."
+  "\ud83e\uddee Calorie coach: compares what you eat to what the scale does, estimates what you really burn, and suggests a new target in one tap.",
+  "\u2696\ufe0f True weight trend: a smoothed line that ignores water swings, plus weekly averages.",
+  "\ud83d\udcf8 Photo compare now has a drag slider and a fade between two dates.",
+  "\ud83d\udd25 Muscles this week: a heatmap of sets per muscle on the body diagram, flagging anything you skipped.",
+  "\u26a0\ufe0f Pain flags: mark an exercise that hurts and get a warning plus a swap idea every time it comes up.",
+  "\ud83d\udd0b Lighter-week nudge after many hard weeks in a row with stalled lifts.",
+  "\ud83d\uddd3\ufe0f Weekly recap with PRs, goal work, weight, protein and dunk progress. Share it as an image.",
+  "\ud83c\udfc5 Milestones: 24 badges with confetti when you unlock one.",
+  "\ud83d\udcc4 Export your sets, weigh-ins, food and activities as CSV spreadsheets (Settings \u2192 Backup)."
  ]
 }

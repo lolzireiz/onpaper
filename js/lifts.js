@@ -70,7 +70,7 @@ A.jumpHistory = () => { openSheet('Dunk log', Store.list('jumps').sort((a, b) =>
 function liftsListHTML() {
   const lifts = liftList();
   if (!lifts.length) return (wantsDunk() ? dunkCardHTML() : '') + skillsCardHTML() + `<div class="empty"><p>Nothing logged yet. Log a PR you already have (pick its real date) or start a workout. Every set gets checked for rep-max PRs.</p><button class="btn" data-act="logPR">Log a PR attempt</button></div>${big3CardHTML()}`;
-  return (wantsDunk() ? dunkCardHTML() : '') + skillsCardHTML() + big3CardHTML() + `<section class="card flush"><h2 class="sec-t" style="padding-top:14px">All lifts</h2>${lifts.map(L => {
+  return (wantsDunk() ? dunkCardHTML() : '') + skillsCardHTML() + big3CardHTML() + milestonesCardHTML() + `<section class="card flush"><h2 class="sec-t" style="padding-top:14px">All lifts</h2>${lifts.map(L => {
     const lastPR = [...L.sets].reverse().find(s => s.pr);
     return `<button class="row" data-act="openLift" data-key="${esc(L.key)}"><div class="ring ${lastPR && daysBetween(lastPR.date, todayStr()) <= 14 ? 'is-pr' : ''}"><span>${esc(initials(L.name))}</span></div><div class="grow"><b>${esc(L.name)}</b><div class="faint small">${L.heavy ? (L.bwf ? `Best ${loadTxt(L.heavy)} ×${L.heavy.r}` : `Heaviest ${fw(L.heavy.w)}×${L.heavy.r}`) : 'No completed sets'}${lastPR ? ` · last PR ${fmtDate(lastPR.date)}` : ''}</div></div><div class="rnum"><div style="font:700 22px/1 var(--f-display)">${L.e1 ? fw(L.e1, 0) : '—'}</div><div class="faint tiny">est. 1RM</div></div></button>`;
   }).join('')}</section>`;

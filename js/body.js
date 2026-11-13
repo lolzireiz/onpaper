@@ -29,19 +29,20 @@ function weightHTML() {
   const inR = list.filter(w => w.date >= from);
   const last = list[list.length - 1], avg7 = last ? avgWindow(list, last.date) : null, rate = weeklyRate(list);
   const first = inR[0], change = first && last ? last.weight - first.weight : null;
-  const avgPts = inR.map(w => ({ x: wiX(w), y: U.w(avgWindow(list, w.date)), w }));
+  const tr = weightTrend(list), avgPts = inR.map(w => ({ x: wiX(w), y: U.w(tr.get(w.date) ?? w.weight), w })), trNow = last ? tr.get(last.date) : null;
   const bfs = all.filter(w => w.bf > 0), lastBf = bfs[bfs.length - 1];
-  const tip = p => `<b>${fw(p.w.weight)} ${U.wu}</b> · 7-day avg ${fw(avgWindow(list, p.w.date))}<br>${fmtDate(p.w.date)}${p.w.time ? ' ' + fmtTime(p.w.time) : ''}${p.w.meal ? ' · ' + mealLabel(p.w.meal) : ''}`;
+  const tip = p => `<b>${fw(p.w.weight)} ${U.wu}</b> · trend ${fw(tr.get(p.w.date) ?? p.w.weight)}<br>${fmtDate(p.w.date)}${p.w.time ? ' ' + fmtTime(p.w.time) : ''}${p.w.meal ? ' · ' + mealLabel(p.w.meal) : ''}`;
   let h = `<section class="card">
     <div class="card-h" style="align-items:flex-end"><div class="stat"><span class="k">Latest · ${last ? fmtDate(last.date) : '—'}</span><span class="big">${last ? fw(last.weight) : '—'}<span class="unit">${U.wu}</span></span></div>
-    <div class="stat" style="text-align:right"><span class="k">7-day average</span><span class="v">${avg7 ? fw(avg7) : '—'}</span></div></div>
+    <div class="stat" style="text-align:right"><span class="k">True weight (trend)</span><span class="v">${trNow ? fw(trNow) : '—'}</span><span class="faint tiny">7-day avg ${avg7 ? fw(avg7) : '—'}</span></div></div>
     <div class="stats"><div class="stat"><span class="k">Change (${UI.weightRange})</span><span class="v">${change != null && inR.length > 1 ? signed(U.w(change)) : '—'}</span></div><div class="stat"><span class="k">Per week</span><span class="v">${rate != null ? signed(U.w(rate), 2) : '—'}</span></div><div class="stat"><span class="k">${lastBf ? 'Lean mass' : 'Weigh-ins'}</span><span class="v">${lastBf ? fw(lastBf.weight * (1 - lastBf.bf / 100)) : inR.length}</span></div></div>
     <div class="chips">${RANGES.map(([k]) => `<button class="chip" data-act="wRange" data-k="${k}" aria-pressed="${UI.weightRange === k}">${k}</button>`).join('')}</div>
     <div class="seg"><button data-act="wFilter" data-k="all" aria-pressed="${UI.weightFilter !== 'fasted'}">All weigh-ins</button><button data-act="wFilter" data-k="fasted" aria-pressed="${UI.weightFilter === 'fasted'}">Morning, fasted only</button></div>
-    ${chartSlot('weight', { h: 200, x0: parseDate(from).getTime(), x1: Date.now(), label: 'Bodyweight over time with 7-day average', empty: UI.weightFilter === 'fasted' ? 'No morning fasted weigh-ins in this range yet.' : 'No weigh-ins in this range.', series: [{ type: 'dots', pts: inR.map(w => ({ x: wiX(w), y: U.w(w.weight), w })), color: 'var(--tx3)', r: 3 }, { type: 'line', pts: avgPts, area: true, end: true }], scrubPts: inR.map(w => ({ x: wiX(w), y: U.w(w.weight), w })), tip })}
-    ${legend([['', 'background:var(--tx3)', 'Each weigh-in'], ['l', 'background:var(--accent)', '7-day average']])}
+    ${chartSlot('weight', { h: 200, x0: parseDate(from).getTime(), x1: Date.now(), label: 'Bodyweight over time with smoothed trend line', empty: UI.weightFilter === 'fasted' ? 'No morning fasted weigh-ins in this range yet.' : 'No weigh-ins in this range.', series: [{ type: 'dots', pts: inR.map(w => ({ x: wiX(w), y: U.w(w.weight), w })), color: 'var(--tx3)', r: 3 }, { type: 'line', pts: avgPts, area: true, end: true }], scrubPts: inR.map(w => ({ x: wiX(w), y: U.w(w.weight), w })), tip })}
+    ${legend([['', 'background:var(--tx3)', 'Each weigh-in'], ['l', 'background:var(--accent)', 'Trend (smooths out water swings)']])}
     ${UI.weightFilter === 'fasted' ? '<p class="faint small">Only weigh-ins before 11am marked 8+ hours since your last meal. These swing the least day to day.</p>' : ''}
   </section>`;
+  h += coachCardHTML() + weeklyAvgHTML(list);
   if (bfs.length >= 2) h += `<section class="card"><h2 class="sec-t">Body fat %</h2>${chartSlot('bf', { h: 140, label: 'Body fat percent over time', series: [{ type: 'line', pts: bfs.map(w => ({ x: wiX(w), y: w.bf, w })), end: true }], yFmt: v => trim(v, 1) + '%', tip: p => `<b>${trim(p.w.bf, 1)}%</b> · ${fmtDate(p.w.date)} · lean ${fw(p.w.weight * (1 - p.w.bf / 100))} ${U.wu}` })}<p class="faint small">Lean mass = bodyweight × (1 − body fat %). If it climbs while body fat holds steady, you're adding muscle.</p></section>`;
   const rows = list.slice().reverse().slice(0, 60);
   h += `<section class="card flush"><h2 class="sec-t" style="padding-top:14px">Entries</h2>${rows.map((w, i) => {
@@ -121,7 +122,7 @@ function photosHTML() {
     return `<figure><div class="ph"><img src="${photoSrc(p)}" alt="${pose} photo from ${fmtDate(p.date, { rel: false })}"></div><select aria-label="${which} photo date" data-change="cmpPick" data-which="${which}">${ofPose.map(x => `<option value="${x.id}" ${x.id === p.id ? 'selected' : ''}>${fmtDate(x.date, { rel: false, year: true })}</option>`).join('')}</select><figcaption>${bw ? `${fwu(bw.weight)}` : 'No weigh-in yet'}</figcaption></figure>`;
   };
   return `<section class="card"><div class="card-h"><h2 class="sec-t">Compare</h2><div class="chips">${POSES.map(p => `<button class="chip" data-act="photoPose" data-p="${p}" aria-pressed="${pose === p}">${p}</button>`).join('')}</div></div>
-    <div class="cmp">${fig(a, 'Before')}${fig(b, 'After')}</div>
+    ${photoCompareHTML(a, b, fig)}
     ${a && b && a.id !== b.id ? `<p class="faint small center">${daysBetween(a.date, b.date)} days apart${bwOn(a.date) && bwOn(b.date) ? ` · ${signed(U.w(bwOn(b.date).weight - bwOn(a.date).weight))} ${U.wu}` : ''}</p>` : ''}</section>
     <div class="photos">${list.map(p => `<button data-act="viewPhoto" data-id="${p.id}"><img loading="lazy" src="${photoSrc(p)}" alt="${esc(p.pose)} photo, ${fmtDate(p.date, { rel: false })}"><span class="cap">${fmtDate(p.date)} · ${esc(p.pose)}</span></button>`).join('')}</div>
     <p class="faint small">Photos are saved only on this phone. They aren't uploaded anywhere and aren't included in backups.</p>`;
