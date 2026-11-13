@@ -1,7 +1,7 @@
 {
- "version": "6.8",
+ "version": "6.9",
  "notes": [
-  "\ud83d\udd0b Readiness now weighs each sore muscle by its size and how sore it is. A bit of sore biceps nudges the score, very sore legs drop it a lot, and the tip tells you what to go easy on.",
-  "\ud83d\udcca The check-in shows a live breakdown (sleep, soreness, energy, training load) that updates as you tap."
+  "\u2728 Smart pick tags exercises that hit a sore muscle, trims their sets when it makes sense, and says why.",
+  "\ud83d\udd0b Readiness no longer punishes you for being new: training load stays neutral until the app has about 2 weeks of your history."
  ]
 }

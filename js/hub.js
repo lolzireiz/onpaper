@@ -61,7 +61,9 @@ const SORE_PTS = [0, 1, 2.4, 4];
 function sorePenalty(sm) { return Object.entries(sm || {}).reduce((a, [g, lv]) => a + (SORE_W[g] ?? 0.7) * (SORE_PTS[lv] || 0), 0); }
 function readinessFrom(d) {
   const has = d.sleep != null || d.sore != null || d.energy != null || d.soreMap != null;
-  const acute = trainingLoad(3) / 3, chronic = trainingLoad(28) / 28, ratio = chronic > 0.5 ? acute / chronic : 1;
+  // training load: last 3 days vs your usual. Needs ~2 weeks of history to know "usual", so it stays neutral until then
+  const first = Store.list('workouts').concat(Store.list('acts')).reduce((m, w) => !m || w.date < m ? w.date : m, null), known = first && daysBetween(first, todayStr()) >= 14;
+  const acute = trainingLoad(3) / 3, chronic = trainingLoad(28) / Math.min(28, Math.max(1, first ? daysBetween(first, todayStr()) + 1 : 28)), ratio = known && chronic > 0.5 ? acute / chronic : 1;
   const load = ratio <= 1.1 ? 20 : Math.max(0, 20 - (ratio - 1.1) * 27);
   const sleep = d.sleep != null ? Math.min(1, d.sleep / 8) ** 1.4 * 30 : 22;
   const sore = d.soreMap ? 35 * Math.exp(-sorePenalty(d.soreMap) / 6) : d.sore != null ? (5 - d.sore) / 4 * 35 : 26;
@@ -152,8 +154,12 @@ function smartPlan() {
       reason = `${gs.join(', ')}: your freshest muscles that need more work this week`;
     }
     ex = ex.map(n => painOf(n) ? (alternatives(n, gym, ex).find(e => !painOf(e.name))?.name || null) : n).filter(Boolean);
-    const targets = {}; for (const n of ex) { const t = tgtFor(n); targets[keyOf(n)] = { sets: lighter ? Math.max(2, t.sets - 1) : t.sets, reps: t.reps }; }
-    return { name, reason, ex, targets, dayId, lighter, rest, r };
+    // muscles you said are sore: fewer sets on the moves that hit them (a bit −1, sore −1, very −2)
+    const sm = dailyOf().soreMap || {}, soreLv = n => { const m = musclesFor(n); if (!m) return 0; let lv = 0; for (const [g, v] of Object.entries(sm)) if ((SORE_GROUPS[g] || []).some(id => m.p.has(id))) lv = Math.max(lv, v); return lv; };
+    const targets = {}, eased = new Set(); for (const n of ex) { const t = tgtFor(n), lv = soreLv(n); let sets = lighter ? Math.max(2, t.sets - 1) : t.sets; if (lv) { sets = Math.max(lv === 1 ? 2 : 1, sets - (lv >= 3 ? 2 : 1)); if (sets < (lighter ? Math.max(2, t.sets - 1) : t.sets)) eased.add(n); } targets[keyOf(n)] = { sets, reps: t.reps, sore: lv }; }
+    const soreHit = Object.entries(sm).filter(([g, v]) => v && ex.some(n => { const m = musclesFor(n); return m && (SORE_GROUPS[g] || []).some(id => m.p.has(id)); })).map(([g, v]) => `${g.toLowerCase()} ${['', 'a bit sore', 'sore', 'very sore'][v]}`);
+    if (soreHit.length) reason += ` · ${soreHit.join(', ')}${eased.size ? ', so those moves get fewer sets' : ', so keep those moves easy'}`;
+    return { name, reason, ex, targets, dayId, lighter, rest, r, eased };
   });
 }
 function smartCardHTML() {
@@ -162,7 +168,7 @@ function smartCardHTML() {
   return `<section class="card smart"><div class="card-h"><div><div class="eyebrow">✨ Smart pick for today</div><h2 class="lift-h" style="font-size:28px;margin:2px 0 0">${esc(p.name)}</h2></div>${ring(r.score, r.col, 44, 5, r.score)}</div>
     <p class="muted small" style="margin:0">${esc(p.reason)}${p.lighter ? ' · lighter volume today (readiness ' + r.score + ')' : ''}</p>
     ${p.rest ? `<div class="alert"><span class="ai">🧘</span><p>Readiness is low. A mobility routine might be the better call today.</p><button class="btn sm ghost" data-act="mobOpen" data-id="post">Mobility</button></div>` : ''}
-    <div class="smart-ex">${p.ex.map(n => { const t = p.targets[keyOf(n)]; return `<div class="row"><span class="grow">${esc(n)}${goalDot(n)}</span><span class="faint small rnum">${t.sets}×${esc(t.reps)}</span>${musBtn(n)}</div>`; }).join('')}</div>
+    <div class="smart-ex">${p.ex.map(n => { const t = p.targets[keyOf(n)]; return `<div class="row"><span class="grow">${esc(n)}${goalDot(n)}${t.sore ? ` <span class="sore-tag">${["", "a bit sore", "sore", "very sore"][t.sore]}${p.eased.has(n) ? " · fewer sets" : ""}</span>` : ""}</span><span class="faint small rnum">${t.sets}×${esc(t.reps)}</span>${musBtn(n)}</div>`; }).join('')}</div>
     <button class="btn block" data-act="smartStart">Start ${esc(p.name)}</button></section>`;
 }
 A.smartStart = () => {

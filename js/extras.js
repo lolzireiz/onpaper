@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '6.8';
+const APP_VERSION = '6.9';
 const CHANGELOG = [
+  ['6.9', ['✨ Smart pick tags exercises that hit a sore muscle, trims their sets when it makes sense, and says why.', '🔋 Readiness no longer punishes you for being new: training load stays neutral until the app has about 2 weeks of your history.']],
   ['6.8', ['🔋 Readiness now weighs each sore muscle by its size and how sore it is. A bit of sore biceps nudges the score, very sore legs drop it a lot, and the tip tells you what to go easy on.', '📊 The check-in shows a live breakdown (sleep, soreness, energy, training load) that updates as you tap.']],
   ['6.7', ['🩹 Check-in now lets you mark exactly where you\'re sore (chest, triceps, quads, and so on) and how much, shown on the body diagram. Sore muscles count as less recovered, so Smart pick steers around them.', '😴 Enter any amount of sleep with the slider or +/− in 15-minute steps.']],
   ['6.6', ['🔗 Cable rows, Pallof presses and woodchops now show the handle you hold.']],
