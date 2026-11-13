@@ -47,7 +47,7 @@ function weekTile() {
   return `<button class="tile" data-act="goTab" data-tab="train"><span class="k">This week</span><span class="big md">${st.cur}<span class="unit">of ${st.goal}</span></span><div class="weekdots">${dots}</div><span class="sub">${st.streak ? `${plural(st.streak, 'week')} streak` : 'Hit your goal to start a streak'}</span></button>`;
 }
 function foodTile() {
-  const t = foodTotals(todayStr()), s = S();
+  const t = foodTotals(todayStr()), s = { ...S() }; if (typeof calBudget === 'function') s.calTarget = calBudget().ceiling;   // the smart budget's limit for today
   return `<button class="tile" data-act="goTab" data-tab="food"><span class="k">Today's food</span><span class="big md"><span data-count="${Math.round(t.cal)}">${trim(t.cal, 0)}</span><span class="unit">kcal</span></span><div class="bar ${t.cal >= s.calTarget ? 'over' : ''}"><i style="width:${clamp(t.cal / s.calTarget * 100, 0, 100)}%"></i></div><div class="bar p ${t.p >= s.proteinTarget ? 'over' : ''}"><i style="width:${clamp(t.p / s.proteinTarget * 100, 0, 100)}%"></i></div><span class="sub">${trim(t.p, 0)} of ${s.proteinTarget} g protein</span></button>`;
 }
 function goalsTile() {

@@ -904,6 +904,27 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 .ms-it .grow{display:flex;flex-direction:column;gap:2px;min-width:0}.ms-step{display:flex;gap:2px;flex:none}.ms-step .iconbtn{width:34px;height:34px;font-size:18px}
 .ms-x{color:var(--accent);font-weight:700}.ms-src{font-size:11px;font-weight:650;color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent);border-radius:99px;padding:1px 7px;margin-left:2px}
 .ms-note{margin:10px 0 0}.ms-fixf{margin-top:12px}.ms-fixrow{display:flex;gap:8px}.ms-fixrow input{flex:1;text-align:left}
+
+/* smart calorie budget */
+.fr[data-act]{cursor:pointer}
+.bud-chip{display:inline-block;margin:3px 0 1px;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px}
+.bud-chip.up{color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,transparent)}.bud-chip.down{color:#f5b915;background:color-mix(in srgb,#f5b915 15%,transparent)}
+[data-theme=light] .bud-chip.down{color:#a86b00}
+.bud-line{display:flex;gap:8px;align-items:flex-start;width:100%;text-align:left;font-size:13px;line-height:1.4;padding:10px 12px;margin-top:10px;border-radius:12px;color:var(--tx)}
+.bud-line.ok{background:color-mix(in srgb,var(--ok) 12%,transparent)}.bud-line.warn{background:color-mix(in srgb,#f5b915 12%,transparent)}
+.bud-hero{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}.bud-hero>b{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1.05}.bud-hero>b small{font-size:16px;color:var(--tx2);font-weight:600}
+.pos{color:var(--ok)}.neg{color:#f5b915}[data-theme=light] .neg{color:#a86b00}
+.bud-now{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.bud-now div{background:var(--s1);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column}.bud-now b{font-size:20px;font-weight:750;font-variant-numeric:tabular-nums}
+.bud-planrow{display:flex;align-items:center;gap:8px}.bud-planrow input{flex:1;text-align:left}
+.bud-pr{font-size:13.5px;line-height:1.45;margin:8px 0 0;padding:10px 12px;border-radius:12px}.bud-pr.ok{background:color-mix(in srgb,var(--ok) 12%,transparent)}.bud-pr.warn{background:color-mix(in srgb,#f5b915 12%,transparent)}
+.bud-week{display:flex;flex-direction:column;gap:2px}
+.bud-r{display:grid;grid-template-columns:40px 1fr 92px 44px;align-items:center;gap:8px;min-height:40px;font-size:13px}
+.bud-r.off{opacity:.55}.bud-r.now{border-top:1px solid var(--line);margin-top:4px;padding-top:4px}
+.bud-d{font-weight:650;color:var(--tx2)}.bud-r.now .bud-d{color:var(--tx)}
+.bud-bar{position:relative;height:10px;border-radius:5px;background:var(--s2)}.bud-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:5px}.bud-bar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--tx2);opacity:.6;border-radius:1px}
+.bud-bar i.lo{background:var(--ok)}.bud-bar i.hi{background:#f5b915}.bud-bar i.cur{background:var(--accent)}.bud-bar i.over{background:#ff6b8b}
+.bud-n{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}.bud-n b{font-variant-numeric:tabular-nums}.bud-n span{font-size:11.5px}
+.bud-t{font-size:12.5px;padding:0;text-align:right}
 </style>
 </head>
 <body>
@@ -955,6 +976,7 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 <script src="js/polish.js"></script>
 <script src="js/trophy.js"></script>
 <script src="js/mealsnap.js"></script>
+<script src="js/budget.js"></script>
 <script src="js/anim.js"></script>
 <script src="js/anim3d.js"></script>
 <script src="js/dunk.js"></script>

@@ -128,7 +128,7 @@ function recapStripHTML() {
   const wos = Store.list('workouts').filter(w => w.date === y && (!act || w.id !== act.id)), acts = Store.list('acts').filter(a => a.date === y), sl = dailyOf(t).sleep;
   const it = [];
   if (ft.cal > 0) {
-    const okc = s.calTarget && Math.abs(ft.cal - s.calTarget) <= s.calTarget * 0.1;
+    const lim = typeof calBudget === 'function' ? calBudget(y).ceiling : s.calTarget, okc = lim && Math.abs(ft.cal - lim) <= lim * 0.1;
     it.push(`<button class="rc" data-act="recapFood">🍽 <b>${fmtN(ft.cal)}</b> kcal${okc ? '<i class="rc-ok" aria-label="on target">✓</i>' : ''}</button>`);
     it.push(`<button class="rc" data-act="recapFood">🥩 <b>${trim(ft.p, 0)}</b> g protein${s.proteinTarget && ft.p >= s.proteinTarget ? '<i class="rc-ok" aria-label="goal hit">✓</i>' : ''}</button>`);
   }
@@ -137,6 +137,7 @@ function recapStripHTML() {
   else if (ft.cal > 0) it.push('<span class="rc">😌 Rest day</span>');
   if (sl != null) it.push(`<button class="rc" data-act="readyOpen">💤 <b>${fmtSleep(sl)}</b> sleep</button>`);
   const wrap = typeof wrapPillHTML === 'function' ? wrapPillHTML() : '';
+  if (typeof calBudget === 'function') { const b = calBudget(t); if (!b.off && b.carry >= 100) it.push(`<button class="rc" data-act="budgetOpen">🏦 <b>+${fmtN(b.carry)}</b> kcal room today</button>`); }
   if (!it.length && !wrap) return '';
   return `<div class="recap-strip" role="group" aria-label="Yesterday at a glance">${it.length ? `<span class="rc-l">Yesterday</span>${it.join('<span class="rc-dot" aria-hidden="true">·</span>')}` : ''}${wrap}</div>`;
 }
