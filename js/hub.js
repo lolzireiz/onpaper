@@ -408,16 +408,23 @@ function habitDone(h, date) {
   return false;
 }
 function habitStreak(h) { let n = 0, d = todayStr(); if (!habitDone(h, d)) d = addDays(d, -1); while (n < 1000 && habitDone(h, d)) { n++; d = addDays(d, -1); } return n; }
+/* the You-tab card can mark a past day (forgot to tick creatine yesterday). The picked day lapses back to today after a few idle minutes so a later tap never lands on the wrong day. */
+const habDay = () => { const v = UI.habDay, t = todayStr(); return v && Date.now() - v.ts < 300000 && v.date < t && v.date >= addDays(t, -13) ? v.date : t; };
+const habDayWord = d => d === todayStr() ? 'today' : d === addDays(todayStr(), -1) ? 'yesterday' : fmtDay(d);
 function habitsCardHTML(full) {
-  const hs = myHabits(), t = todayStr(), n = hs.filter(h => habitDone(h, t)).length;
-  return `<section class="card habits"><div class="card-h"><h2 class="sec-t">Habits</h2><span class="faint small">${n} of ${hs.length} today${full ? '' : ' · <button class="linkbtn" data-act="habitsEdit">Edit</button>'}</span></div>
-    <div class="hab-list">${hs.map(h => { const done = habitDone(h, t), st = habitStreak(h); return `<button class="hab${done ? ' on' : ''}" data-act="habitTap" data-id="${h.id}" aria-pressed="${done}"><span class="he">${h.e}</span><span class="grow"><b>${esc(h.n)}</b><span class="faint tiny">${st ? `🔥 ${st}-day streak` : h.auto ? 'Checks itself off' : 'Tap when done'}</span></span><span class="hchk">${done ? '✓' : ''}</span></button>`; }).join('')}</div>
-    ${full ? `<div class="hab-grid"><span></span>${[...Array(14)].map((_, i) => `<span class="faint tiny">${'MTWTFSS'[(parseDate(addDays(t, i - 13)).getDay() + 6) % 7]}</span>`).join('')}${hs.map(h => `<span class="he">${h.e}</span>${[...Array(14)].map((_, i) => `<i class="${habitDone(h, addDays(t, i - 13)) ? 'on' : ''}"></i>`).join('')}`).join('')}</div><button class="btn ghost block" data-act="habitsEdit">Edit habits</button>` : ''}</section>`;
+  const hs = myHabits(), t = todayStr(), sel = full ? habDay() : t, n = hs.filter(h => habitDone(h, sel)).length, past = sel !== t;
+  const days = full ? `<div class="seg hab-days" role="group" aria-label="Day to mark">${[...Array(7)].map((_, i) => { const d = addDays(t, i - 6), dt = parseDate(d); return `<button data-act="habDayPick" data-date="${d}" aria-pressed="${d === sel}" aria-label="${esc(fmtDay(d))}"><span>${i === 6 ? 'Today' : 'SMTWTFS'[dt.getDay()]}</span><b>${dt.getDate()}</b></button>`; }).join('')}</div>
+    ${past ? `<p class="hab-past small">Marking <b>${esc(habDayWord(sel))}</b>${sel === addDays(t, -1) ? ` (${esc(fmtDay(sel))})` : ''} · <button class="linkbtn" data-act="habDayPick" data-date="${t}">Back to today</button></p>` : ''}` : '';
+  return `<section class="card habits${past ? ' hab-pastmode' : ''}"><div class="card-h"><h2 class="sec-t">Habits</h2><span class="faint small">${n} of ${hs.length} ${past ? esc(sel === addDays(t, -1) ? 'yesterday' : fmtDate(sel)) : 'today'}${full ? '' : ' · <button class="linkbtn" data-act="habitsEdit">Edit</button>'}</span></div>
+    ${days}<div class="hab-list">${hs.map(h => { const done = habitDone(h, sel), st = habitStreak(h); return `<button class="hab${done ? ' on' : ''}" data-act="habitTap" data-id="${h.id}" data-date="${sel}" aria-pressed="${done}"><span class="he">${h.e}</span><span class="grow"><b>${esc(h.n)}</b><span class="faint tiny">${st ? `🔥 ${st}-day streak` : past ? `Tap if you did it ${esc(habDayWord(sel))}` : h.auto ? 'Checks itself off' : 'Tap when done'}</span></span><span class="hchk">${done ? '✓' : ''}</span></button>`; }).join('')}</div>
+    ${full ? `<div class="hab-grid"><span></span>${[...Array(14)].map((_, i) => `<span class="faint tiny">${'MTWTFSS'[(parseDate(addDays(t, i - 13)).getDay() + 6) % 7]}</span>`).join('')}${hs.map(h => `<span class="he">${h.e}</span>${[...Array(14)].map((_, i) => { const d = addDays(t, i - 13), on = habitDone(h, d); return `<button class="${on ? 'on' : ''}${d === sel ? ' sel' : ''}" data-act="habitTap" data-id="${h.id}" data-date="${d}" aria-pressed="${on}" aria-label="${esc(h.n)}, ${esc(fmtDay(d))}"></button>`; }).join('')}`).join('')}</div><p class="faint tiny hab-tip">Tap a square to fix any of the last two weeks.</p><button class="btn ghost block" data-act="habitsEdit">Edit habits</button>` : ''}</section>`;
 }
 A.habitTap = (d, el) => {
-  const h = myHabits().find(x => x.id === d.id); if (!h) return; const t = todayStr(), cur = habitDone(h, t), dd = dailyOf(t);
-  putDaily(t, { h: { ...(dd.h || {}), [h.id]: cur ? 0 : 1 } }); if (!cur && el) sparkle(el);
+  const h = myHabits().find(x => x.id === d.id); if (!h) return; const t = todayStr(), date = d.date && d.date <= t ? d.date : t, cur = habitDone(h, date), dd = dailyOf(date);
+  putDaily(date, { h: { ...(dd.h || {}), [h.id]: cur ? 0 : 1 } }); if (!cur && el) sparkle(el);
+  if (date !== t) { if (UI.habDay && UI.habDay.date === date) UI.habDay.ts = Date.now(); toast(`${h.e} ${h.n}: ${cur ? 'unchecked' : 'done'} ${habDayWord(date)}`); }
 };
+A.habDayPick = d => { UI.habDay = d.date === todayStr() ? null : { date: d.date, ts: Date.now() }; render(); };
 A.habitsEdit = () => { Sheet.hab = clone(myHabits()); drawHabEdit(); };
 function drawHabEdit() {
   const hs = Sheet.hab, ids = new Set(hs.map(h => h.id));

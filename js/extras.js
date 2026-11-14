@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '8.2';
+const APP_VERSION = '8.3';
 const CHANGELOG = [
+  ['8.3', ['✅ Forgot to tick a habit? On the You tab, pick a day above your habits and tap it off for that day, or tap any square in the two-week grid. It switches back to today on its own after a few minutes.']],
   ['8.2', ['🦾 New: MTS Row, the Hammer Strength iso-lateral row machine, with its own demo. Log the weight on one side, since each arm has its own stack.', '🔁 It\'s ticked on in your gym\'s equipment and has taken the Chest-Supported Dumbbell Row\'s spot in your plan. Search “mts”, “iso lateral” or “hammer strength” to find it.']],
   ['8.1', ['🏋️ Chest-Supported Row is now Chest-Supported Dumbbell Row, and its demo shows a regular adjustable bench set to an incline. No machine needed. Your saved days and past sets moved over with it.', '🔎 Exercise search matches word by word, so “chest supported row”, “db curl” or an exercise’s old name all find it.']],
   ['8.0', ['🏋️ Dumbbell weights are clear now: two-dumbbell moves say “lb each” everywhere (the weight box, your sets, last time, suggestions, history, PRs), with a note under the box: weight of one dumbbell.', 'Single-dumbbell moves like goblet squats and one-arm rows say it’s just one dumbbell.', '🔮 Dumbbell PR predictions aim for the next dumbbell up instead of barbell plate numbers.', '🎬 Fixed the incline dumbbell curl animation: the arms no longer swing backwards mid-rep, and the upper arms stay still while you curl.']],

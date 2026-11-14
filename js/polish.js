@@ -75,7 +75,7 @@ function sfx(kind) {
 { const cp = celebratePR; celebratePR = function (el) { cp(el); sfx('pr'); }; }
 { const ss = showSummary; showSummary = function (id) { ss(id); sfx('finish'); }; }
 { const af = addFoodItem; addFoodItem = function (...a) { const r = af(...a); sfx('pop'); return r; }; }
-{ const ht = A.habitTap; A.habitTap = (d, el) => { const h = myHabits().find(x => x.id === d.id), was = h && habitDone(h, todayStr()); ht(d, el); if (h && !was) sfx('pop'); }; }
+{ const ht = A.habitTap; A.habitTap = (d, el) => { const h = myHabits().find(x => x.id === d.id), was = h && habitDone(h, d.date && d.date <= todayStr() ? d.date : todayStr()); ht(d, el); if (h && !was) sfx('pop'); }; }
 { const st = A.usualStaples; A.usualStaples = (...a) => { st(...a); sfx('pop'); }; }
 { const ap = appearanceHTML; appearanceHTML = function () { const on = S().sounds !== false; return ap() + `<div class="field"><span class="lbl">Sounds</span><div class="seg">${[['on', 'On'], ['off', 'Off']].map(([k, l]) => `<button data-act="setSounds" data-v="${k}" aria-pressed="${(k === 'on') === on}">${l}</button>`).join('')}</div><p class="faint small" style="margin:6px 0 0">Little sounds for sets, PRs, finished workouts and quick adds. They stay quiet on the speaker when your phone is on silent, still play in earbuds, and never pause your music.</p></div>`; }; }
 A.setSounds = d => { saveSettings({ sounds: d.v === 'on' }); if (d.v === 'on') setTimeout(() => sfx('pop'), 60); };

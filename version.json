@@ -1,7 +1,6 @@
 {
- "version": "8.2",
+ "version": "8.3",
  "notes": [
-  "\ud83e\uddbe New: MTS Row, the Hammer Strength iso-lateral row machine, with its own demo. Log the weight on one side, since each arm has its own stack.",
-  "\ud83d\udd01 It's ticked on in your gym's equipment and has taken the Chest-Supported Dumbbell Row's spot in your plan. Search \u201cmts\u201d, \u201ciso lateral\u201d or \u201chammer strength\u201d to find it."
+  "\u2705 Forgot to tick a habit? On the You tab, pick a day above your habits and tap it off for that day, or tap any square in the two-week grid. It switches back to today on its own after a few minutes."
  ]
 }
