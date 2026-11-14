@@ -1,9 +1,7 @@
 {
- "version": "8.0",
+ "version": "8.1",
  "notes": [
-  "\ud83c\udfcb\ufe0f Dumbbell weights are clear now: two-dumbbell moves say \u201clb each\u201d everywhere (the weight box, your sets, last time, suggestions, history, PRs), with a note under the box: weight of one dumbbell.",
-  "Single-dumbbell moves like goblet squats and one-arm rows say it\u2019s just one dumbbell.",
-  "\ud83d\udd2e Dumbbell PR predictions aim for the next dumbbell up instead of barbell plate numbers.",
-  "\ud83c\udfac Fixed the incline dumbbell curl animation: the arms no longer swing backwards mid-rep, and the upper arms stay still while you curl."
+  "\ud83c\udfcb\ufe0f Chest-Supported Row is now Chest-Supported Dumbbell Row, and its demo shows a regular adjustable bench set to an incline. No machine needed. Your saved days and past sets moved over with it.",
+  "\ud83d\udd0e Exercise search matches word by word, so \u201cchest supported row\u201d, \u201cdb curl\u201d or an exercise\u2019s old name all find it."
  ]
 }

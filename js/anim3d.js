@@ -208,6 +208,14 @@ function propGeo(def, q, J, m) {
       cyl([cc[0] - 0.24, cc[1], cc[2]], [cc[0] + 0.24, cc[1], cc[2]], 0.055, C3.pad, 14, 1);
       if (pr.lever) { const pvt = V.mul(V.add(J.knR, J.knL), 0.5), piv = [0.32, pvt[1], pvt[2]]; cyl(piv, [0.3, cc[1], cc[2]], 0.022, C3.dark); cyl([0.3, piv[1], piv[2]], [0.36, piv[1], piv[2]], 0.05, C3.dark, 12, 1); } }
     else if (pr.t === 'kneepads') for (const [s, sx] of SIDES) { const k = V.add(J['kn' + s], [sx * 0.085, 0, 0]); cyl(V.add(k, [0, -0.08, 0]), V.add(k, [0, 0.08, 0]), 0.045, C3.pad, 12, 1); cyl(V.add(k, [sx * 0.05, 0, 0]), [sx * 0.3, k[1] - 0.25, k[2] - 0.2], 0.018, C3.dark); }
+    else if (pr.t === 'pronebench') {   // an adjustable bench set to an incline, lying chest-down on it (no machine needed)
+      const P = JA, a2 = V.add(P.pelvis, V.mul(P.fwd, 0.15)), b2 = V.add(P.chest, V.add(V.mul(P.fwd, 0.15), V.mul(P.up, 0.24))), d = V.norm(V.sub(b2, a2));
+      const H = V.sub(a2, V.mul(d, Math.max(0, (a2[1] - 0.44) / Math.max(0.2, d[1])))), M = V.add(H, V.mul(V.sub(b2, H), 0.62));
+      slab(H, b2, 0.3, C3.pad, 0.06);
+      slab([0, 0.035, H[2] - 0.12], [0, 0.035, M[2] + 0.22], 0.07, C3.dark, 0.035);
+      cyl([0, H[1] - 0.04, H[2]], [0, 0.04, H[2]], 0.03, C3.dark); cyl([0, M[1] - 0.04, M[2]], [0, 0.04, M[2] + 0.12], 0.03, C3.dark);
+      for (const sx of [-0.2, 0.2]) cyl([sx, 0.035, H[2] - 0.12], [-sx, 0.035, H[2] - 0.12], 0.025, C3.dark);
+    }
     else if (pr.t === 'chestpad') { const P = JA, a2 = V.add(P.pelvis, V.mul(P.fwd, 0.15)), b2 = V.add(P.chest, V.add(V.mul(P.fwd, 0.15), V.mul(P.up, 0.12))); slab(a2, b2, 0.36, C3.pad, 0.06); cyl(a2, [a2[0], 0, a2[2]], 0.025, C3.dark); cyl(b2, [b2[0], 0, b2[2] - 0.05], 0.025, C3.dark); if (pr.seat) slab([0, pr.seat, a2[2] - 0.42], [0, pr.seat, a2[2] - 0.06], 0.34, C3.pad); }
     else if (pr.t === 'thighpad') { const c = V.add(V.mul(V.add(JA.knR, JA.knL), 0.5), [0, 0.1, -0.05]); cyl([-0.26, c[1], c[2]], [0.26, c[1], c[2]], 0.05, C3.pad, 14, 1); cyl([0, c[1], c[2] + 0.04], [0, 0, c[2] + 0.12], 0.025, C3.dark); }
     else if (pr.t === 'tbar') { const piv = [0, 0.04, -0.95], d = V.norm(V.sub(mid, piv)), end = V.add(mid, V.mul(d, 0.32)); cyl(piv, end, 0.02, C3.bar); cyl(V.add(mid, V.mul(d, 0.12)), V.add(mid, V.mul(d, 0.16)), 0.2, C3.dark, 22, 1); cyl([mid[0] - 0.14, mid[1], mid[2]], [mid[0] + 0.14, mid[1], mid[2]], 0.017, C3.bar, 10, 1); cyl([-0.06, 0.04, -0.95], [0.06, 0.04, -0.95], 0.05, C3.dark, 10, 1); }

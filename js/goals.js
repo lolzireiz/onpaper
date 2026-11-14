@@ -71,7 +71,7 @@ const EX_GOALS = {
   'Dips': ['relative', 'chest', 'arms', 'strength'], 'Push-ups': ['relative', 'chest', 'core', 'everyday'],
   'Deadlift': ['strength', 'everyday', 'grip', 'jump', 'backhealth', 'glutes'], 'Pull-ups': ['relative', 'vback', 'grip', 'arms'], 'Chin-ups': ['relative', 'arms', 'vback', 'grip'],
   'Barbell Row': ['vback', 'strength', 'posture', 'grip'], 'Lat Pulldown': ['vback', 'relative', 'posture'], 'Seated Cable Row': ['vback', 'posture', 'backhealth'], 'Dumbbell Row': ['vback', 'posture', 'grip'],
-  'T-Bar Row': ['vback', 'strength', 'grip'], 'Chest-Supported Row': ['vback', 'posture'], 'Straight-Arm Pulldown': ['vback', 'core'], 'Back Extension': ['backhealth', 'posture', 'glutes', 'longevity'],
+  'T-Bar Row': ['vback', 'strength', 'grip'], 'Chest-Supported Dumbbell Row': ['vback', 'posture'], 'Straight-Arm Pulldown': ['vback', 'core'], 'Back Extension': ['backhealth', 'posture', 'glutes', 'longevity'],
   'Overhead Press': ['shoulders', 'strength', 'core', 'everyday', 'power'], 'Dumbbell Shoulder Press': ['shoulders', 'strength', 'everyday'], 'Machine Shoulder Press': ['shoulders', 'strength'],
   'Dumbbell Lateral Raise': ['shoulders'], 'Cable Lateral Raise': ['shoulders'], 'Rear Delt Fly': ['posture', 'shoulders', 'injury'], 'Face Pull': ['posture', 'injury', 'shoulders', 'backhealth'],
   'Dumbbell Shrug': ['vback', 'grip', 'everyday', 'injury'],

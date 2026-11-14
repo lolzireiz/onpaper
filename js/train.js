@@ -15,7 +15,7 @@ const LIBRARY = [
   ['Incline Dumbbell Press', 'Chest', ['db', 'incline']], ['Machine Chest Press', 'Chest', ['chestpress']], ['Smith Incline Press', 'Chest', ['smith', 'incline']], ['Smith Bench Press', 'Chest', ['smith', 'bench']],
   ['Pec Deck Fly', 'Chest', ['pecdeck']], ['Cable Fly', 'Chest', ['cable']], ['Low-to-High Cable Fly', 'Chest', ['cable']], ['Dips', 'Chest', ['dip']], ['Push-ups', 'Chest', []],
   ['Deadlift', 'Back', ['barbell']], ['Pull-ups', 'Back', ['pullup']], ['Chin-ups', 'Back', ['pullup']], ['Barbell Row', 'Back', ['barbell']], ['Lat Pulldown', 'Back', ['lat']],
-  ['Seated Cable Row', 'Back', ['row']], ['Dumbbell Row', 'Back', ['db', 'bench']], ['T-Bar Row', 'Back', ['tbar']], ['Chest-Supported Row', 'Back', ['db', 'incline']],
+  ['Seated Cable Row', 'Back', ['row']], ['Dumbbell Row', 'Back', ['db', 'bench']], ['T-Bar Row', 'Back', ['tbar']], ['Chest-Supported Dumbbell Row', 'Back', ['db', 'incline']],
   ['Straight-Arm Pulldown', 'Back', ['cable']], ['Back Extension', 'Back', ['ghd']],
   ['Overhead Press', 'Shoulders', ['barbell', 'rack']], ['Dumbbell Shoulder Press', 'Shoulders', ['db']], ['Machine Shoulder Press', 'Shoulders', ['shoulderpress']],
   ['Dumbbell Lateral Raise', 'Shoulders', ['db']], ['Cable Lateral Raise', 'Shoulders', ['cable']], ['Rear Delt Fly', 'Shoulders', ['pecdeck']], ['Face Pull', 'Shoulders', ['cable']], ['Dumbbell Shrug', 'Shoulders', ['db']],
@@ -171,7 +171,7 @@ function sessionHTML(w) {
   h += `<button class="btn ghost block" data-act="addExercise">${ICON.plus} Add exercise</button><button class="linkbtn danger center" data-act="discardWorkout">Discard workout</button>`;
   return h;
 }
-const COMPOUND = new Set(['Bench Press', 'Incline Bench Press', 'Dumbbell Bench Press', 'Incline Dumbbell Press', 'Machine Chest Press', 'Smith Incline Press', 'Smith Bench Press', 'Dips', 'Deadlift', 'Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Seated Cable Row', 'Dumbbell Row', 'T-Bar Row', 'Chest-Supported Row', 'Overhead Press', 'Dumbbell Shoulder Press', 'Machine Shoulder Press', 'Close-Grip Bench Press', 'Squat', 'Front Squat', 'Leg Press', 'Hack Squat', 'Smith Squat', 'Bulgarian Split Squat', 'Goblet Squat', 'Walking Lunge', 'Romanian Deadlift', 'Dumbbell RDL', 'Hip Thrust', 'Machine Hip Thrust'].map(keyOf));
+const COMPOUND = new Set(['Bench Press', 'Incline Bench Press', 'Dumbbell Bench Press', 'Incline Dumbbell Press', 'Machine Chest Press', 'Smith Incline Press', 'Smith Bench Press', 'Dips', 'Deadlift', 'Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Seated Cable Row', 'Dumbbell Row', 'T-Bar Row', 'Chest-Supported Dumbbell Row', 'Overhead Press', 'Dumbbell Shoulder Press', 'Machine Shoulder Press', 'Close-Grip Bench Press', 'Squat', 'Front Squat', 'Leg Press', 'Hack Squat', 'Smith Squat', 'Bulgarian Split Squat', 'Goblet Squat', 'Walking Lunge', 'Romanian Deadlift', 'Dumbbell RDL', 'Hip Thrust', 'Machine Hip Thrust'].map(keyOf));
 const isCompound = n => COMPOUND.has(keyOf(n));
 const defaultTarget = n => ({ sets: S().defaultSets || 3, reps: isCompound(n) ? '6-8' : '8-12' });
 const tgtFor = n => ({ ...defaultTarget(n), ...((S().exTargets || {})[keyOf(n)] || {}) });
@@ -373,7 +373,10 @@ function openExercisePicker(onPick, gym, exclude = [], suggested = []) {
 }
 function exListHTML(q) {
   const gym = Sheet.pickGym, ex = new Set(Sheet.pickExclude), qq = keyOf(q);
-  const all = [...library().values()].filter(e => !ex.has(keyOf(e.name)) && (!qq || keyOf(e.name).includes(qq) || keyOf(e.group).includes(qq)));
+  /* every word has to match (name, muscle group or an old name), so "chest supported row" or "db curl" still find things */
+  const words = (qq || '').split(/\s+/).filter(Boolean).map(w => w === 'db' || w === 'dbs' ? 'dumbbell' : w), oldOf = new Map(EX_RENAMES.map(([a, b]) => [keyOf(b), keyOf(a)]));
+  const hay = e => `${keyOf(e.name)} ${keyOf(e.group)} ${oldOf.get(keyOf(e.name)) || ''}`.replace(/-/g, ' ');
+  const all = [...library().values()].filter(e => !ex.has(keyOf(e.name)) && (!words.length || words.every(w => hay(e).includes(w.replace(/-/g, ' ')))));
   const avail = all.filter(e => available(e.name, gym)), missing = qq ? all.filter(e => !available(e.name, gym)) : [];
   const row = (e, dim) => `<div class="row" style="padding:0;${dim ? 'opacity:.5' : ''}"><button class="grow" style="padding:12px 0;text-align:left" data-act="pickEx" data-name="${esc(e.name)}">${esc(e.name)}${painDot(e.name)}<div class="faint small">${esc(e.equip.map(q => EQ_LABEL[q]).join(', ') || (e.custom ? 'Custom' : 'No equipment'))}</div>${goalBadges(e.name)}</button>${musBtn(e.name)}</div>`;
   let h = '';
@@ -436,7 +439,7 @@ A.splitDay = d => drawDay(+d.i);
 /* Ready-made days: [exercise, sets, reps]. Adding one also sets those sets × reps targets. */
 const DAY_PRESETS = [
   { name: 'Chest & Triceps', e: '🏋️', groups: ['Chest', 'Triceps', 'Shoulders'], ex: [['Smith Incline Press', 3, '6-10'], ['Smith Bench Press', 3, '6-10'], ['Dips', 3, '8-12'], ['Pec Deck Fly', 2, '10-15'], ['Cable Fly', 2, '12-15'], ['Overhead Rope Extension', 3, '10-15'], ['Rope Pushdown', 3, '10-15'], ['Cable Lateral Raise', 3, '12-20']] },
-  { name: 'Back & Biceps', e: '🦍', groups: ['Back', 'Biceps', 'Shoulders'], ex: [['Lat Pulldown', 3, '6-10'], ['Seated Cable Row', 3, '8-12'], ['Chest-Supported Row', 3, '8-12'], ['Straight-Arm Pulldown', 2, '12-15'], ['Face Pull', 3, '12-20'], ['Incline Dumbbell Curl', 3, '8-12'], ['Hammer Curl', 3, '10-12']] },
+  { name: 'Back & Biceps', e: '🦍', groups: ['Back', 'Biceps', 'Shoulders'], ex: [['Lat Pulldown', 3, '6-10'], ['Seated Cable Row', 3, '8-12'], ['Chest-Supported Dumbbell Row', 3, '8-12'], ['Straight-Arm Pulldown', 2, '12-15'], ['Face Pull', 3, '12-20'], ['Incline Dumbbell Curl', 3, '8-12'], ['Hammer Curl', 3, '10-12']] },
   { name: 'Legs', e: '🦵', groups: ['Quads', 'Hamstrings', 'Glutes', 'Calves'], ex: [['Smith Squat', 3, '6-10'], ['Romanian Deadlift', 3, '8-10'], ['Leg Press', 3, '10-12'], ['Lying Leg Curl', 3, '10-12'], ['Leg Extension', 2, '12-15'], ['Standing Calf Raise', 4, '10-15']] },
   { name: 'Shoulders & Arms', e: '💪', groups: ['Shoulders', 'Biceps', 'Triceps'], ex: [['Dumbbell Shoulder Press', 3, '6-10'], ['Cable Lateral Raise', 4, '12-20'], ['Rear Delt Fly', 3, '12-20'], ['EZ-Bar Curl', 3, '8-12'], ['Rope Pushdown', 3, '10-15'], ['Hammer Curl', 2, '10-12'], ['Overhead Rope Extension', 2, '10-15']] },
   { name: 'Shoulders, Forearms & Core', e: '🔥', groups: ['Shoulders', 'Forearms', 'Core'], ex: [['Dumbbell Shoulder Press', 3, '6-10'], ['Cable Lateral Raise', 3, '12-20'], ['Rear Delt Fly', 3, '12-20'], ['Reverse Curl', 3, '10-12'], ['Wrist Curl', 3, '12-20'], ['Reverse Wrist Curl', 2, '12-20'], ['Dead Hang', 2, '30-60s'], ['Hanging Leg Raise', 3, '10-15'], ['Cable Crunch', 3, '10-15'], ['Pallof Press', 2, '10-12']] },
@@ -539,7 +542,7 @@ function releaseWake() { try { wakeSentinel && wakeSentinel.release(); } catch (
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && UI.session && activeWorkout()) wakeLock(); });
 
 /* ---------- exercise renames: keep old logs, plans and settings pointing at the new name ---------- */
-const EX_RENAMES = [['Lateral Raise', 'Dumbbell Lateral Raise']];
+const EX_RENAMES = [['Lateral Raise', 'Dumbbell Lateral Raise'], ['Chest-Supported Row', 'Chest-Supported Dumbbell Row']];
 function migrateExNames() {
   const done = S().exRenamed || [], todo = EX_RENAMES.filter(([a]) => !done.includes(keyOf(a))); if (!todo.length) return;
   const map = new Map(todo.map(([a, b]) => [keyOf(a), b])), ren = n => map.get(keyOf(n)) || n, renKeys = o => o ? Object.fromEntries(Object.entries(o).map(([k, v]) => [map.has(k) ? keyOf(map.get(k)) : k, v])) : o;

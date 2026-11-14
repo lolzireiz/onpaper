@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '8.0';
+const APP_VERSION = '8.1';
 const CHANGELOG = [
+  ['8.1', ['🏋️ Chest-Supported Row is now Chest-Supported Dumbbell Row, and its demo shows a regular adjustable bench set to an incline. No machine needed. Your saved days and past sets moved over with it.', '🔎 Exercise search matches word by word, so “chest supported row”, “db curl” or an exercise’s old name all find it.']],
   ['8.0', ['🏋️ Dumbbell weights are clear now: two-dumbbell moves say “lb each” everywhere (the weight box, your sets, last time, suggestions, history, PRs), with a note under the box: weight of one dumbbell.', 'Single-dumbbell moves like goblet squats and one-arm rows say it’s just one dumbbell.', '🔮 Dumbbell PR predictions aim for the next dumbbell up instead of barbell plate numbers.', '🎬 Fixed the incline dumbbell curl animation: the arms no longer swing backwards mid-rep, and the upper arms stay still while you curl.']],
   ['7.9', ['⚖️ Smart calorie budget: your daily target now works like a weekly budget. Ate 400 under yesterday? Today’s limit becomes 2,900.', 'Go over and the app checks your 7-day average before calling it a problem, and shows what tomorrow’s budget will be.', 'Any one day moves by at most 25%, so a big night out is paid back gently over a couple of days. Protein still resets every day.', 'Tap the Calories ring to see the math, your last 7 days, and “Planning a big meal later?” to check a dinner out before you go.', '⚖️ Weigh-in up the morning after a big day? The app now explains it’s mostly water and salt, not fat.']],
   ['7.8', ['📸 Snap your meal: take a photo, add details if you like (amounts, oil, sauces, how much you ate), and the AI splits your plate into foods with portion sizes and macros.', 'Adjust any portion, set how much you ate, or tell it what to fix and it re-estimates. Log it as one meal or as separate items.', 'Find it with the 📸 button next to Add food, or at the top of the Add food screen.']],
@@ -113,7 +114,7 @@ const EX_MUSCLES = {
   'bench press': ['chest delts triceps'], 'incline bench press': ['chest delts', 'triceps'], 'dumbbell bench press': ['chest', 'delts triceps'], 'incline dumbbell press': ['chest delts', 'triceps'],
   'machine chest press': ['chest', 'delts triceps'], 'smith incline press': ['chest delts', 'triceps'], 'smith bench press': ['chest', 'delts triceps'], 'low-to-high cable fly': ['chest delts', ''], 'pec deck fly': ['chest', 'delts'], 'cable fly': ['chest', 'delts'], 'dips': ['chest triceps', 'delts'], 'push-ups': ['chest triceps', 'delts abs'],
   'deadlift': ['glutes hamstrings lower_back', 'quads traps lats forearms upper_back'], 'pull-ups': ['lats biceps', 'upper_back rear_delts forearms'], 'barbell row': ['lats upper_back', 'rear_delts biceps lower_back'], 'lat pulldown': ['lats', 'biceps upper_back'],
-  'seated cable row': ['upper_back lats', 'rear_delts biceps'], 'dumbbell row': ['lats upper_back', 'biceps rear_delts'], 't-bar row': ['upper_back lats', 'rear_delts biceps lower_back'], 'chest-supported row': ['upper_back lats', 'rear_delts biceps'],
+  'seated cable row': ['upper_back lats', 'rear_delts biceps'], 'dumbbell row': ['lats upper_back', 'biceps rear_delts'], 't-bar row': ['upper_back lats', 'rear_delts biceps lower_back'], 'chest-supported dumbbell row': ['upper_back lats', 'rear_delts biceps'],
   'straight-arm pulldown': ['lats', 'triceps'], 'back extension': ['lower_back glutes', 'hamstrings'],
   'overhead press': ['delts side_delts triceps', 'traps abs'], 'dumbbell shoulder press': ['delts side_delts', 'triceps traps'], 'machine shoulder press': ['delts side_delts', 'triceps'], 'dumbbell lateral raise': ['side_delts', 'traps'],
   'cable lateral raise': ['side_delts', 'traps'], 'rear delt fly': ['rear_delts', 'upper_back'], 'face pull': ['rear_delts upper_back', 'traps'], 'dumbbell shrug': ['traps', 'forearms'],
