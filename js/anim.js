@@ -148,6 +148,8 @@ const ARCH = {
   // seated, upper arms resting on the angled pad
   preacher: (o = {}) => ({ A: { p: [0, 0.55, -0.1], lean: 14, f: [0.18, 0.06, 0.4], kp: [0, 1, 0.5], h: [0.2, 0.74, 0.62], ep: [0, 1, 0.2] }, B: { p: [0, 0.55, -0.1], lean: 14, f: [0.18, 0.06, 0.4], kp: [0, 1, 0.5], h: [0.2, 1.17, 0.36], ep: [0, -1, 0.2] }, props: [SEAT, { t: 'preacher', a: [0, 1.04, 0.18], b: [0, 0.82, 0.48] }, ...(o.props || [{ t: 'bar', short: 1 }])], yaw: 62, cue: ['Armpits snug against the top of the pad', 'Lower until your arms are almost straight', 'Curl up and squeeze, don\'t lift your elbows'] }),
   // chest on an incline bench, rowing up from a dead hang
+  /* Hammer Strength MTS iso-lateral row: seated, chest on a pad, handles on arms that swing from an overhead pivot */
+  mtsrow: () => ({ A: { p: [0, 0.55, -0.14], lean: 4, f: [0.17, 0.06, 0.36], kp: [0, 1, 0.5], h: [0.25, 0.93, 0.6], ep: [0.6, -1, 0] }, B: { p: [0, 0.55, -0.14], lean: 0, f: [0.17, 0.06, 0.36], kp: [0, 1, 0.5], h: [0.27, 0.94, 0.04], ep: [0.5, -0.4, -1] }, pivArc: [0.27, 1.62, 0.332], props: [{ t: 'slab', a: [0, 0.4, -0.36], b: [0, 0.4, 0.06], w: 0.4, legs: 1 }, { t: 'mtsframe' }, { t: 'levers', a: [0.27, 1.62, 0.332] }, { t: 'grips' }], twist: 0, yaw: 58, cue: ['Chest stays on the pad, feet planted', 'Drive your elbows back past your body and squeeze', 'Let the handles pull you into a full stretch'] }),
   csrow: () => ({ A: { p: [0, 0.8, -0.32], lean: 50, f: [0.16, 0.06, -0.5], kp: [0, 0, 1], h: [0.24, 0.48, 0.3], ep: [0.4, 0.6, -1] }, B: { p: [0, 0.8, -0.32], lean: 50, f: [0.16, 0.06, -0.5], kp: [0, 0, 1], h: [0.27, 0.86, 0.02], ep: [0.4, 0.6, -1] }, props: [{ t: 'pronebench' }, { t: 'db' }], yaw: 68, cue: ['Set a bench to about 30–45° and lie chest-down', 'Chest stays on the pad the whole time', 'Pull your elbows back and squeeze', 'Lower all the way to a full stretch'] }),
   // one knee and hand on a bench, rowing with the other arm
   dbrow: () => ({ A: { p: [0, 0.82, -0.12], lean: 80, fR: [0.24, 0.06, -0.02], fL: [-0.12, 0.5, -0.52], kpL: [0, -1, 0.5], kpR: [0.2, 0, 1], hR: [0.22, 0.34, 0.36], hL: [-0.18, 0.5, 0.42], epR: [0.3, 0.6, -1], epL: [-1, 0.3, 0] }, B: { p: [0, 0.82, -0.12], lean: 80, fR: [0.24, 0.06, -0.02], fL: [-0.12, 0.5, -0.52], kpL: [0, -1, 0.5], kpR: [0.2, 0, 1], hR: [0.24, 0.74, 0.16], hL: [-0.18, 0.5, 0.42], epR: [0.3, 1, -0.8], epL: [-1, 0.3, 0] }, props: [{ t: 'slab', a: [-0.13, 0.46, -0.66], b: [-0.13, 0.46, 0.56], w: 0.32, legs: 1 }, { t: 'db', side: 'R' }], yaw: 50, cue: ['One knee and hand on the bench, back flat', 'Pull the dumbbell to your hip', 'Lower to a full stretch, don\'t twist'] }),
@@ -174,7 +176,7 @@ const EX_ANIM = {
   'Pec Deck Fly': ['pecdeck'], 'Cable Fly': ['cfly'], 'Dips': ['dips'], 'Push-ups': ['pushup'], 'Close-Grip Bench Press': ['bench', { x: 0.13, props: [{ t: 'bar' }, { t: 'benchrack', z: -0.5, h: 1.15 }] }],
   'Deadlift': ['hinge', { dead: 1 }], 'Romanian Deadlift': ['hinge'], 'Dumbbell RDL': ['hinge', { props: DB }], 'Kettlebell Swing': ['swing'], 'Back Extension': ['backext'], 'Single-Leg RDL': ['slrdl'],
   'Pull-ups': ['pullup'], 'Chin-ups': ['pullup', { x: 0.17 }], 'Hanging Leg Raise': ['hlr'], 'Lat Pulldown': ['pulldown'], 'Straight-Arm Pulldown': ['sapd'], 'Seated Cable Row': ['srow'],
-  'Barbell Row': ['brow'], 'Dumbbell Row': ['dbrow'], 'T-Bar Row': ['brow', { x: 0.08, props: [{ t: 'tbar' }] }], 'Chest-Supported Dumbbell Row': ['csrow'], 'Face Pull': ['facepull'], 'Rear Delt Fly': ['rdf'],
+  'Barbell Row': ['brow'], 'Dumbbell Row': ['dbrow'], 'T-Bar Row': ['brow', { x: 0.08, props: [{ t: 'tbar' }] }], 'Chest-Supported Dumbbell Row': ['csrow'], 'MTS Row': ['mtsrow'], 'Face Pull': ['facepull'], 'Rear Delt Fly': ['rdf'],
   'Overhead Press': ['ohp', { props: [{ t: 'bar' }, { t: 'rack', y: 1.3 }] }], 'Dumbbell Shoulder Press': ['ohp', { seat: 1, props: DB }], 'Machine Shoulder Press': ['ohp', { seat: 1, props: [{ t: 'grips' }, { t: 'levers', a: [0.34, 1.22, -0.44] }] }], 'Dumbbell Lateral Raise': ['latraise'], 'Cable Lateral Raise': ['latraise', { props: [{ t: 'grips' }, { t: 'cable2', a: [-0.22, 0.12, 0.08] }] }], 'Dumbbell Shrug': ['shrug'],
   'Barbell Curl': ['curl', { props: BAR }], 'EZ-Bar Curl': ['curl', { props: [{ t: 'bar', short: 1 }] }], 'Dumbbell Curl': ['curl', { twist: TW }], 'Hammer Curl': ['curl'], 'Preacher Curl': ['preacher'], 'Cable Curl': ['curl', { props: [{ t: 'bar', short: 1 }, { t: 'cable', a: [0, 0.08, 0.7] }] }], 'Incline Dumbbell Curl': ['inclcurl', { twist: TW }],
   'Triceps Pushdown': ['pushdown'], 'Rope Pushdown': ['pushdown', { props: [{ t: 'rope', a: [0, 2.3, 0.42] }] }], 'Overhead Rope Extension': ['ohext', { props: [{ t: 'rope', a: [0, 0.3, -0.9] }] }], 'Overhead Cable Extension': ['ohext', { props: [{ t: 'rope', a: [0, 0.3, -0.9] }] }], 'Skull Crushers': ['skull'], 'Dumbbell Overhead Extension': ['ohext', { props: [{ t: 'db1' }] }],
@@ -206,6 +208,14 @@ function animPose(def, t, cycle) {
   if (def.swing) { // limbs that swing through an arc (leg raises, front raises): keep their reach instead of folding mid-rep
     const piv = { f: s => V.add(q.p, [s === 'R' ? 0.1 : -0.1, 0, 0]), h: s => V.add(q.p, V.add(V.mul([0, Math.cos(q.lean * Math.PI / 180), Math.sin(q.lean * Math.PI / 180)], 0.45), [s === 'R' ? 0.2 : -0.2, 0, 0])) };
     for (const k of def.swing) for (const s of ['R', 'L']) { const pa = piv[k](s), la = V.len(V.sub(def.a[k + s], pa)), lb = V.len(V.sub(b[k + s], pa)), d = V.sub(q[k + s], pa), L = la + (lb - la) * t; if (V.len(d) > 1e-3) q[k + s] = V.add(pa, V.mul(V.norm(d), L)); }
+  }
+  if (def.pivArc) { // machine handles on swinging arms: hands travel an arc around the arm's pivot
+    for (const s of ['R', 'L']) {
+      const pv = [s === 'R' ? def.pivArc[0] : -def.pivArc[0], def.pivArc[1], def.pivArc[2]], hA = def.a['h' + s], hB = b['h' + s];
+      const dA = V.sub(hA, pv), dB = V.sub(hB, pv), ua = V.norm(dA), ub = V.norm(dB), ang = Math.acos(Math.max(-1, Math.min(1, V.dot(ua, ub)))), si = Math.sin(ang);
+      const u = ang < 1e-3 ? ua : V.add(V.mul(ua, Math.sin((1 - t) * ang) / si), V.mul(ub, Math.sin(t * ang) / si));
+      q['h' + s] = V.add(pv, V.mul(u, V.len(dA) + (V.len(dB) - V.len(dA)) * t));
+    }
   }
   if (def.curlArc) { // curls with the upper arm still (incline curls): the hand travels a true arc around a fixed elbow
     const up = [0, Math.cos(def.a.lean * Math.PI / 180), Math.sin(def.a.lean * Math.PI / 180)];

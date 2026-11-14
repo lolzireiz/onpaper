@@ -208,6 +208,16 @@ function propGeo(def, q, J, m) {
       cyl([cc[0] - 0.24, cc[1], cc[2]], [cc[0] + 0.24, cc[1], cc[2]], 0.055, C3.pad, 14, 1);
       if (pr.lever) { const pvt = V.mul(V.add(J.knR, J.knL), 0.5), piv = [0.32, pvt[1], pvt[2]]; cyl(piv, [0.3, cc[1], cc[2]], 0.022, C3.dark); cyl([0.3, piv[1], piv[2]], [0.36, piv[1], piv[2]], 0.05, C3.dark, 12, 1); } }
     else if (pr.t === 'kneepads') for (const [s, sx] of SIDES) { const k = V.add(J['kn' + s], [sx * 0.085, 0, 0]); cyl(V.add(k, [0, -0.08, 0]), V.add(k, [0, 0.08, 0]), 0.045, C3.pad, 12, 1); cyl(V.add(k, [sx * 0.05, 0, 0]), [sx * 0.3, k[1] - 0.25, k[2] - 0.2], 0.018, C3.dark); }
+    else if (pr.t === 'mtsframe') {   // MTS iso-lateral row: base, chest pad on a post, two weight-stack towers joined by the overhead pivot axle
+      const P = JA, pz = P.chest[2] + 0.13, py = P.chest[1] + 0.1;
+      slab([0, 0.035, -0.5], [0, 0.035, 1.0], 0.5, C3.dark, 0.035); slab([-0.48, 0.035, 0.98], [0.48, 0.035, 0.98], 0.2, C3.dark, 0.035);
+      slab([0, py - 0.19, pz], [0, py + 0.17, pz + 0.02], 0.3, C3.pad, 0.07); cyl([0, py - 0.1, pz + 0.04], [0, 0.04, pz + 0.34], 0.03, C3.dark);
+      for (const sx of [-0.42, 0.42]) {
+        slab([sx, 0.06, 1.0], [sx, 1.1, 1.0], 0.16, C3.dark, 0.13); slab([sx, 0.07, 0.925], [sx, 0.6, 0.925], 0.13, C3.bar, 0.02);
+        cyl([sx, 1.1, 1.0], [sx, 1.62, 0.332], 0.035, C3.dark);
+      }
+      cyl([-0.44, 1.62, 0.332], [0.44, 1.62, 0.332], 0.03, C3.bar, 10, 1);
+    }
     else if (pr.t === 'pronebench') {   // an adjustable bench set to an incline, lying chest-down on it (no machine needed)
       const P = JA, a2 = V.add(P.pelvis, V.mul(P.fwd, 0.15)), b2 = V.add(P.chest, V.add(V.mul(P.fwd, 0.15), V.mul(P.up, 0.24))), d = V.norm(V.sub(b2, a2));
       const H = V.sub(a2, V.mul(d, Math.max(0, (a2[1] - 0.44) / Math.max(0.2, d[1])))), M = V.add(H, V.mul(V.sub(b2, H), 0.62));

@@ -1,7 +1,7 @@
 {
- "version": "8.1",
+ "version": "8.2",
  "notes": [
-  "\ud83c\udfcb\ufe0f Chest-Supported Row is now Chest-Supported Dumbbell Row, and its demo shows a regular adjustable bench set to an incline. No machine needed. Your saved days and past sets moved over with it.",
-  "\ud83d\udd0e Exercise search matches word by word, so \u201cchest supported row\u201d, \u201cdb curl\u201d or an exercise\u2019s old name all find it."
+  "\ud83e\uddbe New: MTS Row, the Hammer Strength iso-lateral row machine, with its own demo. Log the weight on one side, since each arm has its own stack.",
+  "\ud83d\udd01 It's ticked on in your gym's equipment and has taken the Chest-Supported Dumbbell Row's spot in your plan. Search \u201cmts\u201d, \u201ciso lateral\u201d or \u201chammer strength\u201d to find it."
  ]
 }

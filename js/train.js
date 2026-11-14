@@ -4,7 +4,7 @@
 const GROUPS = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Forearms', 'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core'];
 const EQUIP = [
   ['Free weights', [['barbell', 'Barbell + plates'], ['rack', 'Squat / power rack'], ['bench', 'Flat bench'], ['incline', 'Incline / adjustable bench'], ['db', 'Dumbbells'], ['ez', 'EZ curl bar'], ['kb', 'Kettlebells']]],
-  ['Machines', [['smith', 'Smith machine'], ['legpress', 'Leg press'], ['hack', 'Hack squat'], ['legext', 'Leg extension'], ['legcurl', 'Leg curl'], ['chestpress', 'Chest press machine'], ['shoulderpress', 'Shoulder press machine'], ['pecdeck', 'Pec deck / rear delt'], ['calf', 'Calf raise machine'], ['hipthrust', 'Hip thrust machine'], ['abductor', 'Hip abductor / adductor'], ['tbar', 'T-bar row'], ['preacher', 'Preacher bench']]],
+  ['Machines', [['smith', 'Smith machine'], ['legpress', 'Leg press'], ['hack', 'Hack squat'], ['legext', 'Leg extension'], ['legcurl', 'Leg curl'], ['chestpress', 'Chest press machine'], ['shoulderpress', 'Shoulder press machine'], ['pecdeck', 'Pec deck / rear delt'], ['calf', 'Calf raise machine'], ['hipthrust', 'Hip thrust machine'], ['abductor', 'Hip abductor / adductor'], ['mtsrow', 'MTS / iso-lateral row machine'], ['tbar', 'T-bar row'], ['preacher', 'Preacher bench']]],
   ['Cables & stations', [['cable', 'Cable station'], ['lat', 'Lat pulldown'], ['row', 'Seated cable row'], ['pullup', 'Pull-up bar'], ['dip', 'Dip station'], ['ghd', 'Back extension / GHD']]],
 ];
 const EQ_IDS = EQUIP.flatMap(g => g[1].map(e => e[0]));
@@ -15,7 +15,7 @@ const LIBRARY = [
   ['Incline Dumbbell Press', 'Chest', ['db', 'incline']], ['Machine Chest Press', 'Chest', ['chestpress']], ['Smith Incline Press', 'Chest', ['smith', 'incline']], ['Smith Bench Press', 'Chest', ['smith', 'bench']],
   ['Pec Deck Fly', 'Chest', ['pecdeck']], ['Cable Fly', 'Chest', ['cable']], ['Low-to-High Cable Fly', 'Chest', ['cable']], ['Dips', 'Chest', ['dip']], ['Push-ups', 'Chest', []],
   ['Deadlift', 'Back', ['barbell']], ['Pull-ups', 'Back', ['pullup']], ['Chin-ups', 'Back', ['pullup']], ['Barbell Row', 'Back', ['barbell']], ['Lat Pulldown', 'Back', ['lat']],
-  ['Seated Cable Row', 'Back', ['row']], ['Dumbbell Row', 'Back', ['db', 'bench']], ['T-Bar Row', 'Back', ['tbar']], ['Chest-Supported Dumbbell Row', 'Back', ['db', 'incline']],
+  ['Seated Cable Row', 'Back', ['row']], ['Dumbbell Row', 'Back', ['db', 'bench']], ['T-Bar Row', 'Back', ['tbar']], ['Chest-Supported Dumbbell Row', 'Back', ['db', 'incline']], ['MTS Row', 'Back', ['mtsrow']],
   ['Straight-Arm Pulldown', 'Back', ['cable']], ['Back Extension', 'Back', ['ghd']],
   ['Overhead Press', 'Shoulders', ['barbell', 'rack']], ['Dumbbell Shoulder Press', 'Shoulders', ['db']], ['Machine Shoulder Press', 'Shoulders', ['shoulderpress']],
   ['Dumbbell Lateral Raise', 'Shoulders', ['db']], ['Cable Lateral Raise', 'Shoulders', ['cable']], ['Rear Delt Fly', 'Shoulders', ['pecdeck']], ['Face Pull', 'Shoulders', ['cable']], ['Dumbbell Shrug', 'Shoulders', ['db']],
@@ -171,7 +171,7 @@ function sessionHTML(w) {
   h += `<button class="btn ghost block" data-act="addExercise">${ICON.plus} Add exercise</button><button class="linkbtn danger center" data-act="discardWorkout">Discard workout</button>`;
   return h;
 }
-const COMPOUND = new Set(['Bench Press', 'Incline Bench Press', 'Dumbbell Bench Press', 'Incline Dumbbell Press', 'Machine Chest Press', 'Smith Incline Press', 'Smith Bench Press', 'Dips', 'Deadlift', 'Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Seated Cable Row', 'Dumbbell Row', 'T-Bar Row', 'Chest-Supported Dumbbell Row', 'Overhead Press', 'Dumbbell Shoulder Press', 'Machine Shoulder Press', 'Close-Grip Bench Press', 'Squat', 'Front Squat', 'Leg Press', 'Hack Squat', 'Smith Squat', 'Bulgarian Split Squat', 'Goblet Squat', 'Walking Lunge', 'Romanian Deadlift', 'Dumbbell RDL', 'Hip Thrust', 'Machine Hip Thrust'].map(keyOf));
+const COMPOUND = new Set(['Bench Press', 'Incline Bench Press', 'Dumbbell Bench Press', 'Incline Dumbbell Press', 'Machine Chest Press', 'Smith Incline Press', 'Smith Bench Press', 'Dips', 'Deadlift', 'Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Seated Cable Row', 'Dumbbell Row', 'T-Bar Row', 'Chest-Supported Dumbbell Row', 'MTS Row', 'Overhead Press', 'Dumbbell Shoulder Press', 'Machine Shoulder Press', 'Close-Grip Bench Press', 'Squat', 'Front Squat', 'Leg Press', 'Hack Squat', 'Smith Squat', 'Bulgarian Split Squat', 'Goblet Squat', 'Walking Lunge', 'Romanian Deadlift', 'Dumbbell RDL', 'Hip Thrust', 'Machine Hip Thrust'].map(keyOf));
 const isCompound = n => COMPOUND.has(keyOf(n));
 const defaultTarget = n => ({ sets: S().defaultSets || 3, reps: isCompound(n) ? '6-8' : '8-12' });
 const tgtFor = n => ({ ...defaultTarget(n), ...((S().exTargets || {})[keyOf(n)] || {}) });
@@ -180,12 +180,14 @@ const repRange = r => { const m = String(r || '').match(/(\d+)\s*[-–to]+\s*(\d
 /* Dumbbell exercises: the number you log is what's printed on one dumbbell.
    pair  = you hold two ("25 lb each"), one = a single dumbbell, total = bodyweight moves where the box is all added weight. */
 const DB_ONE = new Set(['goblet squat', 'dumbbell row', 'dumbbell overhead extension', 'russian twist']);
+const SIDE_EX = new Set(['mts row']);   // iso-lateral machines: each arm has its own weight stack, logged per side
 function dbKind(name) {
-  const k = keyOf(name || ''), e = library().get(k), db = e ? (e.equip || []).includes('db') : /\bdumbbells?\b|\bdb\b/i.test(name || '');
+  const k = keyOf(name || ''); if (SIDE_EX.has(k)) return 'side';
+  const e = library().get(k), db = e ? (e.equip || []).includes('db') : /\bdumbbells?\b|\bdb\b/i.test(name || '');
   if (!db) return ''; if (DB_ONE.has(k)) return 'one'; if (bwFactor(name)) return 'total'; return 'pair';
 }
-const wuEx = name => dbKind(name) === 'pair' ? `${U.wu} each` : U.wu;   // "lb each" for two-dumbbell moves
-const eaEx = name => dbKind(name) === 'pair' ? ' each' : '';
+const wuEx = name => { const k = dbKind(name); return k === 'pair' ? `${U.wu} each` : k === 'side' ? `${U.wu} a side` : U.wu; };   // "lb each" for two-dumbbell moves, "lb a side" for iso-lateral machines
+const eaEx = name => { const k = dbKind(name); return k === 'pair' ? ' each' : k === 'side' ? ' a side' : ''; };
 function weightStep(name) { const e = library().get(keyOf(name)); if (bwFactor(name) && e && (e.equip || []).includes('db')) return U.metric ? 4 : 10; const lower = e && ['Quads', 'Hamstrings', 'Glutes'].includes(e.group) && !(e.equip || []).includes('db'); return U.metric ? (lower ? 5 : 2.5) : (lower ? 10 : 5); }
 function suggestion(w, name) {
   const t = exTarget(w, name), [lo, hi] = repRange(t.reps), prev = lastSessionSets(name, w.id); if (!prev) return null;
@@ -213,8 +215,8 @@ function exBlockHTML(w, name) {
   ${prev ? `<p class="faint small">Last time (${fmtDate(prev.date)}): ${prev.sets.map(s => `${s.warm ? '<span style="opacity:.6">' : ''}${fw(s.w)}×${s.r}${s.hit === false ? '✗' : ''}${s.warm ? '</span>' : ''}`).join(', ')}${eaEx(name) ? ` <span class="db-u">${wuEx(name)}</span>` : ''}</p>` : ''}
   ${sug ? `<p class="small sug-box"><b>Try ${fw(sug.w)}${eaEx(name) ? ' ' + wuEx(name) : ''} × ${sug.r}.</b> ${esc(sug.why)}</p>` : ''}
   ${all.length ? `<ol class="sets">${all.map((s, j) => { const rec = setRec(L, s.id); return `<li class="${UI.justSet === s.id ? 'just' : ''}"><button class="setrow" data-act="editSet" data-wid="${w.id}" data-sid="${s.id}"><span class="n">${s.warm ? 'W' : j + 1 - all.slice(0, j).filter(x => x.warm).length}</span><span class="v grow">${bwf ? `${s.w ? '+' + fw(s.w) : 'BW'} <span class="faint">${s.w ? U.wu : ''}</span> × ${s.r} <span class="faint small">≈${fw(bwf * (s.bwt || bwNow) + (s.w || 0), 0)} ${U.wu}</span>` : `${fw(s.w)} <span class="faint">${s.w ? wuEx(name) : ''}</span> × ${s.r}`}</span>${rec?.pr ? '<span class="pr">PR</span>' : ''}${s.hit === false ? '<span class="missb">Missed</span>' : ''}${s.warm ? '<span class="baseb">Warm-up</span>' : ''}</button></li>`; }).join('')}</ol>` : ''}
-  <div class="addset2"><div class="stepper"><button data-act="step" data-t="sw-${k}" data-d="-${step}" aria-label="Less weight">−</button><input id="sw-${k}" data-keep inputmode="decimal" value="${pre ? plain(U.w(pre.w)) : ''}" placeholder="${bwf ? '+' + U.wu : wuEx(name)}" aria-label="${bwf ? (dbKind(name) === 'one' ? 'Weight of the dumbbell' : 'Added weight (both dumbbells together)') : dbKind(name) === 'pair' ? 'Weight of one dumbbell' : 'Weight'} in ${U.wu} for ${esc(name)}"><button data-act="step" data-t="sw-${k}" data-d="${step}" aria-label="More weight">+</button></div><span class="x">×</span><div class="stepper"><button data-act="step" data-t="sr-${k}" data-d="-1" aria-label="One less rep">−</button><input id="sr-${k}" data-keep inputmode="numeric" value="${pre ? pre.r : ''}" placeholder="reps" aria-label="Reps for ${esc(name)}"><button data-act="step" data-t="sr-${k}" data-d="1" aria-label="One more rep">+</button></div></div>
-  ${!bwf && dbKind(name) === 'pair' ? '<p class="db-cap">Weight of <b>one</b> dumbbell. You\'re holding two.</p>' : !bwf && dbKind(name) === 'one' ? '<p class="db-cap">Weight of the dumbbell (just one).</p>' : ''}
+  <div class="addset2"><div class="stepper"><button data-act="step" data-t="sw-${k}" data-d="-${step}" aria-label="Less weight">−</button><input id="sw-${k}" data-keep inputmode="decimal" value="${pre ? plain(U.w(pre.w)) : ''}" placeholder="${bwf ? '+' + U.wu : wuEx(name)}" aria-label="${bwf ? (dbKind(name) === 'one' ? 'Weight of the dumbbell' : 'Added weight (both dumbbells together)') : dbKind(name) === 'pair' ? 'Weight of one dumbbell' : dbKind(name) === 'side' ? 'Weight on one side' : 'Weight'} in ${U.wu} for ${esc(name)}"><button data-act="step" data-t="sw-${k}" data-d="${step}" aria-label="More weight">+</button></div><span class="x">×</span><div class="stepper"><button data-act="step" data-t="sr-${k}" data-d="-1" aria-label="One less rep">−</button><input id="sr-${k}" data-keep inputmode="numeric" value="${pre ? pre.r : ''}" placeholder="reps" aria-label="Reps for ${esc(name)}"><button data-act="step" data-t="sr-${k}" data-d="1" aria-label="One more rep">+</button></div></div>
+  ${!bwf && dbKind(name) === 'pair' ? '<p class="db-cap">Weight of <b>one</b> dumbbell. You\'re holding two.</p>' : !bwf && dbKind(name) === 'one' ? '<p class="db-cap">Weight of the dumbbell (just one).</p>' : !bwf && dbKind(name) === 'side' ? '<p class="db-cap">Weight on <b>one</b> side. Each arm has its own stack.</p>' : ''}
   ${plateable(name) ? `<button class="linkbtn plate-btn" data-act="plates" data-ex="${esc(name)}">🧮 Plates &amp; warm-ups</button>` : ''}
   ${bwf ? `<div class="bwrow"><label class="faint small" for="sb-${k}">Bodyweight</label><input id="sb-${k}" data-keep inputmode="decimal" value="${bwNow ? plain(U.w(bwNow)) : ''}" placeholder="${U.wu}" aria-label="Your bodyweight in ${U.wu}"><span class="faint small">${U.wu} · weight box = ${dbKind(name) === 'one' ? '<b>the dumbbell</b>' : dbKind(name) === 'total' ? '<b>both dumbbells</b> total' : 'added weight'}</span><span class="est" id="est-${k}" data-f="${bwf}">${estTxt(bwf, bwNow ? U.w(bwNow) : 0, pre ? U.w(pre.w) : 0)}</span></div>` : ''}
   <div class="addset-b"><button class="missbtn" id="swu-${k}" data-act="toggle" aria-pressed="false">Warm-up</button><button class="missbtn" id="sh-${k}" data-act="toggle" aria-pressed="false">Missed</button><button class="btn" data-act="logSet" data-ex="${esc(name)}">Log set ${Math.min(work.length + 1, 99)}${work.length < t.sets ? ` of ${t.sets}` : ''}</button></div></section>`;
@@ -375,7 +377,7 @@ function exListHTML(q) {
   const gym = Sheet.pickGym, ex = new Set(Sheet.pickExclude), qq = keyOf(q);
   /* every word has to match (name, muscle group or an old name), so "chest supported row" or "db curl" still find things */
   const words = (qq || '').split(/\s+/).filter(Boolean).map(w => w === 'db' || w === 'dbs' ? 'dumbbell' : w), oldOf = new Map(EX_RENAMES.map(([a, b]) => [keyOf(b), keyOf(a)]));
-  const hay = e => `${keyOf(e.name)} ${keyOf(e.group)} ${oldOf.get(keyOf(e.name)) || ''}`.replace(/-/g, ' ');
+  const hay = e => `${keyOf(e.name)} ${keyOf(e.group)} ${oldOf.get(keyOf(e.name)) || ''} ${EX_ALIAS[keyOf(e.name)] || ''}`.replace(/-/g, ' ');
   const all = [...library().values()].filter(e => !ex.has(keyOf(e.name)) && (!words.length || words.every(w => hay(e).includes(w.replace(/-/g, ' ')))));
   const avail = all.filter(e => available(e.name, gym)), missing = qq ? all.filter(e => !available(e.name, gym)) : [];
   const row = (e, dim) => `<div class="row" style="padding:0;${dim ? 'opacity:.5' : ''}"><button class="grow" style="padding:12px 0;text-align:left" data-act="pickEx" data-name="${esc(e.name)}">${esc(e.name)}${painDot(e.name)}<div class="faint small">${esc(e.equip.map(q => EQ_LABEL[q]).join(', ') || (e.custom ? 'Custom' : 'No equipment'))}</div>${goalBadges(e.name)}</button>${musBtn(e.name)}</div>`;
@@ -439,7 +441,7 @@ A.splitDay = d => drawDay(+d.i);
 /* Ready-made days: [exercise, sets, reps]. Adding one also sets those sets × reps targets. */
 const DAY_PRESETS = [
   { name: 'Chest & Triceps', e: '🏋️', groups: ['Chest', 'Triceps', 'Shoulders'], ex: [['Smith Incline Press', 3, '6-10'], ['Smith Bench Press', 3, '6-10'], ['Dips', 3, '8-12'], ['Pec Deck Fly', 2, '10-15'], ['Cable Fly', 2, '12-15'], ['Overhead Rope Extension', 3, '10-15'], ['Rope Pushdown', 3, '10-15'], ['Cable Lateral Raise', 3, '12-20']] },
-  { name: 'Back & Biceps', e: '🦍', groups: ['Back', 'Biceps', 'Shoulders'], ex: [['Lat Pulldown', 3, '6-10'], ['Seated Cable Row', 3, '8-12'], ['Chest-Supported Dumbbell Row', 3, '8-12'], ['Straight-Arm Pulldown', 2, '12-15'], ['Face Pull', 3, '12-20'], ['Incline Dumbbell Curl', 3, '8-12'], ['Hammer Curl', 3, '10-12']] },
+  { name: 'Back & Biceps', e: '🦍', groups: ['Back', 'Biceps', 'Shoulders'], ex: [['Lat Pulldown', 3, '6-10'], ['Seated Cable Row', 3, '8-12'], ['MTS Row', 3, '8-12'], ['Straight-Arm Pulldown', 2, '12-15'], ['Face Pull', 3, '12-20'], ['Incline Dumbbell Curl', 3, '8-12'], ['Hammer Curl', 3, '10-12']] },
   { name: 'Legs', e: '🦵', groups: ['Quads', 'Hamstrings', 'Glutes', 'Calves'], ex: [['Smith Squat', 3, '6-10'], ['Romanian Deadlift', 3, '8-10'], ['Leg Press', 3, '10-12'], ['Lying Leg Curl', 3, '10-12'], ['Leg Extension', 2, '12-15'], ['Standing Calf Raise', 4, '10-15']] },
   { name: 'Shoulders & Arms', e: '💪', groups: ['Shoulders', 'Biceps', 'Triceps'], ex: [['Dumbbell Shoulder Press', 3, '6-10'], ['Cable Lateral Raise', 4, '12-20'], ['Rear Delt Fly', 3, '12-20'], ['EZ-Bar Curl', 3, '8-12'], ['Rope Pushdown', 3, '10-15'], ['Hammer Curl', 2, '10-12'], ['Overhead Rope Extension', 2, '10-15']] },
   { name: 'Shoulders, Forearms & Core', e: '🔥', groups: ['Shoulders', 'Forearms', 'Core'], ex: [['Dumbbell Shoulder Press', 3, '6-10'], ['Cable Lateral Raise', 3, '12-20'], ['Rear Delt Fly', 3, '12-20'], ['Reverse Curl', 3, '10-12'], ['Wrist Curl', 3, '12-20'], ['Reverse Wrist Curl', 2, '12-20'], ['Dead Hang', 2, '30-60s'], ['Hanging Leg Raise', 3, '10-15'], ['Cable Crunch', 3, '10-15'], ['Pallof Press', 2, '10-12']] },
@@ -542,7 +544,16 @@ function releaseWake() { try { wakeSentinel && wakeSentinel.release(); } catch (
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && UI.session && activeWorkout()) wakeLock(); });
 
 /* ---------- exercise renames: keep old logs, plans and settings pointing at the new name ---------- */
+const EX_ALIAS = { 'mts row': 'iso lateral isolateral hammer strength machine row' };   // extra words the exercise picker matches on
 const EX_RENAMES = [['Lateral Raise', 'Dumbbell Lateral Raise'], ['Chest-Supported Row', 'Chest-Supported Dumbbell Row']];
+function addMtsRow() {   // v8.2: the gym has a Hammer Strength MTS row, so tick it in the gym's equipment and swap it in for the chest-supported row in the plan
+  if (S().mtsAdded) return;
+  for (const g of gyms()) if (!(g.equip || []).includes('mtsrow')) put('gyms', g.id, { ...clone(g), equip: [...(g.equip || []), 'mtsrow'] });
+  const s = S(), cs = 'chest-supported dumbbell row', has = d => (d.exercises || []).some(n => keyOf(n) === 'mts row');
+  const split = s.split ? { ...clone(s.split), days: (s.split.days || []).map(d => has(d) ? d : { ...d, exercises: (d.exercises || []).map(n => keyOf(n) === cs ? 'MTS Row' : n) }) } : s.split;
+  const exT = { ...(s.exTargets || {}) }; if (exT[cs] && !exT['mts row']) exT['mts row'] = exT[cs];   // keep any sets × reps they'd set for the old row
+  saveSettings({ split, exTargets: exT, mtsAdded: 1 });
+}
 function migrateExNames() {
   const done = S().exRenamed || [], todo = EX_RENAMES.filter(([a]) => !done.includes(keyOf(a))); if (!todo.length) return;
   const map = new Map(todo.map(([a, b]) => [keyOf(a), b])), ren = n => map.get(keyOf(n)) || n, renKeys = o => o ? Object.fromEntries(Object.entries(o).map(([k, v]) => [map.has(k) ? keyOf(map.get(k)) : k, v])) : o;
