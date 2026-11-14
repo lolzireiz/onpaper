@@ -260,7 +260,7 @@ function showSummary(id) {
       <div><span class="k">Work sets</span><b><span data-count="${st.sets}">${st.sets}</span></b><span class="faint tiny">${plural(st.exN, 'exercise')}</span></div>
       <div><span class="k">PRs</span><b><span data-count="${st.prs.length}">${st.prs.length}</span></b></div>
     </div>
-    ${st.prs.length ? `<div class="sum-prs">${st.prs.map(p => `<div class="row"><span class="pr">PR</span><b class="grow">${esc(p.ex)}</b><span class="rnum">${p.added != null ? (p.added ? '+' + fw(p.added) : 'BW') : fw(p.w)} × ${p.r}</span></div>`).join('')}</div>` : ''}
+    ${st.prs.length ? `<div class="sum-prs">${st.prs.map(p => `<div class="row"><span class="pr">PR</span><b class="grow">${esc(p.ex)}</b><span class="rnum">${p.added != null ? (p.added ? '+' + fw(p.added) : 'BW') : fw(p.w) + eaEx(p.ex)} × ${p.r}</span></div>`).join('')}</div>` : ''}
     <div class="field"><span class="lbl">Muscles worked</span><div class="heatfig"><div style="--fig-h:210px">${bodySVG('front', sex, { p: new Set(), s: new Set(), heat: st.heat })}</div><div style="--fig-h:210px">${bodySVG('back', sex, { p: new Set(), s: new Set(), heat: st.heat })}</div></div></div>
     ${typeof watchSectionHTML === 'function' ? watchSectionHTML(w0, id) : ''}
     <p class="center small" style="margin:0">📅 <b>${wk.cur} of ${wk.goal}</b> gym days this week${wk.streak > 1 ? ` · ${wk.streak}-week streak` : ''}</p>
@@ -278,7 +278,7 @@ A.sumShare = async d => {
   const tiles = [["Time", st.dur > 0 ? st.dur + " min" : "—"], ['Volume', fmtN(U.w(st.vol)) + ' ' + U.wu], ['Work sets', String(st.sets)], ['PRs', String(st.prs.length)]];
   tiles.forEach(([k, v], i) => { const x = 64 + (i % 2) * 484, y = 300 + Math.floor(i / 2) * 210; g.fillStyle = '#17171c'; roundRect(g, x, y, 468, 190, 28); g.fill(); g.fillStyle = '#9a9aa6'; g.font = `600 32px ${F}`; g.fillText(k, x + 36, y + 62); g.fillStyle = '#fff'; g.font = `800 64px ${F}`; g.fillText(fitText(g, v, 400), x + 36, y + 146); });
   let y = 780; g.fillStyle = '#fff'; g.font = `700 42px ${F}`; g.fillText(st.prs.length ? 'New PRs' : 'Exercises', 80, y); y += 60;
-  const lines = st.prs.length ? st.prs.slice(0, 6).map(p => [p.ex, `${p.added != null ? (p.added ? '+' + fw(p.added) : 'BW') : fw(p.w)} × ${p.r}`]) : [...new Set((w.sets || []).filter(s => !s.warm).map(s => s.ex))].slice(0, 6).map(n => [n, plural((w.sets || []).filter(s => s.ex === n && !s.warm).length, 'set')]);
+  const lines = st.prs.length ? st.prs.slice(0, 6).map(p => [p.ex, `${p.added != null ? (p.added ? '+' + fw(p.added) : 'BW') : fw(p.w) + eaEx(p.ex)} × ${p.r}`]) : [...new Set((w.sets || []).filter(s => !s.warm).map(s => s.ex))].slice(0, 6).map(n => [n, plural((w.sets || []).filter(s => s.ex === n && !s.warm).length, 'set')]);
   for (const [a, b] of lines) { g.font = `500 38px ${F}`; g.fillStyle = '#dcdce2'; g.fillText(fitText(g, a, 640), 80, y); g.textAlign = 'right'; g.fillStyle = '#fff'; g.font = `700 38px ${F}`; g.fillText(b, W - 80, y); g.textAlign = 'left'; y += 66; }
   g.fillStyle = '#5c5c66'; g.font = `600 32px ${F}`; g.textAlign = 'center'; g.fillText('liftprint', W / 2, H - 60);
   const blob = await new Promise(res => c.toBlob(res, 'image/png')), file = new File([blob], `liftprint-${w.date}.png`, { type: 'image/png' });

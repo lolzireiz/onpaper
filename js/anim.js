@@ -144,7 +144,7 @@ const ARCH = {
   pallof: () => ({ A: AP({ f: [0.2, 0.06, 0], h: [0.05, 1.2, 0.18], ep: [0.6, -1, -0.2] }), B: AP({ f: [0.2, 0.06, 0], h: [0.05, 1.2, 0.56], ep: [0.6, -1, -0.2] }), props: [{ t: 'cable', a: [1.3, 1.2, 0.1] }, { t: 'handle' }], yaw: 35, cue: ['Stand side-on to the cable', 'Press straight out and don\'t let it twist you', 'Bring it back to your chest slowly'] }),
   chop: () => ({ A: AP({ f: [0.22, 0.06, 0], hR: [0.5, 1.7, 0.15], hL: [0.4, 1.68, 0.2], epR: [0.3, -1, -0.3], epL: [-0.3, -1, -0.3] }), B: AP({ p: [0, 0.86, -0.06], lean: 18, f: [0.22, 0.06, 0], hR: [-0.3, 0.7, 0.3], hL: [-0.42, 0.7, 0.25], epR: [0.3, -1, -0.3], epL: [-0.3, -1, -0.3] }), props: [{ t: 'cable', a: [1.3, 2.2, 0] }, { t: 'handle' }], yaw: 20, cue: ['Turn from your hips, arms stay long', 'Chop down across your body', 'Control it back up'] }),
   // seated on an incline bench, arms hanging straight down behind the body, curl without moving the elbows
-  inclcurl: (o = {}) => ({ A: { p: [0, 0.5, 0.12], lean: -42, f: [0.2, 0.06, 0.58], kp: [0, 1, 0.4], h: [0.27, 0.3, -0.22], ep: [0, 0.2, 1] }, B: { p: [0, 0.5, 0.12], lean: -42, f: [0.2, 0.06, 0.58], kp: [0, 1, 0.4], h: [0.27, 0.78, -0.04], ep: [0, -1, -0.6] }, props: [{ t: 'slab', a: [0, 0.36, 0.2], b: [0, 1.0, -0.5], w: 0.34 }, { t: 'slab', a: [0, 0.36, 0.0], b: [0, 0.36, 0.34], w: 0.34, legs: 1 }, { t: 'db' }], twist: o.twist, yaw: 62, cue: ['Lie back on a bench set to about 45°', 'Let your arms hang straight down', 'Curl without moving your elbows forward'] }),
+  inclcurl: (o = {}) => ({ A: { p: [0, 0.5, 0.12], lean: -42, f: [0.2, 0.06, 0.58], kp: [0, 1, 0.4], h: [0.27, 0.28, -0.2], ep: [0, -1, -0.7] }, B: { p: [0, 0.5, 0.12], lean: -42, f: [0.2, 0.06, 0.58], kp: [0, 1, 0.4], h: [0.26, 0.74, 0.02], ep: [0, -1, -0.7] }, curlArc: 0.52, props: [{ t: 'slab', a: [0, 0.36, 0.2], b: [0, 1.0, -0.5], w: 0.34 }, { t: 'slab', a: [0, 0.36, 0.0], b: [0, 0.36, 0.34], w: 0.34, legs: 1 }, { t: 'db' }], twist: o.twist, yaw: 62, cue: ['Lie back on a bench set to about 45°', 'Let your arms hang straight down', 'Curl without moving your elbows forward'] }),
   // seated, upper arms resting on the angled pad
   preacher: (o = {}) => ({ A: { p: [0, 0.55, -0.1], lean: 14, f: [0.18, 0.06, 0.4], kp: [0, 1, 0.5], h: [0.2, 0.74, 0.62], ep: [0, 1, 0.2] }, B: { p: [0, 0.55, -0.1], lean: 14, f: [0.18, 0.06, 0.4], kp: [0, 1, 0.5], h: [0.2, 1.17, 0.36], ep: [0, -1, 0.2] }, props: [SEAT, { t: 'preacher', a: [0, 1.04, 0.18], b: [0, 0.82, 0.48] }, ...(o.props || [{ t: 'bar', short: 1 }])], yaw: 62, cue: ['Armpits snug against the top of the pad', 'Lower until your arms are almost straight', 'Curl up and squeeze, don\'t lift your elbows'] }),
   // chest on an incline bench, rowing up from a dead hang
@@ -206,6 +206,16 @@ function animPose(def, t, cycle) {
   if (def.swing) { // limbs that swing through an arc (leg raises, front raises): keep their reach instead of folding mid-rep
     const piv = { f: s => V.add(q.p, [s === 'R' ? 0.1 : -0.1, 0, 0]), h: s => V.add(q.p, V.add(V.mul([0, Math.cos(q.lean * Math.PI / 180), Math.sin(q.lean * Math.PI / 180)], 0.45), [s === 'R' ? 0.2 : -0.2, 0, 0])) };
     for (const k of def.swing) for (const s of ['R', 'L']) { const pa = piv[k](s), la = V.len(V.sub(def.a[k + s], pa)), lb = V.len(V.sub(b[k + s], pa)), d = V.sub(q[k + s], pa), L = la + (lb - la) * t; if (V.len(d) > 1e-3) q[k + s] = V.add(pa, V.mul(V.norm(d), L)); }
+  }
+  if (def.curlArc) { // curls with the upper arm still (incline curls): the hand travels a true arc around a fixed elbow
+    const up = [0, Math.cos(def.a.lean * Math.PI / 180), Math.sin(def.a.lean * Math.PI / 180)];
+    for (const s of ['R', 'L']) {
+      const sh = V.add(def.a.p, V.add(V.mul(up, 0.45), [s === 'R' ? 0.2 : -0.2, 0, 0])), hA = def.a['h' + s], hB = b['h' + s];
+      const el = V.add(sh, V.mul(V.sub(hA, sh), def.curlArc)), dA = V.sub(hA, el), dB = V.sub(hB, el), ua = V.norm(dA), ub = V.norm(dB);
+      const ang = Math.acos(Math.max(-1, Math.min(1, V.dot(ua, ub)))), si = Math.sin(ang);
+      const u = ang < 1e-3 ? ua : V.add(V.mul(ua, Math.sin((1 - t) * ang) / si), V.mul(ub, Math.sin(t * ang) / si));
+      q['h' + s] = V.add(el, V.mul(u, V.len(dA) + (V.len(dB) - V.len(dA)) * t));
+    }
   }
   if (def.arc) { const k = Math.sin(Math.PI * t) * def.arc; q.p = V.add(q.p, [0, k, 0]); q.fR = V.add(q.fR, [0, k * (t < 0.5 ? 0.4 : 1), 0]); q.fL = V.add(q.fL, [0, k * (t < 0.5 ? 1 : 0.4), 0]); }
   return q;

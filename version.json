@@ -1,10 +1,9 @@
 {
- "version": "7.9",
+ "version": "8.0",
  "notes": [
-  "\u2696\ufe0f Smart calorie budget: your daily target now works like a weekly budget. Ate 400 under yesterday? Today\u2019s limit becomes 2,900.",
-  "Go over and the app checks your 7-day average before calling it a problem, and shows what tomorrow\u2019s budget will be.",
-  "Any one day moves by at most 25%, so a big night out is paid back gently over a couple of days. Protein still resets every day.",
-  "Tap the Calories ring to see the math, your last 7 days, and \u201cPlanning a big meal later?\u201d to check a dinner out before you go.",
-  "\u2696\ufe0f Weigh-in up the morning after a big day? The app now explains it\u2019s mostly water and salt, not fat."
+  "\ud83c\udfcb\ufe0f Dumbbell weights are clear now: two-dumbbell moves say \u201clb each\u201d everywhere (the weight box, your sets, last time, suggestions, history, PRs), with a note under the box: weight of one dumbbell.",
+  "Single-dumbbell moves like goblet squats and one-arm rows say it\u2019s just one dumbbell.",
+  "\ud83d\udd2e Dumbbell PR predictions aim for the next dumbbell up instead of barbell plate numbers.",
+  "\ud83c\udfac Fixed the incline dumbbell curl animation: the arms no longer swing backwards mid-rep, and the upper arms stay still while you curl."
  ]
 }

@@ -7,7 +7,7 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 const monthName = ym => MONTHS[+ym.slice(5, 7) - 1];
 const curYM = () => todayStr().slice(0, 7);
 const prevYM = ym => { const [y, m] = ym.split('-').map(Number); return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`; };
-const repsTxt = s => `${s.bwf ? (s.added ? '+' + fw(s.added) : 'BW') : fw(s.w)}${s.bwf || !s.w ? '' : ' ' + U.wu} × ${s.r}`;
+const repsTxt = (s, name) => `${s.bwf ? (s.added ? '+' + fw(s.added) : 'BW') : fw(s.w)}${s.bwf || !s.w ? '' : ' ' + (name ? wuEx(name) : U.wu)} × ${s.r}`;
 
 /* ======================= trophy wall ======================= */
 function prEvents() {
@@ -29,7 +29,7 @@ A.trophies = () => {
   let lastM = '';
   for (const e of ev.slice(0, 200)) {
     const m = e.s.date.slice(0, 7); if (m !== lastM) { h += `<span class="lbl tw-m">${monthName(m)} ${m.slice(0, 4)}</span>`; lastM = m; }
-    h += `<button class="row tw-r" data-act="prCard" data-k="${esc(e.L.key)}" data-id="${e.s.id}"><span class="tw-ic" aria-hidden="true">🏆</span><div class="grow"><b>${esc(e.L.name)}</b><div class="faint small">${esc(repsTxt(e.s))} · ${esc(prDesc(e.s).replace(/^New /, 'new '))}${e.more ? ` · +${e.more} more` : ''}</div></div><span class="faint small">${fmtDate(e.s.date)}</span></button>`;
+    h += `<button class="row tw-r" data-act="prCard" data-k="${esc(e.L.key)}" data-id="${e.s.id}"><span class="tw-ic" aria-hidden="true">🏆</span><div class="grow"><b>${esc(e.L.name)}</b><div class="faint small">${esc(repsTxt(e.s, e.L.name))} · ${esc(prDesc(e.s).replace(/^New /, 'new '))}${e.more ? ` · +${e.more} more` : ''}</div></div><span class="faint small">${fmtDate(e.s.date)}</span></button>`;
   }
   openSheet('🏆 Trophy wall', h);
 };
@@ -39,7 +39,7 @@ A.prCard = async d => {
   const open = () => openSheet('PR card', `<div class="prc-wrap"><div class="prc-img thinking" style="aspect-ratio:4/5"></div></div><div class="btnrow" style="margin-top:12px"><button class="btn" data-act="prShare" data-k="${esc(d.k)}" data-id="${d.id}">Share</button><button class="btn ghost" data-act="openLift" data-key="${esc(d.k)}">Open lift</button></div>`);
   $('#sheet .tw-r') ? peekSheet(open) : open();
   const blob = await prImage(L, s); if (!blob) return;
-  const url = URL.createObjectURL(blob), box = $('#sheet .prc-img'); if (box) { box.classList.remove('thinking'); box.innerHTML = `<img src="${url}" alt="PR card: ${esc(L.name)} ${esc(repsTxt(s))}">`; }
+  const url = URL.createObjectURL(blob), box = $('#sheet .prc-img'); if (box) { box.classList.remove('thinking'); box.innerHTML = `<img src="${url}" alt="PR card: ${esc(L.name)} ${esc(repsTxt(s, L.name))}">`; }
 };
 A.prShare = async d => {
   const L = liftByKey(d.k), s = L && L.sets.find(x => x.id === d.id); if (!s) return;
@@ -67,7 +67,7 @@ async function prImage(L, s) {
   g.textAlign = 'center';
   g.fillStyle = gr; g.font = `800 46px ${F}`; g.fillText('N E W   P R', W / 2, 560);
   g.fillStyle = '#fff'; g.font = `800 76px ${F}`; g.fillText(fitText(g, L.name, W - 140), W / 2, 660);
-  g.fillStyle = gr; g.font = `900 150px ${F}`; g.fillText(fitText(g, repsTxt(s), W - 120), W / 2, 830);
+  g.fillStyle = gr; g.font = `900 150px ${F}`; g.fillText(fitText(g, repsTxt(s, L.name), W - 120), W / 2, 830);
   g.fillStyle = '#d6d6de'; g.font = `500 40px ${F}`; g.fillText(fitText(g, prDesc(s), W - 160), W / 2, 910);
   if (!s.bwf) { g.fillStyle = '#9a9aa6'; g.font = `500 36px ${F}`; g.fillText(`Estimated 1-rep max ${fw(s.e1, 0)} ${U.wu}`, W / 2, 970); }
   g.fillStyle = '#9a9aa6'; g.font = `500 34px ${F}`; g.fillText(fmtDay(s.date), W / 2, 1030);
@@ -92,7 +92,8 @@ function liftForecast(L) {
     const b = pts.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / (pts.reduce((a, p) => a + (p[0] - mx) ** 2, 0) || 1), perWk = b * 7;
     const span = Math.round((pts[n - 1][0] - pts[0][0]) / 7);
     if (perWk < 0.3) return { flat: true, perWk, span };
-    const cur = U.w(L.e1), list = U.metric ? MILES_KG : MILES_LB, target = list.find(m => m > cur + 0.5) ?? Math.ceil((cur + 1) / 25) * 25;
+    const cur = U.w(L.e1), db = dbKind(L.name), st = U.metric ? (cur < 30 ? 2.5 : 5) : (cur < 60 ? 5 : 10);
+    const target = db ? Math.floor(cur / st + 1) * st : ((U.metric ? MILES_KG : MILES_LB).find(m => m > cur + 0.5) ?? Math.ceil((cur + 1) / 25) * 25);   // dumbbells: the next dumbbell up
     const weeks = (U.toLb(target) - L.e1) / perWk; if (weeks > 52) return { far: true, perWk, span, target };
     return { perWk, span, target, weeks, date: addDays(todayStr(), Math.round(weeks * 7)) };
   });
@@ -102,7 +103,7 @@ function forecasts() {
   return Store.cached('forecasts', () => liftList().map(L => ({ L, f: liftForecast(L) })).filter(x => x.f && x.f.weeks != null).sort((a, b) => a.f.weeks - b.f.weeks));
 }
 function forecastRowHTML({ L, f }) {
-  return `<button class="row fc-r" data-act="openLift" data-key="${esc(L.key)}"><div class="grow"><b>${esc(L.name)}</b><div class="faint small">${fw(L.e1, 0)} → <b>${f.target} ${U.wu}</b> est. 1RM</div></div><div class="rnum"><b>${weeksTxt(f.weeks).replace('about ', '~')}</b><div class="faint tiny">+${trim(U.w(f.perWk), 1)} ${U.wu}/wk</div></div></button>`;
+  return `<button class="row fc-r" data-act="openLift" data-key="${esc(L.key)}"><div class="grow"><b>${esc(L.name)}</b><div class="faint small">${fw(L.e1, 0)} → <b>${f.target} ${wuEx(L.name)}</b> est. 1RM</div></div><div class="rnum"><b>${weeksTxt(f.weeks).replace('about ', '~')}</b><div class="faint tiny">+${trim(U.w(f.perWk), 1)} ${U.wu}/wk</div></div></button>`;
 }
 function forecastCardHTML(L) {
   const f = liftForecast(L); if (!f) return '';
@@ -110,7 +111,7 @@ function forecastCardHTML(L) {
   if (f.need) body = `Log this lift in ${3 - Math.min(2, f.n)} more session${3 - Math.min(2, f.n) === 1 ? '' : 's'} over at least 2 weeks and you'll get a prediction here.`;
   else if (f.flat) body = `Holding steady over the last ${f.span} weeks, so there's no trend to project yet. Add a little weight or a rep and it'll show up.`;
   else if (f.far) body = `You're climbing about ${trim(U.w(f.perWk), 1)} ${U.wu} a week. At that pace ${f.target} ${U.wu} is more than a year out.`;
-  else body = `At your current pace (+${trim(U.w(f.perWk), 1)} ${U.wu} a week over the last ${f.span} weeks), your estimated 1RM reaches <b>${f.target} ${U.wu}</b> in ${weeksTxt(f.weeks)}, around ${fmtDate(f.date)}.`;
+  else body = `At your current pace (+${trim(U.w(f.perWk), 1)} ${U.wu} a week over the last ${f.span} weeks), your estimated 1RM reaches <b>${f.target} ${wuEx(L.name)}</b> in ${weeksTxt(f.weeks)}, around ${fmtDate(f.date)}.`;
   return `<section class="card fc-card"><div class="card-h"><h2 class="sec-t" style="margin:0">🔮 Prediction</h2></div><p class="small" style="margin:6px 0 0">${body}</p><p class="faint tiny" style="margin:6px 0 0">Based on your best set each session. Progress usually slows as you get stronger, so treat it as a target, not a promise.</p></section>`;
 }
 {
@@ -163,7 +164,7 @@ function wrapSlides(m) {
   sl.push(`<div class="ws-c"><div class="ws-mark">${typeof LP_MARK === 'string' ? LP_MARK.replace('data-act="logoTap" ', '') : ''}</div><p class="ws-k">${m.sofar ? 'So far this month' : 'Your month in lifting'}</p><h1 class="ws-big gtxt">${mn}</h1><p class="ws-sub">Tap to see how it went.</p></div>`);
   if (m.days) sl.push(`<div class="ws-c"><p class="ws-k">You showed up</p><h1 class="ws-big"><span data-count="${m.days}">${m.days}</span> <small>days</small></h1><p class="ws-sub">${plural(m.wos.length, 'workout')}${m.acts.length ? ` and ${m.acts.length} ${m.acts.length === 1 ? 'activity' : 'activities'}` : ''}${m.bestWk && m.bestWk[1] > 1 ? `. Best week: ${fmtDate(m.bestWk[0])} with ${m.bestWk[1]} days.` : '.'}</p>${m.fav ? `<p class="ws-note">Most done: ${esc(m.fav[0])} (${m.fav[1]}×)</p>` : ''}</div>`);
   if (m.vol > 0) sl.push(`<div class="ws-c"><p class="ws-k">Total weight moved</p><h1 class="ws-big gtxt"><span data-count="${Math.round(U.w(m.vol))}">${fmtN(U.w(m.vol))}</span> <small>${U.wu}</small></h1><p class="ws-sub">That's ${volCompare(m.vol)}.</p><p class="ws-note">${fmtN(m.sets)} working sets</p></div>`);
-  if (m.prN) sl.push(`<div class="ws-c"><p class="ws-k">New personal records</p><h1 class="ws-big gtxt"><span data-count="${m.prN}">${m.prN}</span> <small>PR${m.prN === 1 ? '' : 's'}</small></h1><div class="ws-list">${[...new Map(m.prs.slice().sort((a, b) => b.s.e1 - a.s.e1).map(e => [e.L.key, e])).values()].slice(0, 3).map(e => `<div><b>${esc(e.L.name)}</b><span>${esc(repsTxt(e.s))}</span></div>`).join('')}</div></div>`);
+  if (m.prN) sl.push(`<div class="ws-c"><p class="ws-k">New personal records</p><h1 class="ws-big gtxt"><span data-count="${m.prN}">${m.prN}</span> <small>PR${m.prN === 1 ? '' : 's'}</small></h1><div class="ws-list">${[...new Map(m.prs.slice().sort((a, b) => b.s.e1 - a.s.e1).map(e => [e.L.key, e])).values()].slice(0, 3).map(e => `<div><b>${esc(e.L.name)}</b><span>${esc(repsTxt(e.s, e.L.name))}</span></div>`).join('')}</div></div>`);
   if (m.topG.length) { const mx = m.topG[0][1]; sl.push(`<div class="ws-c"><p class="ws-k">What you trained most</p><div class="ws-bars">${m.topG.map(([g, n]) => `<div><span>${g}</span><i style="--w:${n / mx * 100}%"></i><b>${n}</b></div>`).join('')}</div><p class="ws-note">working sets per muscle group</p></div>`); }
   if (m.w0 && m.w1 && m.w0 !== m.w1) { const dw = m.w1.weight - m.w0.weight, goal = S().goal; sl.push(`<div class="ws-c"><p class="ws-k">Bodyweight</p><h1 class="ws-big ws-mid">${fw(m.w0.weight)} → ${fw(m.w1.weight)} <small>${U.wu}</small></h1><p class="ws-sub">${dw >= 0 ? '+' : '−'}${trim(Math.abs(U.w(dw)), 1)} ${U.wu} this month${goal === 'bulk' && dw > 0 ? '. Lean bulk on track 💪' : goal === 'cut' && dw < 0 ? '. Cut on track 🔥' : ''}.</p></div>`); }
   if (m.fdays) sl.push(`<div class="ws-c"><p class="ws-k">Fuel</p><h1 class="ws-big"><span data-count="${Math.round(m.avgCal)}">${fmtN(m.avgCal)}</span> <small>kcal a day</small></h1><p class="ws-sub">Protein goal hit on ${m.pHit} of ${m.fdays} logged days.</p>${m.avgSleep ? `<p class="ws-note">Average sleep ${fmtSleep(Math.round(m.avgSleep * 4) / 4)}</p>` : ''}</div>`);
@@ -207,7 +208,7 @@ A.wrapShare = async d => {
   g.fillStyle = gr; g.font = `900 120px ${F}`; g.fillText(`${monthName(m.ym)}`, W / 2, 510);
   const tiles = [['Days trained', String(m.days)], ['Weight moved', `${fmtN(U.w(m.vol))} ${U.wu}`], ['PRs', String(m.prN)], [m.avgCal ? 'Avg calories' : 'Working sets', m.avgCal ? fmtN(m.avgCal) : fmtN(m.sets)]];
   tiles.forEach(([k, v], i) => { const x = 70 + (i % 2) * 480, y = 580 + Math.floor(i / 2) * 230; g.fillStyle = 'rgba(255,255,255,.06)'; roundRect(g, x, y, 460, 205, 30); g.fill(); g.textAlign = 'left'; g.fillStyle = '#9a9aa6'; g.font = `600 32px ${F}`; g.fillText(k, x + 36, y + 64); g.fillStyle = '#fff'; g.font = `800 66px ${F}`; g.fillText(fitText(g, v, 400), x + 36, y + 150); });
-  g.textAlign = 'center'; if (m.prs.length) { g.fillStyle = '#d6d6de'; g.font = `500 36px ${F}`; const top = m.prs.slice().sort((a, b) => b.s.e1 - a.s.e1)[0]; g.fillText(fitText(g, `Top PR: ${top.L.name} ${repsTxt(top.s)}`, W - 140), W / 2, 1110); }
+  g.textAlign = 'center'; if (m.prs.length) { g.fillStyle = '#d6d6de'; g.font = `500 36px ${F}`; const top = m.prs.slice().sort((a, b) => b.s.e1 - a.s.e1)[0]; g.fillText(fitText(g, `Top PR: ${top.L.name} ${repsTxt(top.s, top.L.name)}`, W - 140), W / 2, 1110); }
   g.font = `800 52px ${F}`; const wl = g.measureText('lift').width, wp = g.measureText('print').width, x0 = W / 2 - (wl + wp) / 2;
   g.textAlign = 'left'; g.fillStyle = '#fff'; g.fillText('lift', x0, H - 90); g.fillStyle = gr; g.fillText('print', x0 + wl, H - 90);
   const blob = await new Promise(res => c.toBlob(res, 'image/png')), file = new File([blob], `liftprint-${m.ym}.png`, { type: 'image/png' });
