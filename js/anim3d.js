@@ -208,6 +208,13 @@ function propGeo(def, q, J, m) {
       cyl([cc[0] - 0.24, cc[1], cc[2]], [cc[0] + 0.24, cc[1], cc[2]], 0.055, C3.pad, 14, 1);
       if (pr.lever) { const pvt = V.mul(V.add(J.knR, J.knL), 0.5), piv = [0.32, pvt[1], pvt[2]]; cyl(piv, [0.3, cc[1], cc[2]], 0.022, C3.dark); cyl([0.3, piv[1], piv[2]], [0.36, piv[1], piv[2]], 0.05, C3.dark, 12, 1); } }
     else if (pr.t === 'kneepads') for (const [s, sx] of SIDES) { const k = V.add(J['kn' + s], [sx * 0.085, 0, 0]); cyl(V.add(k, [0, -0.08, 0]), V.add(k, [0, 0.08, 0]), 0.045, C3.pad, 12, 1); cyl(V.add(k, [sx * 0.05, 0, 0]), [sx * 0.3, k[1] - 0.25, k[2] - 0.2], 0.018, C3.dark); }
+    else if (pr.t === 'abframe') {   // ab crunch machine: base, tall back pad behind the start pose, ankle rollers, a weight stack behind
+      const P = JA, bz = P.pelvis[2] - 0.13;
+      slab([0, 0.035, -0.75], [0, 0.035, 0.6], 0.5, C3.dark, 0.035);
+      slab([0, 0.5, bz], [0, 1.25, bz - 0.04], 0.34, C3.pad, 0.07); cyl([0, 0.45, bz - 0.06], [0, 0.04, bz - 0.25], 0.03, C3.dark);
+      cyl([-0.2, 0.14, 0.5], [0.2, 0.14, 0.5], 0.05, C3.pad, 10, 1); cyl([0, 0.04, 0.45], [0, 0.14, 0.5], 0.025, C3.dark);
+      slab([0, 0.06, -0.68], [0, 1.25, -0.68], 0.22, C3.dark, 0.14); slab([0, 0.07, -0.6], [0, 0.6, -0.6], 0.17, C3.bar, 0.02);
+    }
     else if (pr.t === 'mtsframe') {   // MTS iso-lateral row: base, chest pad on a post, two weight-stack towers joined by the overhead pivot axle
       const P = JA, pz = P.chest[2] + 0.13, py = P.chest[1] + 0.1;
       slab([0, 0.035, -0.5], [0, 0.035, 1.0], 0.5, C3.dark, 0.035); slab([-0.48, 0.035, 0.98], [0.48, 0.035, 0.98], 0.2, C3.dark, 0.035);

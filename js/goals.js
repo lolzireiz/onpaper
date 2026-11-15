@@ -84,7 +84,7 @@ const EX_GOALS = {
   'Hip Thrust': ['glutes', 'sprint', 'jump', 'power'], 'Machine Hip Thrust': ['glutes', 'sprint', 'jump'], 'Cable Kickback': ['glutes'], 'Hip Abduction': ['glutes', 'balance', 'injury'],
   'Standing Calf Raise': ['jump', 'sprint', 'injury', 'legs'], 'Calf Extension': ['jump', 'sprint', 'legs', 'injury'], 'Dumbbell Standing Calf Raise': ['jump', 'balance', 'sprint', 'injury', 'grip'],
   'Seated Calf Raise': ['endurance', 'injury', 'legs'], 'Leg Press Calf Raise': ['jump', 'sprint', 'legs'], 'Smith Calf Raise': ['jump', 'sprint', 'legs'],
-  'Hanging Leg Raise': ['core', 'grip', 'relative'], 'Cable Crunch': ['core'], 'Plank': ['core', 'backhealth', 'posture', 'longevity'], 'Decline Sit-up': ['core'],
+  'Hanging Leg Raise': ['core', 'grip', 'relative'], 'Cable Crunch': ['core'], 'Ab Crunch Machine': ['core'], 'Plank': ['core', 'backhealth', 'posture', 'longevity'], 'Decline Sit-up': ['core'],
   'Farmer Carry': ['grip', 'everyday', 'core', 'posture', 'longevity'], 'Cable Woodchop': ['power', 'core', 'agility'], 'Pallof Press': ['core', 'backhealth', 'balance', 'injury'],
   'Dead Bug': ['core', 'backhealth', 'balance', 'posture'], 'Crunch': ['core'], 'Lying Leg Raise': ['core'], 'Russian Twist': ['core', 'power'], 'Ab Wheel Rollout': ['core', 'backhealth'],
   'Wrist Curl': ['grip', 'arms'], 'Reverse Wrist Curl': ['grip', 'arms', 'injury'], 'Barbell Wrist Curl': ['grip', 'arms'], 'Reverse Curl': ['grip', 'arms'], 'Dead Hang': ['grip', 'relative', 'posture'], 'Plate Pinch': ['grip'],
