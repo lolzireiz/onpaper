@@ -81,7 +81,7 @@ A.foodEdit = d => { Sheet.meal = null; const it = (foodDay(UI.foodDate || todayS
 function addFoodItem(item) {
   const date = UI.foodDate || todayStr(), isNew = !(foodDay(date).items || []).some(x => x.id === item.id), before = foodTotals(date), day = clone(foodDay(date));
   day.date = date; day.items = [...(day.items || []).filter(x => x.id !== item.id), item]; put('food', date, day);
-  if (isNew) feedBuddy(before, foodTotals(date));
+  if (isNew) feedBuddy(before, foodTotals(date), date);
 }
 
 /* ---------- the add/edit form: serving size + how much you ate ---------- */

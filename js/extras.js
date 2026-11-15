@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '8.3';
+const APP_VERSION = '8.4';
 const CHANGELOG = [
+  ['8.4', ['🦝 Fix: your food buddy now fills up at the day\'s real goal, so on a payback day it\'s full when you hit the lower number (and on a banked day it wants the extra). The Today card\'s "kcal left" and the protein food ideas use it too.']],
   ['8.3', ['✅ Forgot to tick a habit? On the You tab, pick a day above your habits and tap it off for that day, or tap any square in the two-week grid. It switches back to today on its own after a few minutes.']],
   ['8.2', ['🦾 New: MTS Row, the Hammer Strength iso-lateral row machine, with its own demo. Log the weight on one side, since each arm has its own stack.', '🔁 It\'s ticked on in your gym\'s equipment and has taken the Chest-Supported Dumbbell Row\'s spot in your plan. Search “mts”, “iso lateral” or “hammer strength” to find it.']],
   ['8.1', ['🏋️ Chest-Supported Row is now Chest-Supported Dumbbell Row, and its demo shows a regular adjustable bench set to an incline. No machine needed. Your saved days and past sets moved over with it.', '🔎 Exercise search matches word by word, so “chest supported row”, “db curl” or an exercise’s old name all find it.']],

@@ -22,6 +22,8 @@ function calBudget(date = todayStr()) {
   });
 }
 /* the window average if today ends at `end` kcal */
+/* the day's real calorie goal: the plain target plus or minus what's banked or owed (the pet, the Today card and food ideas all use this) */
+const calGoal = (date = todayStr()) => calBudget(date).ceiling;
 const budAvg = (b, end) => (b.sum + end) / (b.nTr + 1);
 /* tomorrow's limit if today ends at `end` kcal */
 function budTomorrow(date, end, full) {

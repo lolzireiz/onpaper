@@ -106,7 +106,7 @@ A.usualsMore = () => { UI.usualsAll = !UI.usualsAll; render(); };
 A.usualStaples = () => {
   const date = foodDate(), todo = usualsList().filter(u => u.pin && !cntOn(u.k, date)); if (!todo.length) return;
   const before = foodTotals(date), day = clone(foodDay(date)), now = Date.now(), added = todo.map((u, i) => ({ ...foodFrom(u), id: newId(), ts: now + i }));
-  day.date = date; day.items = [...(day.items || []), ...added]; put('food', date, day); todo.forEach(bumpMine); feedBuddy(before, foodTotals(date));
+  day.date = date; day.items = [...(day.items || []), ...added]; put('food', date, day); todo.forEach(bumpMine); feedBuddy(before, foodTotals(date), date);
   if (!REDUCED()) confetti({ n: 40 });
   toastUndo(`Added ${added.length} ${added.length === 1 ? 'staple' : 'staples'} · ${fmtN(added.reduce((a, x) => a + itK(x), 0))} kcal`, () => removeFoodIds(added.map(x => x.id), date));
 };

@@ -94,7 +94,7 @@ function feedStreak() {
   return n;
 }
 function buddyState(date = todayStr()) {
-  const t = foodTotals(date), pct = S().calTarget ? t.cal / S().calTarget : 0, n = buddyName();
+  const t = foodTotals(date), goal = calGoal(date), pct = goal ? t.cal / goal : 0, n = buddyName();
   if (!t.cal) return { mood: 'hungry', pct, text: `${n} is hungry! Log some food to feed them.` };
   if (pct < 0.4) return { mood: 'content', pct, text: `${n} had a snack but could eat more.` };
   if (pct < 1) return { mood: 'happy', pct, text: `${n} is happy and munching along with you.` };
@@ -117,13 +117,13 @@ A.setPet = d => {
   closeSheet(); toast(`Say hi to ${custom ? S().buddyName : PETS[d.k].def}!`);
 };
 const SNACK_COL = { cookie: '#f2b84b', fish: '#7cc4ff', carrot: '#ff8c2b', berry: '#ff4d6d' };
-function feedBuddy(before, after) {
+function feedBuddy(before, after, date = UI.foodDate || todayStr()) {
   if (!buddyOn()) return;
-  const s = S(), kind = petKind(), snack = (PET_ART[kind] || PET_ART.raccoon).snack, name = buddyName();
+  const s = S(), cg = calGoal(date), kind = petKind(), snack = (PET_ART[kind] || PET_ART.raccoon).snack, name = buddyName();
   let msg = Math.random() < 0.18 ? PETS[kind].noise : BUDDY_MSGS[Math.floor(Math.random() * BUDDY_MSGS.length)], goal = false;
   if (before.p < s.proteinTarget && after.p >= s.proteinTarget) { msg = BUDDY_PROTEIN[Math.floor(Math.random() * BUDDY_PROTEIN.length)]; goal = true; }
-  else if (before.cal < s.calTarget && after.cal >= s.calTarget) { msg = BUDDY_FULL[Math.floor(Math.random() * BUDDY_FULL.length)]; goal = true; }
-  const p0 = Math.round(clamp(before.cal / (s.calTarget || 1) * 100, 0, 100)), p1 = Math.round(clamp(after.cal / (s.calTarget || 1) * 100, 0, 100)), st = feedStreak();
+  else if (before.cal < cg && after.cal >= cg) { msg = BUDDY_FULL[Math.floor(Math.random() * BUDDY_FULL.length)]; goal = true; }
+  const p0 = Math.round(clamp(before.cal / (cg || 1) * 100, 0, 100)), p1 = Math.round(clamp(after.cal / (cg || 1) * 100, 0, 100)), st = feedStreak();
   const L = $('#buddy-pop'); feedBuddy.timers = (feedBuddy.timers || []); feedBuddy.timers.forEach(clearTimeout); feedBuddy.timers = [];
   const T = (fn, ms) => feedBuddy.timers.push(setTimeout(fn, ms));
   L.classList.remove('show', 'closing');

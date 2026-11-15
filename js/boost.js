@@ -211,7 +211,7 @@ const x0 = v => v === '' ? '' : Math.round(v);
 /* ======================= what to eat to hit protein ======================= */
 function proteinIdeas() {
   const date = UI.foodDate || todayStr(); if (date !== todayStr()) return [];
-  const s = S(), t = foodTotals(date), need = s.proteinTarget - t.p, calLeft = s.calTarget - t.cal; if (need < 12) return [];
+  const s = S(), t = foodTotals(date), need = s.proteinTarget - t.p, calLeft = calGoal(date) - t.cal; if (need < 12) return [];
   const pool = new Map();
   for (const f of myFoods()) if (f.p > 0) pool.set(keyOf(f.name), { name: f.name, p: +f.p, cal: +f.cal || 0, unit: servingLabel(f), item: () => ({ ...clone(f), id: newId(), myId: f.id, qty: 1, mode: 'servings', amount: '', amountUnit: null, src: 'mine', ts: Date.now() }) });
   for (const it of recentFoods()) { const k = keyOf(it.name); if (!pool.has(k) && it.p > 0) pool.set(k, { name: it.name, p: (+it.p) * (it.qty || 1), cal: (+it.cal || 0) * (it.qty || 1), unit: eatenLabel(it), item: () => ({ ...clone(it), id: newId(), ts: Date.now() }) }); }
@@ -238,7 +238,7 @@ function proteinIdeasHTML() {
 A.pIdeaAdd = d => {
   const c = (Sheet.pIdeas || [])[+d.i]; if (!c) return; const date = UI.foodDate || todayStr(), before = foodTotals(date), day = clone(foodDay(date)), added = [];
   for (const x of c.parts) { const it = x.f.item(); it.qty = (it.qty || 1) * x.q; added.push(it.id); day.items = [...(day.items || []), it]; }
-  day.date = date; put('food', date, day); feedBuddy(before, foodTotals(date));
+  day.date = date; put('food', date, day); feedBuddy(before, foodTotals(date), date);
   toastUndo(`Added ${c.parts.length === 1 ? c.parts[0].f.name : c.parts.length + ' foods'} (+${trim(c.p, 0)} g protein)`, () => { const dd = clone(foodDay(date)); dd.items = (dd.items || []).filter(x => !added.includes(x.id)); put('food', date, dd); });
 };
 
@@ -260,7 +260,7 @@ A.cyAll = () => { const box = $$('#sheet .cylist input'), v = !box.every(i => i.
 A.copyYesterdayGo = d => {
   const ids = $$('#sheet .cylist input:checked').map(i => i.value); if (!ids.length) return toast('Pick at least one.', { bad: true });
   const date = UI.foodDate || todayStr(), src = (foodDay(d.y).items || []).filter(x => ids.includes(x.id)), before = foodTotals(date), day = clone(foodDay(date)), now = Date.now(), added = src.map((it, i) => ({ ...clone(it), id: newId(), ts: now + i }));
-  day.date = date; day.items = [...(day.items || []), ...added]; put('food', date, day); closeSheet(); feedBuddy(before, foodTotals(date));
+  day.date = date; day.items = [...(day.items || []), ...added]; put('food', date, day); closeSheet(); feedBuddy(before, foodTotals(date), date);
   toastUndo(`Added ${added.length} ${added.length === 1 ? 'food' : 'foods'}`, () => { const dd = clone(foodDay(date)); dd.items = (dd.items || []).filter(x => !added.some(a => a.id === x.id)); put('food', date, dd); });
 };
 

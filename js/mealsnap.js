@@ -110,7 +110,7 @@ A.msLog = () => {
 A.msLogSep = () => {
   const M = Sheet.ms, parts = msParts(), t = msTot(M); if (!parts.length) return;
   const date = UI.foodDate || todayStr(), before = foodTotals(date), day = clone(foodDay(date)); day.date = date;
-  day.items = [...(day.items || []), ...parts.map((p, i) => ({ ...p, ts: Date.now() + i }))]; put('food', date, day); feedBuddy(before, foodTotals(date)); if (typeof sfx === 'function') sfx('pop');
+  day.items = [...(day.items || []), ...parts.map((p, i) => ({ ...p, ts: Date.now() + i }))]; put('food', date, day); feedBuddy(before, foodTotals(date), date); if (typeof sfx === 'function') sfx('pop');
   Sheet.ms = null; closeSheet(); toast(`📸 ${parts.length} items logged · ${fmtN(t.cal)} kcal`);
 };
 PAGES.push(['📸', 'Snap your meal', 'photo meal picture camera ai estimate portion snap food', () => A.mealSnap()]);

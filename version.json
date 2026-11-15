@@ -1,6 +1,6 @@
 {
- "version": "8.3",
+ "version": "8.4",
  "notes": [
-  "\u2705 Forgot to tick a habit? On the You tab, pick a day above your habits and tap it off for that day, or tap any square in the two-week grid. It switches back to today on its own after a few minutes."
+  "\ud83e\udd9d Fix: your food buddy now fills up at the day's real goal, so on a payback day it's full when you hit the lower number (and on a banked day it wants the extra). The Today card's \"kcal left\" and the protein food ideas use it too."
  ]
 }
