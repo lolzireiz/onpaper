@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '8.9';
+const APP_VERSION = '9.0';
 const CHANGELOG = [
+  ['9.0', ['🪑 New: Captain\'s Chair Knee Raise under Core, with a demo. Back on the pad, forearms on the arm pads, knees up.']],
   ['8.9', ['⏱ Farmer carries, planks, dead hangs and plate pinches log seconds instead of reps (the + and − go up and down by 5 seconds). Sets show as "70 lb × 45s", and targets are in seconds too.']],
   ['8.8', ['🧱 New: Ab Crunch Machine, the seated weighted crunch, with its own demo and guide. It\'s under Core and ticked on in your gym\'s equipment.']],
   ['8.7', ['🌯 Tapping a built meal in the Add food list now opens its ingredients, so you can set the banana\'s weight before you add it.']],
@@ -133,7 +134,7 @@ const EX_MUSCLES = {
   'romanian deadlift': ['hamstrings glutes', 'lower_back forearms'], 'dumbbell rdl': ['hamstrings glutes', 'lower_back forearms'], 'lying leg curl': ['hamstrings', 'calves'], 'seated leg curl': ['hamstrings', 'calves'], 'kettlebell swing': ['glutes hamstrings', 'lower_back delts abs'],
   'hip thrust': ['glutes', 'hamstrings'], 'machine hip thrust': ['glutes', 'hamstrings'], 'cable kickback': ['glutes', 'hamstrings'], 'hip abduction': ['abductors glutes'],
   'standing calf raise': ['calves'], 'dumbbell standing calf raise': ['calves'], 'chin-ups': ['lats biceps', 'upper_back forearms'], 'calf extension': ['calves'], 'seated calf raise': ['calves'], 'leg press calf raise': ['calves'], 'smith calf raise': ['calves'],
-  'hanging leg raise': ['abs', 'obliques forearms'], 'cable crunch': ['abs', 'obliques'], 'ab crunch machine': ['abs', 'obliques'], 'plank': ['abs', 'obliques delts'], 'decline sit-up': ['abs', 'obliques'],
+  'hanging leg raise': ['abs', 'obliques forearms'], 'cable crunch': ['abs', 'obliques'], 'ab crunch machine': ['abs', 'obliques'], "captain's chair knee raise": ['abs', 'obliques'], 'plank': ['abs', 'obliques delts'], 'decline sit-up': ['abs', 'obliques'],
   'farmer carry': ['forearms traps', 'abs obliques upper_back'], 'crunch': ['abs', 'obliques'], 'lying leg raise': ['abs', 'obliques'], 'russian twist': ['obliques abs', 'delts'], 'ab wheel rollout': ['abs', 'obliques lats lower_back'],
   'wrist curl': ['forearms'], 'reverse wrist curl': ['forearms'], 'barbell wrist curl': ['forearms'], 'reverse curl': ['forearms biceps'], 'dead hang': ['forearms', 'lats upper_back'], 'plate pinch': ['forearms', 'traps'],
   'arnold press': ['delts side_delts', 'triceps traps'], 'front raise': ['delts', 'side_delts traps'], 'upright row': ['side_delts traps', 'delts biceps forearms'], 'cable woodchop': ['obliques abs', 'delts glutes'], 'pallof press': ['obliques abs', 'delts'], 'dead bug': ['abs', 'obliques'],

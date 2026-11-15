@@ -4,7 +4,7 @@
 const GROUPS = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Forearms', 'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core'];
 const EQUIP = [
   ['Free weights', [['barbell', 'Barbell + plates'], ['rack', 'Squat / power rack'], ['bench', 'Flat bench'], ['incline', 'Incline / adjustable bench'], ['db', 'Dumbbells'], ['ez', 'EZ curl bar'], ['kb', 'Kettlebells']]],
-  ['Machines', [['smith', 'Smith machine'], ['legpress', 'Leg press'], ['hack', 'Hack squat'], ['legext', 'Leg extension'], ['legcurl', 'Leg curl'], ['chestpress', 'Chest press machine'], ['shoulderpress', 'Shoulder press machine'], ['pecdeck', 'Pec deck / rear delt'], ['calf', 'Calf raise machine'], ['hipthrust', 'Hip thrust machine'], ['abductor', 'Hip abductor / adductor'], ['mtsrow', 'MTS / iso-lateral row machine'], ['abcrunch', 'Ab crunch machine'], ['tbar', 'T-bar row'], ['preacher', 'Preacher bench']]],
+  ['Machines', [['smith', 'Smith machine'], ['legpress', 'Leg press'], ['hack', 'Hack squat'], ['legext', 'Leg extension'], ['legcurl', 'Leg curl'], ['chestpress', 'Chest press machine'], ['shoulderpress', 'Shoulder press machine'], ['pecdeck', 'Pec deck / rear delt'], ['calf', 'Calf raise machine'], ['hipthrust', 'Hip thrust machine'], ['abductor', 'Hip abductor / adductor'], ['mtsrow', 'MTS / iso-lateral row machine'], ['abcrunch', 'Ab crunch machine'], ['captain', "Captain's chair"], ['tbar', 'T-bar row'], ['preacher', 'Preacher bench']]],
   ['Cables & stations', [['cable', 'Cable station'], ['lat', 'Lat pulldown'], ['row', 'Seated cable row'], ['pullup', 'Pull-up bar'], ['dip', 'Dip station'], ['ghd', 'Back extension / GHD']]],
 ];
 const EQ_IDS = EQUIP.flatMap(g => g[1].map(e => e[0]));
@@ -28,7 +28,7 @@ const LIBRARY = [
   ['Romanian Deadlift', 'Hamstrings', ['barbell']], ['Dumbbell RDL', 'Hamstrings', ['db']], ['Lying Leg Curl', 'Hamstrings', ['legcurl']], ['Seated Leg Curl', 'Hamstrings', ['legcurl']], ['Kettlebell Swing', 'Hamstrings', ['kb']],
   ['Hip Thrust', 'Glutes', ['barbell', 'bench']], ['Machine Hip Thrust', 'Glutes', ['hipthrust']], ['Cable Kickback', 'Glutes', ['cable']], ['Hip Abduction', 'Glutes', ['abductor']],
   ['Standing Calf Raise', 'Calves', ['calf']], ['Calf Extension', 'Calves', ['calf']], ['Dumbbell Standing Calf Raise', 'Calves', ['db']], ['Seated Calf Raise', 'Calves', ['calf']], ['Leg Press Calf Raise', 'Calves', ['legpress']], ['Smith Calf Raise', 'Calves', ['smith']],
-  ['Hanging Leg Raise', 'Core', ['pullup']], ['Cable Crunch', 'Core', ['cable']], ['Ab Crunch Machine', 'Core', ['abcrunch']], ['Plank', 'Core', []], ['Decline Sit-up', 'Core', ['bench']],
+  ['Hanging Leg Raise', 'Core', ['pullup']], ['Cable Crunch', 'Core', ['cable']], ['Ab Crunch Machine', 'Core', ['abcrunch']], ["Captain's Chair Knee Raise", 'Core', ['captain']], ['Plank', 'Core', []], ['Decline Sit-up', 'Core', ['bench']],
   ['Farmer Carry', 'Core', ['db']], ['Cable Woodchop', 'Core', ['cable']], ['Pallof Press', 'Core', ['cable']], ['Dead Bug', 'Core', []],
   ['Crunch', 'Core', []], ['Lying Leg Raise', 'Core', []], ['Russian Twist', 'Core', ['db']], ['Ab Wheel Rollout', 'Core', []],
   ['Wrist Curl', 'Forearms', ['db', 'bench']], ['Reverse Wrist Curl', 'Forearms', ['db', 'bench']], ['Barbell Wrist Curl', 'Forearms', ['barbell', 'bench']], ['Reverse Curl', 'Forearms', ['barbell']], ['Dead Hang', 'Forearms', ['pullup']], ['Plate Pinch', 'Forearms', ['barbell']],
@@ -548,9 +548,9 @@ function releaseWake() { try { wakeSentinel && wakeSentinel.release(); } catch (
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && UI.session && activeWorkout()) wakeLock(); });
 
 /* ---------- exercise renames: keep old logs, plans and settings pointing at the new name ---------- */
-const EX_ALIAS = { 'mts row': 'iso lateral isolateral hammer strength machine row', 'ab crunch machine': 'abdominal crunch abs weighted seated' };   // extra words the exercise picker matches on
+const EX_ALIAS = { 'mts row': 'iso lateral isolateral hammer strength machine row', 'ab crunch machine': 'abdominal crunch abs weighted seated', "captain's chair knee raise": 'captains chair vkr roman chair abs leg raise' };   // extra words the exercise picker matches on
 const EX_RENAMES = [['Lateral Raise', 'Dumbbell Lateral Raise'], ['Chest-Supported Row', 'Chest-Supported Dumbbell Row']];
-function addAbCrunch() { if (S().abcAdded) return; for (const g of gyms()) if (!(g.equip || []).includes('abcrunch')) put('gyms', g.id, { ...clone(g), equip: [...(g.equip || []), 'abcrunch'] }); saveSettings({ abcAdded: 1 }); }
+function addAbCrunch() { const s = S(); if (s.abcAdded && s.capAdded) return; for (const g of gyms()) { const add = ['abcrunch', 'captain'].filter(x => !(g.equip || []).includes(x)); if (add.length) put('gyms', g.id, { ...clone(g), equip: [...(g.equip || []), ...add] }); } saveSettings({ abcAdded: 1, capAdded: 1 }); }
 function addMtsRow() {   // v8.2: the gym has a Hammer Strength MTS row, so tick it in the gym's equipment and swap it in for the chest-supported row in the plan
   if (S().mtsAdded) return;
   for (const g of gyms()) if (!(g.equip || []).includes('mtsrow')) put('gyms', g.id, { ...clone(g), equip: [...(g.equip || []), 'mtsrow'] });
