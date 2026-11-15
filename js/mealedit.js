@@ -61,3 +61,6 @@ A.foodEdit = d => {
   foodForm(clone(it), null, true);
 };
 A.mealAdjust = d => { const u = foodIndex().get(d.k); if (!u || !(u.it.parts || []).length) return; mealAdjust({ ...foodFrom(u), qty: 1 }, { k: d.k }); };
+/* picking a built meal from the Add food list (or your saved meals) opens its ingredients too */
+{ const faForm0 = A.faForm; A.faForm = d => { const u = foodIndex().get(d.k); if (u && (u.it.parts || []).length) return mealAdjust({ ...foodFrom(u), qty: 1 }, { k: d.k }); return faForm0(d); }; }
+{ const use0 = A.useMyFood; A.useMyFood = d => { const f = Store.docs.myfoods[d.id]; if (f && f.kind === 'meal' && (f.parts || []).length && !inMeal(d)) { const u = foodIndex().get(keyOf(f.name)); return mealAdjust(u ? { ...foodFrom(u), qty: 1 } : { name: f.name, serving: f.serving, servingSize: 1, servingUnit: 'serving', qty: 1, mode: 'servings', cal: f.cal, p: f.p, c: f.c, f: f.f, src: 'meal', parts: f.parts, myId: f.id }, { k: keyOf(f.name) }); } return use0(d); }; }

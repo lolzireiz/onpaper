@@ -1,6 +1,6 @@
 {
- "version": "8.6",
+ "version": "8.7",
  "notes": [
-  "\ud83c\udf2f Tap a meal you built in your food log to change any one ingredient (like how big the banana was). Calories and macros update as you type. Holding a meal in Your usuals also gives you \"Adjust ingredients & add\"."
+  "\ud83c\udf2f Tapping a built meal in the Add food list now opens its ingredients, so you can set the banana's weight before you add it."
  ]
 }
