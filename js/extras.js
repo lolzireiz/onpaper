@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '8.4';
+const APP_VERSION = '8.5';
 const CHANGELOG = [
+  ['8.5', ['🩹 Lats are their own spot in the morning check-in now, separate from upper back and traps, and they show on the back of the body diagram.']],
   ['8.4', ['🦝 Fix: your food buddy now fills up at the day\'s real goal, so on a payback day it\'s full when you hit the lower number (and on a banked day it wants the extra). The Today card\'s "kcal left" and the protein food ideas use it too.']],
   ['8.3', ['✅ Forgot to tick a habit? On the You tab, pick a day above your habits and tap it off for that day, or tap any square in the two-week grid. It switches back to today on its own after a few minutes.']],
   ['8.2', ['🦾 New: MTS Row, the Hammer Strength iso-lateral row machine, with its own demo. Log the weight on one side, since each arm has its own stack.', '🔁 It\'s ticked on in your gym\'s equipment and has taken the Chest-Supported Dumbbell Row\'s spot in your plan. Search “mts”, “iso lateral” or “hammer strength” to find it.']],

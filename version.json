@@ -1,6 +1,6 @@
 {
- "version": "8.4",
+ "version": "8.5",
  "notes": [
-  "\ud83e\udd9d Fix: your food buddy now fills up at the day's real goal, so on a payback day it's full when you hit the lower number (and on a banked day it wants the extra). The Today card's \"kcal left\" and the protein food ideas use it too."
+  "\ud83e\ude79 Lats are their own spot in the morning check-in now, separate from upper back and traps, and they show on the back of the body diagram."
  ]
 }

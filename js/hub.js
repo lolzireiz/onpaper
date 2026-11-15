@@ -26,7 +26,7 @@ function appearanceHTML() {
 /* ======================= recovery & readiness ======================= */
 const GROUP_IDS = { Chest: ['chest'], Back: ['lats', 'upper_back'], Shoulders: ['delts', 'side_delts', 'rear_delts'], Biceps: ['biceps'], Triceps: ['triceps'], Forearms: ['forearms'], Quads: ['quads'], Hamstrings: ['hamstrings'], Glutes: ['glutes'], Calves: ['calves'], Core: ['abs', 'obliques'] };
 /* soreness groups for the check-in (a bit finer than the training groups) */
-const SORE_GROUPS = { Chest: ['chest'], Shoulders: ['delts', 'side_delts', 'rear_delts'], Triceps: ['triceps'], Biceps: ['biceps'], Forearms: ['forearms'], 'Upper back': ['lats', 'upper_back', 'traps'], 'Lower back': ['lower_back'], Core: ['abs', 'obliques'], Glutes: ['glutes'], Quads: ['quads'], Hamstrings: ['hamstrings'], 'Inner thighs': ['adductors'], Calves: ['calves'] };
+const SORE_GROUPS = { Chest: ['chest'], Shoulders: ['delts', 'side_delts', 'rear_delts'], Triceps: ['triceps'], Biceps: ['biceps'], Forearms: ['forearms'], Lats: ['lats'], 'Upper back': ['upper_back', 'traps'], 'Lower back': ['lower_back'], Core: ['abs', 'obliques'], Glutes: ['glutes'], Quads: ['quads'], Hamstrings: ['hamstrings'], 'Inner thighs': ['adductors'], Calves: ['calves'] };
 const SORE_LV = [['None', ''], ['A bit', '#f5b915'], ['Sore', '#ff8a3d'], ['Very', '#f0302e']];
 /* Fatigue per muscle: each hard set adds 1 (main mover) or 0.5 (helper) and fades with a ~30 hour half-life-ish curve. */
 function baseRecovery() {
@@ -56,8 +56,14 @@ function trainingLoad(days) { // hard sets (+ sport minutes / 10) in the last `d
   for (const a of Store.list('acts')) if (a.date >= since) n += (a.duration || 1800) / 600;
   return n;
 }
+/* v8.5 split Lats out of Upper back: a check-in saved before that meant both, so copy it across once */
+function soreSplitLats() {
+  if (S().soreLats) return; const d = dailyOf(), m = d.soreMap;
+  if (m && m['Upper back'] && m.Lats == null) putDaily(todayStr(), { soreMap: { ...m, Lats: m['Upper back'] } });
+  saveSettings({ soreLats: 1 });
+}
 /* how much each muscle's soreness drags readiness down (big movers count more) */
-const SORE_W = { Quads: 1.3, Hamstrings: 1.1, Glutes: 1.1, 'Lower back': 1.2, 'Upper back': 1.1, Chest: 1, Shoulders: 0.9, Core: 0.6, Triceps: 0.6, Biceps: 0.5, Calves: 0.5, 'Inner thighs': 0.5, Forearms: 0.4 };
+const SORE_W = { Quads: 1.3, Hamstrings: 1.1, Glutes: 1.1, 'Lower back': 1.2, Lats: 1, 'Upper back': 0.8, Chest: 1, Shoulders: 0.9, Core: 0.6, Triceps: 0.6, Biceps: 0.5, Calves: 0.5, 'Inner thighs': 0.5, Forearms: 0.4 };
 const SORE_PTS = [0, 1, 2.4, 4];
 function sorePenalty(sm) { return Object.entries(sm || {}).reduce((a, [g, lv]) => a + (SORE_W[g] ?? 0.7) * (SORE_PTS[lv] || 0), 0); }
 function readinessFrom(d) {
