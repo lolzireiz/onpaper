@@ -714,7 +714,10 @@ body.ob-open .tabs{visibility:hidden}
 .sess-strip .k{font-size:11px;font-weight:650;text-transform:uppercase;letter-spacing:.05em;color:var(--tx3)}.sess-strip b{font-size:19px;font-variant-numeric:tabular-nums}.sess-strip b small{font-size:12px;color:var(--tx2);font-weight:600;margin-left:2px}
 .sess-bar{position:absolute;left:0;bottom:0;height:3px;width:var(--p);background:linear-gradient(90deg,var(--accent),var(--ok));border-radius:0 2px 2px 0;transition:width .4s}
 .sl-row{display:flex;align-items:center;gap:10px}.sl-row .sim-range{flex:1}
-.sore-wrap{display:flex;flex-direction:column;gap:10px}.sore-figs{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.sore-wrap{display:flex;flex-direction:column;gap:10px}
+.me-tot{background:var(--s2);border-radius:14px;padding:12px;margin-bottom:12px}.me-tot .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.me-tot .stat .tiny{font-weight:700}.me-up{color:#ff8a3d}.me-dn{color:var(--ok)}
+.me-list{display:flex;flex-direction:column;margin-bottom:14px}.me-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--s2)}.me-row:last-child{border-bottom:0}.me-row .grow{min-width:0;display:flex;flex-direction:column;gap:2px}.me-row b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.me-amt{display:flex;align-items:center;gap:4px;flex:none}.me-st{width:36px;min-height:38px;padding:0;font-size:20px}.me-amt label{display:flex;gap:3px;background:var(--s2);border-radius:10px;padding:0 8px;min-height:38px;align-items:center;width:108px;justify-content:center}.me-in{width:40px;background:none;border:0;padding:0;text-align:right;font-weight:700;font-size:16px;color:var(--tx);font-variant-numeric:tabular-nums}.me-amt label span{font-size:12px;color:var(--tx3);max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sore-figs{display:grid;grid-template-columns:1fr 1fr;gap:4px}
 .sore-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .sore-b{background:var(--s2);border-radius:12px;padding:8px 6px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13px;font-weight:600;line-height:1.15;text-align:center;transition:background .15s,box-shadow .15s}
 .sore-b i{font-style:normal;font-size:11px;font-weight:700;min-height:13px}
@@ -981,6 +984,7 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 <script src="js/polish.js"></script>
 <script src="js/trophy.js"></script>
 <script src="js/mealsnap.js"></script>
+<script src="js/mealedit.js"></script>
 <script src="js/budget.js"></script>
 <script src="js/anim.js"></script>
 <script src="js/anim3d.js"></script>

@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '8.5';
+const APP_VERSION = '8.6';
 const CHANGELOG = [
+  ['8.6', ['🌯 Tap a meal you built in your food log to change any one ingredient (like how big the banana was). Calories and macros update as you type. Holding a meal in Your usuals also gives you "Adjust ingredients & add".']],
   ['8.5', ['🩹 Lats are their own spot in the morning check-in now, separate from upper back and traps, and they show on the back of the body diagram.']],
   ['8.4', ['🦝 Fix: your food buddy now fills up at the day\'s real goal, so on a payback day it\'s full when you hit the lower number (and on a banked day it wants the extra). The Today card\'s "kcal left" and the protein food ideas use it too.']],
   ['8.3', ['✅ Forgot to tick a habit? On the You tab, pick a day above your habits and tap it off for that day, or tap any square in the two-week grid. It switches back to today on its own after a few minutes.']],

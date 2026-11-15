@@ -129,7 +129,7 @@ A.usualMore = d => {
   const pinned = (S().foodPins || []).includes(u.k), date = foodDate(), c = cntOn(u.k, date), it = u.it, k = esc(u.k);
   openSheet(it.name, `<p class="muted small" style="margin:0 0 14px">${esc([amtShort(it), `${fmtN(itK(it))} kcal`, `${trim(itP(it), 0)} g protein`].filter(Boolean).join(' · '))}${u.recent.size ? `<br><span class="faint">Logged on ${u.recent.size} of the last ${USUAL_DAYS} days</span>` : ''}</p>
     <div class="us-acts"><button class="btn block" data-act="usualAddClose" data-k="${k}">${ICON.plus} Add it</button>
-    <button class="btn ghost block" data-act="faForm" data-k="${k}">Add a different amount</button>
+    ${(it.parts || []).length ? `<button class="btn ghost block" data-act="mealAdjust" data-k="${k}">Adjust ingredients &amp; add</button>` : `<button class="btn ghost block" data-act="faForm" data-k="${k}">Add a different amount</button>`}
     <button class="btn ghost block" data-act="usualPin" data-k="${k}">${pinned ? 'Unpin from daily staples' : '📌 Pin as a daily staple'}</button>
     ${c ? `<button class="btn ghost block" data-act="usualUndo" data-k="${k}">Remove one from ${date === todayStr() ? 'today' : 'this day'} <span class="faint">(${c} logged)</span></button>` : ''}
     ${usualsList().some(x => x.k === u.k) ? `<button class="btn ghost block" data-act="usualHide" data-k="${k}">Hide from usuals</button>` : ''}
