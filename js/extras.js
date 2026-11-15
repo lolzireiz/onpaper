@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '8.8';
+const APP_VERSION = '8.9';
 const CHANGELOG = [
+  ['8.9', ['⏱ Farmer carries, planks, dead hangs and plate pinches log seconds instead of reps (the + and − go up and down by 5 seconds). Sets show as "70 lb × 45s", and targets are in seconds too.']],
   ['8.8', ['🧱 New: Ab Crunch Machine, the seated weighted crunch, with its own demo and guide. It\'s under Core and ticked on in your gym\'s equipment.']],
   ['8.7', ['🌯 Tapping a built meal in the Add food list now opens its ingredients, so you can set the banana\'s weight before you add it.']],
   ['8.6', ['🌯 Tap a meal you built in your food log to change any one ingredient (like how big the banana was). Calories and macros update as you type. Holding a meal in Your usuals also gives you "Adjust ingredients & add".']],
@@ -206,7 +207,7 @@ function drawMuscles() {
     ${g ? `${animHTML(name, sex)}<p style="font-size:16px;line-height:1.45;margin:0">${esc(g.a)}</p>${guideGoalsHTML(name)}
     <div class="field"><span class="lbl">Builds</span><div class="chips">${g.i.map(x => `<span class="chip" style="pointer-events:none">${esc(x)}</span>`).join('')}</div></div>
     <div class="field"><span class="lbl">In real life, it helps you…</span><ul class="irl">${g.e.map((x, i) => `<li><i aria-hidden="true">${irlIcon(x)}</i><span>${esc(x)}</span></li>`).join('')}</ul></div>` : `${guideGoalsHTML(name)}<p class="muted">A custom exercise you added.</p>`}
-    ${L && L.e1 ? `<button class="row" data-act="openLift" data-key="${esc(L.key)}" style="background:var(--s2);border-radius:12px;padding:10px 12px;border:0"><div class="grow"><b>Your best</b><div class="faint small">${L.bwf ? loadTxt(L.heavy) : fw(L.heavy.w)} × ${L.heavy.r} · est. 1RM ${fw(L.e1, 0)} ${L.bwf ? U.wu : wuEx(L.name)} · ${L.prs} PRs</div></div>${ICON.chevR.replace('<svg', '<svg width="18" height="18"')}</button>` : ''}
+    ${L && L.e1 ? `<button class="row" data-act="openLift" data-key="${esc(L.key)}" style="background:var(--s2);border-radius:12px;padding:10px 12px;border:0"><div class="grow"><b>Your best</b><div class="faint small">${L.bwf ? loadTxt(L.heavy) : fw(L.heavy.w)} × ${rTx(L.name, L.heavy.r)}${isTimed(L.name) ? '' : ` · est. 1RM ${fw(L.e1, 0)} ${L.bwf ? U.wu : wuEx(L.name)}`} · ${L.prs} PRs</div></div>${ICON.chevR.replace('<svg', '<svg width="18" height="18"')}</button>` : ''}
     ${mus ? `<div class="field" style="margin-top:4px"><span class="lbl">Muscles worked</span></div>
     ${g ? '' : `<div class="seg">${[['male', 'Male'], ['female', 'Female']].map(([k, l]) => `<button data-act="musSex" data-s="${k}" aria-pressed="${sex === k}">${l}</button>`).join('')}</div>`}
     <div style="display:grid;grid-template-columns:${v === 'both' ? '1fr 1fr' : '1fr'};gap:6px">${v !== 'back' ? fig('front', 'Front') : ''}${v !== 'front' ? fig('back', 'Back') : ''}</div>

@@ -203,7 +203,7 @@ function insights() {
   for (const L of liftIndex().values()) {
     const b4 = L.sets.filter(x => x.hit && !x.warm && x.date < since), aft = L.sets.filter(x => x.hit && !x.warm && x.date >= since);
     if (!b4.length || !aft.length) continue; const b = Math.max(...b4.map(x => x.e1)), a = Math.max(...aft.map(x => x.e1));
-    if (a > b && (!gain || (a - b) / b > gain.pct)) gain = { L, g: a - b, pct: (a - b) / b };
+    if (a > b && !isTimed(L.name) && (!gain || (a - b) / b > gain.pct)) gain = { L, g: a - b, pct: (a - b) / b };
   }
   if (gain) out.push(['💪', `${gain.L.name} est. 1RM up ${fw(gain.g, 0)} ${wu} this month`, 'Your biggest strength jump in the last 30 days.']);
   for (const L of liftIndex().values()) {

@@ -203,7 +203,7 @@ function liftIndex() {
       L.name = s.ex;
       const r = Math.max(1, Math.round(s.r || 1)), bwf = bwFactor(s.ex), added = +s.w || 0, w = bwf ? Math.round((bwf * setBw(s) + added) * 10) / 10 : added;
       const prevBest = bestAtLeast(L.best, r);
-      const rec = { ...s, r, w, added, bwf, e1: e1rm(w, r), prevBest, bw: bwOn(s.date), hit: s.hit !== false, warm: !!s.warm }; L.bwf = bwf;
+      const rec = { ...s, r, w, added, bwf, e1: isTimed(s.ex) ? w : e1rm(w, r), prevBest, bw: bwOn(s.date), hit: s.hit !== false, warm: !!s.warm }; L.bwf = bwf;
       if (rec.hit && !rec.warm) {
         if (!L.hits) rec.baseline = true;
         else if (w > (prevBest ? prevBest.w : -1) + 1e-9) { rec.pr = true; L.prs++; }
