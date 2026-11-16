@@ -1,6 +1,9 @@
 {
- "version": "9.0",
+ "version": "9.1",
  "notes": [
-  "\ud83e\ude91 New: Captain's Chair Knee Raise under Core, with a demo. Back on the pad, forearms on the arm pads, knees up."
+  "\u2728 New: the Assistant. Tap the sparkle at the top of any screen to ask about your training, food, weight, recovery, habits or jumps. It reads everything you've logged.",
+  "\u26a1 Quick commands: today's plan, what to eat, bulk check, last workout, week recap, plateau check, recovery, dunk progress, swap an exercise, hit my macros.",
+  "\u2705 It can log food, tick habits, change your targets or swap exercises, but only when you tap to confirm.",
+  "\ud83d\udcca A usage meter shows how many AI requests you've used today, about how many are left, and when they reset."
  ]
 }

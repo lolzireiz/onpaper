@@ -715,6 +715,29 @@ body.ob-open .tabs{visibility:hidden}
 .sess-bar{position:absolute;left:0;bottom:0;height:3px;width:var(--p);background:linear-gradient(90deg,var(--accent),var(--ok));border-radius:0 2px 2px 0;transition:width .4s}
 .sl-row{display:flex;align-items:center;gap:10px}.sl-row .sim-range{flex:1}
 .sore-wrap{display:flex;flex-direction:column;gap:10px}
+.ai-panel{position:fixed;left:0;right:0;top:0;height:100%;z-index:45;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+body.ai-open{overflow:hidden}
+.ai-top{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 6px;border-bottom:1px solid var(--s2)}.ai-top .grow{min-width:0;display:flex;flex-direction:column;gap:3px}.ai-top b{font:700 17px/1.1 var(--f-display)}
+.ai-meter{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--tx2);padding:0;min-height:0;background:none;font-variant-numeric:tabular-nums}
+.ai-mbar,.ai-ubar{display:inline-block;width:46px;height:5px;border-radius:3px;background:var(--s3);overflow:hidden}.ai-mbar i,.ai-ubar i{display:block;height:100%;border-radius:3px;background:var(--ok)}
+.ai-low .ai-mbar i,.ai-low .ai-ubar i{background:#f5a524}.ai-out .ai-mbar i,.ai-out .ai-ubar i{background:var(--miss)}.ai-out{color:var(--miss)}
+.ai-use-big{background:var(--s2);border-radius:14px;padding:14px;color:var(--tx)}.ai-use-big>div>b{font:800 30px/1 var(--f-display)}.ai-use-big.ai-out>div>b{color:var(--miss)}.ai-use-stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))}.ai-ubar{width:100%;height:8px;margin-top:10px}
+.ai-days{display:flex;gap:6px;align-items:flex-end;height:96px}.ai-days div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;font-size:11px}.ai-days span{width:100%;max-width:26px;border-radius:5px 5px 2px 2px;background:var(--accent)}.ai-days i{font-style:normal;color:var(--tx3)}
+.ai-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 12px 8px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.ai-msg{display:flex}.ai-msg>div{max-width:86%;padding:10px 13px;border-radius:18px;font-size:15px;line-height:1.42;overflow-wrap:anywhere}
+.ai-msg.me{justify-content:flex-end}.ai-msg.me>div{background:var(--accent);color:#fff;border-bottom-right-radius:6px}
+.ai-msg.bot>div{background:var(--s2);border-bottom-left-radius:6px}.ai-msg.err>div{background:color-mix(in srgb,var(--miss) 14%,var(--s2))}
+.ai-msg p{margin:0 0 6px}.ai-msg p:last-child{margin-bottom:0}.ai-msg ul,.ai-msg ol{margin:2px 0 6px;padding-left:20px}.ai-msg li{margin:2px 0}.ai-msg .ai-h{font-weight:700;margin-top:6px}.ai-msg code{font-size:13px;background:var(--s3);padding:1px 4px;border-radius:4px}
+.ai-acts{display:flex;flex-direction:column;gap:6px;margin-top:10px}.ai-act{text-align:left;background:var(--bg);border:1px solid var(--s3);border-radius:12px;padding:9px 12px;font-weight:600;font-size:14px;color:var(--tx);min-height:40px}.ai-act:active{transform:scale(.98)}.ai-act.done{color:var(--ok);border-color:transparent;opacity:.8}
+.ai-dots{display:inline-flex;gap:4px;vertical-align:middle}.ai-dots i{width:7px;height:7px;border-radius:50%;background:var(--tx3);animation:aidot 1.2s infinite}.ai-dots i:nth-child(2){animation-delay:.15s}.ai-dots i:nth-child(3){animation-delay:.3s}
+@keyframes aidot{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
+.ai-empty{margin:auto 0;text-align:center;padding:10px 4px}.ai-empty h3{font:700 20px/1.2 var(--f-display);margin:10px 0 6px}.ai-logo{width:52px;height:52px;border-radius:16px;margin:0 auto;display:grid;place-items:center;background:var(--grad);color:#fff}.ai-logo svg{width:28px;height:28px}
+.ai-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:16px;text-align:left}.ai-gc{display:flex;align-items:center;gap:8px;background:var(--s2);border-radius:14px;padding:11px 12px;font-weight:600;font-size:14px;color:var(--tx);min-height:48px}.ai-gc span{font-size:18px}
+.ai-cmds{display:flex;gap:6px;overflow-x:auto;padding:6px 10px 2px;scrollbar-width:none}.ai-cmds::-webkit-scrollbar{display:none}.ai-cmds .chip{flex:none;white-space:nowrap}
+.ai-in{display:flex;align-items:flex-end;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--s2)}
+.ai-in textarea{flex:1;resize:none;border-radius:20px;padding:9px 14px;font-size:16px;line-height:1.35;min-height:40px;max-height:120px;background:var(--s2);border:0;color:var(--tx)}
+.ai-send{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;flex:none;padding:0}.ai-send:disabled{opacity:.4}.ai-send svg{width:20px;height:20px}.ai-cmdbtn[aria-expanded=true]{color:var(--accent)}
+
 .me-tot{background:var(--s2);border-radius:14px;padding:12px;margin-bottom:12px}.me-tot .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.me-tot .stat .tiny{font-weight:700}.me-up{color:#ff8a3d}.me-dn{color:var(--ok)}
 .me-list{display:flex;flex-direction:column;margin-bottom:14px}.me-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--s2)}.me-row:last-child{border-bottom:0}.me-row .grow{min-width:0;display:flex;flex-direction:column;gap:2px}.me-row b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .me-amt{display:flex;align-items:center;gap:4px;flex:none}.me-st{width:36px;min-height:38px;padding:0;font-size:20px}.me-amt label{display:flex;gap:3px;background:var(--s2);border-radius:10px;padding:0 8px;min-height:38px;align-items:center;width:108px;justify-content:center}.me-in{width:40px;background:none;border:0;padding:0;text-align:right;font-weight:700;font-size:16px;color:var(--tx);font-variant-numeric:tabular-nums}.me-amt label span{font-size:12px;color:var(--tx3);max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sore-figs{display:grid;grid-template-columns:1fr 1fr;gap:4px}
@@ -985,6 +1008,7 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 <script src="js/trophy.js"></script>
 <script src="js/mealsnap.js"></script>
 <script src="js/mealedit.js"></script>
+<script src="js/assist.js"></script>
 <script src="js/budget.js"></script>
 <script src="js/anim.js"></script>
 <script src="js/anim3d.js"></script>

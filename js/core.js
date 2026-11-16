@@ -260,7 +260,7 @@ function render() {
   view.innerHTML = ready ? v.render() + (typeof APP_VERSION !== 'undefined' ? `<footer class="ver-foot">Liftprint v${APP_VERSION}</footer>` : '') : `<div class="loading"><div class="thinking">Loading your data…</div></div>`;
   for (const [id, val] of Object.entries(keep)) { const el = document.getElementById(id); if (el && el.dataset.keep !== undefined) el.value = val; }
   if (focusId) { const el = document.getElementById(focusId); if (el) { el.focus({ preventScroll: true }); try { if (sel) el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } }
-  const topH = `<div class="top-l">${v.title()}</div><div class="top-r">${ready && v.actions ? v.actions() : ''}<button class="iconbtn" data-act="search" aria-label="Search">${ICON.search}</button></div>`;
+  const topH = `<div class="top-l">${v.title()}</div><div class="top-r">${ready && v.actions ? v.actions() : ''}<button class="iconbtn ai-hbtn" data-act="aiOpen" aria-label="Assistant">${ICON.ai}</button><button class="iconbtn" data-act="search" aria-label="Search">${ICON.search}</button></div>`;
   if (topH !== render.top || !$('#top').firstChild) { $('#top').innerHTML = topH; render.top = topH; }   // leave the header alone when nothing changed (keeps its animations)
   $$('.tab').forEach(t => t.setAttribute('aria-current', t.dataset.tab === tabOf(UI.tab) ? 'page' : 'false'));
   $('#banner').innerHTML = (typeof updBannerHTML === 'function' ? updBannerHTML() : '') + (Store.note ? `<div class="banner">${esc(Store.note)}</div>` : '');
@@ -450,5 +450,6 @@ const ICON = {
   chevR: svgI('<path d="m9 5 7 7-7 7"/>'),
   up: svgI('<path d="m6 15 6-6 6 6"/>'),
   down: svgI('<path d="m6 9 6 6 6-6"/>'),
+  ai: svgI('<path d="M11 3.5c.7 4.6 2.9 6.8 7.5 7.5-4.6.7-6.8 2.9-7.5 7.5-.7-4.6-2.9-6.8-7.5-7.5 4.6-.7 6.8-2.9 7.5-7.5z"/><path d="M18.5 15c.3 1.8 1.1 2.6 2.9 2.9-1.8.3-2.6 1.1-2.9 2.9-.3-1.8-1.1-2.6-2.9-2.9 1.8-.3 2.6-1.1 2.9-2.9z"/>'),
   spark: svgI('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>'),
 };
