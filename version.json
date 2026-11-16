@@ -1,6 +1,7 @@
 {
- "version": "10.3",
+ "version": "10.4",
  "notes": [
-  "\ud83d\udd25 New look: a new Liftprint logo and app icon (a weight plate drawn like a fingerprint) and a warmer brand colour. To see the new icon on your Home Screen, remove the app's shortcut and add it again."
+  "\ud83c\udfcb\ufe0f The logo is now clearly a weight plate: solid rim, three grip slots and the centre hole.",
+  "\ud83d\udee0 Fix: the dark smudge at the top of the screen is gone (a hidden pop-up was casting a shadow there), and the top bar sits a little lower."
  ]
 }

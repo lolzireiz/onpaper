@@ -2,7 +2,7 @@
 /* Progress extras: the trophy wall (every PR, newest first, with a shareable PR card), PR predictions from your
    estimated-1RM trend, and the story-style monthly wrap. */
 
-const LP_ARCS = ["M435.4 447.7 A100 100 0 1 1 425.4 562.0", "M603.5 684.2 A195 195 0 0 1 326.5 451.7", "M371.7 376.5 A195 195 0 0 1 665.7 632.1", "M740.5 333.5 A290 290 0 0 1 296.5 706.0", "M239.5 611.2 A290 290 0 0 1 657.0 260.9"];
+const LP_ARCS = ["M512.0 212.0 A300 300 0 0 1 512.0 812.0", "M512.0 812.0 A300 300 0 0 1 512.0 212.0", "M405.0 364.8 A182 182 0 0 1 619.0 364.8", "M693.0 493.0 A182 182 0 0 1 586.0 678.3", "M438.0 678.3 A182 182 0 0 1 331.0 493.0"];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const monthName = ym => MONTHS[+ym.slice(5, 7) - 1];
 const curYM = () => todayStr().slice(0, 7);
@@ -50,9 +50,9 @@ A.prShare = async d => {
 function drawMark(g, cx, cy, size, alpha = 1) {
   const sc = size / 864; g.save(); g.globalAlpha = alpha; g.translate(cx - 512 * sc, cy - 512 * sc); g.scale(sc, sc);
   const gr = g.createLinearGradient(100, 100, 900, 900); gr.addColorStop(0, '#ffa62b'); gr.addColorStop(.55, '#f4511e'); gr.addColorStop(1, '#e8284f');
-  g.strokeStyle = gr; g.lineWidth = 58; g.lineCap = 'round'; g.shadowColor = 'rgba(244,81,30,.5)'; g.shadowBlur = 30;
+  g.strokeStyle = gr; g.lineWidth = 72; g.lineCap = 'round'; g.shadowColor = 'rgba(244,81,30,.5)'; g.shadowBlur = 30;
   for (const p of LP_ARCS) g.stroke(new Path2D(p));
-  g.shadowBlur = 0; g.fillStyle = '#fff'; g.beginPath(); g.arc(512, 512, 38, 0, Math.PI * 2); g.fill();
+  g.shadowBlur = 0; g.fillStyle = '#fff'; g.fill(new Path2D('M512 428 a84 84 0 1 0 .01 0Z M512 474 a38 38 0 1 1 -.01 0Z'), 'evenodd');
   g.restore();
 }
 function drawStar(g, x, y, r, col) { g.save(); g.translate(x, y); g.fillStyle = col; g.beginPath(); g.moveTo(0, -r); g.quadraticCurveTo(r * .12, -r * .12, r, 0); g.quadraticCurveTo(r * .12, r * .12, 0, r); g.quadraticCurveTo(-r * .12, r * .12, -r, 0); g.quadraticCurveTo(-r * .12, -r * .12, 0, -r); g.fill(); g.restore(); }

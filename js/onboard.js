@@ -34,8 +34,8 @@ A.editGoals = () => { closeSheet(); openOnboarding('edit'); };
 /* ---------- logo with ridges that draw themselves ---------- */
 function obLogo() {
   return `<svg class="ob-logo" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="obg" x1=".05" y1="0" x2=".95" y2="1"><stop offset="0" stop-color="#ffa62b"/><stop offset=".55" stop-color="#f4511e"/><stop offset="1" stop-color="#e8284f"/></linearGradient></defs>
-    <g class="ridges" fill="none" stroke="url(#obg)" stroke-width="11.5" stroke-linecap="round"><path pathLength="1" style="--d:0.00s" d="M84.7 91.1 A20 20 0 1 1 82.7 114.0"/><path pathLength="1" style="--d:0.09s" d="M118.3 138.4 A39 39 0 0 1 62.9 91.9"/><path pathLength="1" style="--d:0.18s" d="M71.9 76.9 A39 39 0 0 1 130.7 128.0"/><path pathLength="1" style="--d:0.27s" d="M145.7 68.3 A58 58 0 0 1 56.9 142.8"/><path pathLength="1" style="--d:0.36s" d="M45.5 123.8 A58 58 0 0 1 129.0 53.8"/></g>
-    <g class="bar" fill="#fff"><circle cx="100" cy="104" r="7.5"/></g></svg>`;
+    <g class="ridges" fill="none" stroke="url(#obg)" stroke-linecap="round"><path pathLength="1" stroke-width="14" style="--d:0.00s" d="M100.0 44.0 A60.0 60.0 0 0 1 100.0 164.0"/><path pathLength="1" stroke-width="14" style="--d:0.09s" d="M100.0 164.0 A60.0 60.0 0 0 1 100.0 44.0"/><path pathLength="1" stroke-width="15.5" style="--d:0.18s" d="M78.6 74.6 A36.4 36.4 0 0 1 121.4 74.6"/><path pathLength="1" stroke-width="15.5" style="--d:0.27s" d="M136.2 100.2 A36.4 36.4 0 0 1 114.8 137.3"/><path pathLength="1" stroke-width="15.5" style="--d:0.36s" d="M85.2 137.3 A36.4 36.4 0 0 1 63.8 100.2"/></g>
+    <g class="bar" fill="#fff"><path fill-rule="evenodd" d="M100 87 a17 17 0 1 0 .01 0Z M100 96.4 a7.6 7.6 0 1 1 -.01 0Z"/></g></svg>`;
 }
 
 /* ---------- views ---------- */
