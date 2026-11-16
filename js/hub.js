@@ -12,7 +12,7 @@ function applyTheme() {
   const s = S(), r = document.documentElement, th = s.theme || 'dark';
   if (r.dataset.theme !== th) r.dataset.theme = th;
   r.style.setProperty('--accent', s.accent || ACCENT_DEF);
-  document.body.classList.toggle('no-hints', !hintsOn());
+  document.body.classList.toggle('no-hints', !hintsOn()); document.body.classList.toggle('ai-new', !S().aiSeen);
   const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = th === 'light' ? '#f2f2f7' : '#000000';
   try { localStorage.setItem('lp.theme', th); localStorage.setItem('lp.accent', s.accent || ACCENT_DEF); } catch (e) {}   // so the next launch paints the right theme instantly
 }
