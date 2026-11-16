@@ -67,7 +67,7 @@ const LEGAL = {
 
 /* ----- in-app (skipped on the standalone pages, where the app isn't loaded) ----- */
 if (typeof A !== 'undefined') {
-  A.legalOpen = d => { const L = LEGAL[d.k]; if (!L) return; openSheet(L.t, `<div class="legal">${L.h}</div>${d.k === 'health' ? '' : `<p class="faint tiny" style="margin-top:12px">Also available as a web page: <a href="${d.k}.html" target="_blank" rel="noopener">${d.k}.html</a></p>`}`); };
+  A.legalOpen = d => { const L = LEGAL[d.k]; if (!L) return; UI.legalReading = true; openSheet(L.t, `<div class="legal">${L.h}</div>${d.k === 'health' ? '' : `<p class="faint tiny" style="margin-top:12px">Also available as a web page: <a href="${d.k}.html" target="_blank" rel="noopener">${d.k}.html</a></p>`}`, { onClose: () => { UI.legalReading = false; legalNag(); } }); };
   A.aboutOpen = () => openSheet('About & legal', `<div class="col" style="gap:8px">
       <button class="btn ghost block" data-act="legalOpen" data-k="health">🩺 Health &amp; safety</button>
       <button class="btn ghost block" data-act="legalOpen" data-k="privacy">🔒 Privacy Policy</button>
@@ -82,6 +82,9 @@ if (typeof A !== 'undefined') {
     try { Object.keys(localStorage).filter(k => /^(onpaper\.|lp\.)/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {}
     location.reload();
   };
+  /* someone who used the app before the terms existed has to agree before carrying on: the notice comes back until they do */
+  window.legalNeeded = () => S().proInit === 'old' && (!S().legal || S().legal.v !== LEGAL_VER);
+  window.legalNag = () => { if (!legalNeeded()) return; setTimeout(() => { if (legalNeeded() && !UI.legalReading && !$('#sheet .legal-notice')) A.legalNotice(); }, 350); };
   /* remembers that this version of the terms was accepted (shown on the first setup screen) */
   window.legalAccept = () => { const a = S().legal; if (!a || a.v !== LEGAL_VER) saveSettings({ legal: { v: LEGAL_VER, ts: Date.now() } }); };
   window.legalLineHTML = () => `<p class="lg-line">By continuing you confirm you're ${LEGAL_MIN_AGE} or older and agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>. Liftprint isn't medical advice.</p>`;

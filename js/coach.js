@@ -229,7 +229,8 @@ function recapRows(r) {
   const rows = [];
   rows.push(['🏋️', 'Gym days', `${r.days} of ${r.goal}${r.days >= r.goal ? ' ✓' : ''}`, `${plural(r.workouts, 'workout')} · ${plural(r.sets, 'work set')}${r.acts ? ` · ${plural(r.acts, 'sport session')}` : ''}`]);
   rows.push(['🏆', 'PRs', r.prCount ? String(r.prCount) : '0', r.prs.length ? r.prs.slice(0, 3).map(p => `${p.name} ${fw(p.w, 0)}×${p.r}`).join(', ') : 'No new PRs this week']);
-  if (r.mg.length) rows.push(['🎯', 'Goal work', r.mg.map(g => `${GOALS[g][0]} ${r.goals[g] || 0}`).join('  '), 'Sets and sessions per goal']);
+  if (r.mg.length) { const top = [...r.mg].sort((x, y) => (r.goals[y] || 0) - (r.goals[x] || 0)), hit = r.mg.filter(g => r.goals[g]).length;   // lots of goals: show the three you trained most, then a count
+    rows.push(['🎯', 'Goal work', r.mg.length > 3 ? `${hit} of ${r.mg.length}` : top.map(g => `${GOALS[g][0]} ${r.goals[g] || 0}`).join('  '), r.mg.length > 3 ? `Most: ${top.slice(0, 3).filter(g => r.goals[g]).map(g => `${GOALS[g][0]} ${r.goals[g]}`).join('  ') || 'none trained yet'}` : 'Sets and sessions per goal']); }
   rows.push(['⚖️', 'Weight trend', r.wChange != null ? `${signed(U.w(r.wChange))} ${U.wu}` : '—', r.wChange != null ? 'Smoothed change over the week' : 'Weigh in a few times a week']);
   rows.push(['🥩', 'Protein goal', r.food ? `${r.pHit} of ${r.food} days` : '—', r.food ? `Days you logged food` : 'No food logged']);
   if (r.dunk) rows.push(['🏀', 'Dunk progress', r.vNow ? `${trim(r.vNow, 1)}″ vert` : r.rNow ? ftin(r.rNow) : '—', r.jumps ? (r.vNow > r.vBefore && r.vBefore ? `+${trim(r.vNow - r.vBefore, 1)}″ over your old best!` : r.rNow > r.rBefore && r.rBefore ? `New best touch, +${trim(r.rNow - r.rBefore, 1)}″` : plural(r.jumps, 'jump test')) : 'No jump tests this week']);
