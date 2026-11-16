@@ -72,12 +72,15 @@ const PET_ART = {
     mouth: m => m === 'eating' ? petMouth(m, 113) : m === 'hungry' ? `<path d="M88 121 Q100 113 112 121" stroke="#7a2a48" stroke-width="3" fill="none" stroke-linecap="round"/>` : `<path d="M80 112 Q100 128 120 112" stroke="#7a2a48" stroke-width="3" fill="none" stroke-linecap="round"/>` },
 };
 
+/* shading shared by every pet: a soft shadow on the lower-right edge of each shape, a light edge on the upper-left, a gloss on the head and belly, and a shadow on the ground */
+const PET_DEFS = `<defs><filter id="petsh" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/><feOffset in="b" dx="-6" dy="-8" result="o1"/><feComposite in="SourceAlpha" in2="o1" operator="out" result="e1"/><feFlood flood-color="#140a26" flood-opacity=".3"/><feComposite in2="e1" operator="in" result="shade"/><feOffset in="b" dx="5" dy="7" result="o2"/><feComposite in="SourceAlpha" in2="o2" operator="out" result="e2"/><feFlood flood-color="#fff" flood-opacity=".26"/><feComposite in2="e2" operator="in" result="lite"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shade"/><feMergeNode in="lite"/></feMerge></filter><radialGradient id="petgl"><stop offset="0" stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><radialGradient id="petgr"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient></defs>`;
 function petSVG(kind = petKind(), mood = 'happy', size = 150) {
   const P = PET_ART[kind] || PET_ART.raccoon, belly = mood === 'stuffed' ? 50 : 40;
   const brows = kind === 'raccoon' ? petBrows(mood, '#d8d8e0') : petBrows(mood);
   return `<svg class="raccoon rc-${mood}" viewBox="0 0 200 200" width="${size}" height="${size}" role="img" aria-label="${esc(PETS[kind].label)} buddy looking ${mood}">
-    <g class="rc-tail">${P.tail()}</g><g class="rc-body">${P.body(belly)}</g>
-    <g class="rc-head">${P.head()}${petEyes(mood)}${brows}${petBlush(kind === 'axolotl' ? .7 : .55)}${P.nose()}${P.mouth ? P.mouth(mood) : petMouth(mood)}</g>
+    ${PET_DEFS}<ellipse cx="100" cy="194" rx="${belly + 22}" ry="7" fill="url(#petgr)"/>
+    <g class="rc-tail"><g filter="url(#petsh)">${P.tail()}</g></g><g class="rc-body"><g filter="url(#petsh)">${P.body(belly)}</g><ellipse cx="100" cy="150" rx="${belly - 6}" ry="14" fill="url(#petgl)"/></g>
+    <g class="rc-head"><g filter="url(#petsh)">${P.head()}</g><ellipse cx="82" cy="62" rx="30" ry="14" fill="url(#petgl)" transform="rotate(-18 82 62)"/>${petEyes(mood)}${brows}${petBlush(kind === 'axolotl' ? .7 : .55)}${P.nose()}${P.mouth ? P.mouth(mood) : petMouth(mood)}</g>
     ${mood === 'eating' ? petSnack(P.snack, PETS[kind].paw) : ''}</svg>`;
 }
 
@@ -104,7 +107,7 @@ const PENCIL = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stro
 function buddyCardHTML() {
   if (!buddyOn()) return '';
   const b = buddyState(UI.foodDate || todayStr()), st = feedStreak();
-  return `<section class="card buddy" style="flex-direction:row;align-items:center;gap:12px;padding:10px 14px"><button data-act="petBuddy" aria-label="Pet ${esc(buddyName())}" style="flex:none">${petSVG(petKind(), b.mood, 96)}</button><div class="grow"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><button data-act="renameBuddy" style="display:inline-flex;align-items:center;gap:6px" aria-label="Rename ${esc(buddyName())}"><b>${esc(buddyName())}</b>${PENCIL}</button><button class="linkbtn" style="font-size:13px;padding:0" data-act="pickPet">Change pet</button></div><p class="muted small">${esc(b.text)}</p><div class="bar" style="margin-top:8px" aria-label="${esc(buddyName())}'s fullness"><i style="width:${clamp(b.pct * 100, 4, 100)}%;background:var(--grad)"></i></div>${st > 1 ? `<p class="faint tiny" style="margin-top:6px">🔥 Fed ${st} days in a row</p>` : ''}</div></section>`;
+  return `<section class="card buddy" style="flex-direction:row;align-items:center;gap:12px;padding:10px 14px"><button data-act="petBuddy" aria-label="Pet ${esc(buddyName())}" style="flex:none">${petSVG(petKind(), b.mood, 96)}</button><div class="grow"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><button data-act="renameBuddy" style="display:inline-flex;align-items:center;gap:6px" aria-label="Rename ${esc(buddyName())}"><b>${esc(buddyName())}</b>${PENCIL}</button><span style="display:inline-flex;gap:12px"><button class="linkbtn" style="font-size:13px;padding:0" data-act="pickPet">Change</button><button class="linkbtn" style="font-size:13px;padding:0;color:var(--tx3)" data-act="buddyOff" aria-label="Hide your food buddy">Hide</button></span></div><p class="muted small">${esc(b.text)}</p><div class="bar" style="margin-top:8px" aria-label="${esc(buddyName())}'s fullness"><i style="width:${clamp(b.pct * 100, 4, 100)}%;background:var(--grad)"></i></div>${st > 1 ? `<p class="faint tiny" style="margin-top:6px">🔥 Fed ${st} days in a row</p>` : ''}</div></section>`;
 }
 A.petBuddy = (d, el) => { const svg = el.querySelector('svg'); svg.classList.remove('rc-pet'); void svg.offsetWidth; svg.classList.add('rc-pet'); toast(['Hehe, that tickles!', `${buddyName()} loves you!`, PETS[petKind()].noise][Math.floor(Math.random() * 3)]); };
 A.pickPet = () => {
@@ -159,3 +162,8 @@ A.renameBuddy = () => {
   openSheet('Rename your buddy', `<div style="display:grid;place-items:center">${petSVG(petKind(), 'happy', 120)}</div><div class="field"><label class="lbl" for="bd-n">Name</label><input id="bd-n" name="bname" maxlength="24" value="${esc(buddyName())}" autocapitalize="words" autocomplete="off"></div><button class="btn block" data-act="saveBuddyName">Save name</button>`, { onMount(L) { setTimeout(() => { const i = $('#bd-n', L); if (i) { i.focus(); i.select(); } }, 280); } });
 };
 A.saveBuddyName = () => { const n = fval('bname').replace(/\s+/g, ' ').trim(); if (!n) return toast('Give your buddy a name.', { bad: true }); saveSettings({ buddyName: n }); closeSheet(); toast(`${n} loves their new name!`); };
+
+/* the pet is optional: hide it from its own card, bring it back from the bottom of the Food tab or Settings */
+A.buddyOff = () => { saveSettings({ buddy: false }); toastUndo('Buddy hidden. Bring it back at the bottom of the Food tab.', () => saveSettings({ buddy: true }), 6000); };
+A.buddyOn = () => { saveSettings({ buddy: true }); toast(`${buddyName()} is back!`); const v = $('#view'); if (v) v.scrollTo({ top: 0, behavior: 'smooth' }); };
+const buddyInviteHTML = () => buddyOn() ? '' : `<button class="buddy-invite" data-act="buddyOn">${petSVG(petKind(), 'happy', 28)}<span>Optional: add a food buddy to feed as you log</span></button>`;

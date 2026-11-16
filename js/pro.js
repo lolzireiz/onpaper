@@ -133,3 +133,6 @@ A.legalOk = () => { legalAccept(); closeSheet(); };
 { const ht = Views.home.title; Views.home.title = () => ht().replace('</span>', '</span>' + planPillHTML()); const yt = Views.you.title; Views.you.title = () => yt().replace('</h1>', ' ' + planPillHTML() + '</h1>'); }
 /* theme and colour changes made inside Settings refresh their own buttons */
 for (const k of ['setTheme', 'setAccent', 'setSounds', 'setHints']) { const f = A[k]; if (f) A[k] = (d, el) => { f(d, el); const box = $('#st-look'); if (box) box.innerHTML = appearanceHTML(); }; }
+
+/* an optional pet: when it's off, a quiet line at the bottom of Food offers it */
+{ const fr = Views.food.render; Views.food.render = function () { return fr.apply(this, arguments) + buddyInviteHTML(); }; }

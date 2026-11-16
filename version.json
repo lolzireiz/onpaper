@@ -1,6 +1,7 @@
 {
- "version": "10.6",
+ "version": "10.7",
  "notes": [
-  "\ud83d\udee0 Fix: the top bar now sits below the dark fade iPhones draw under the clock, so the logo is no longer dimmed."
+  "\ud83e\udd9d The food buddies got a glow-up: soft shading, highlights and a shadow under their feet.",
+  "\ud83d\ude48 The buddy is optional. Tap Hide on its card to turn it off, and bring it back any time from the bottom of the Food tab."
  ]
 }
