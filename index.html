@@ -715,7 +715,7 @@ body.ob-open .tabs{visibility:hidden}
 .sess-bar{position:absolute;left:0;bottom:0;height:3px;width:var(--p);background:linear-gradient(90deg,var(--accent),var(--ok));border-radius:0 2px 2px 0;transition:width .4s}
 .sl-row{display:flex;align-items:center;gap:10px}.sl-row .sim-range{flex:1}
 .sore-wrap{display:flex;flex-direction:column;gap:10px}
-.ai-panel{position:fixed;left:0;right:0;top:0;height:100%;z-index:45;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+.ai-panel{position:fixed;left:0;right:0;top:0;height:100%;z-index:45;background:var(--bg);box-shadow:0 0 0 100vmax var(--bg);will-change:transform;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
 body.ai-open{overflow:hidden}
 .ai-top{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 6px;border-bottom:1px solid var(--s2)}.ai-top .grow{min-width:0;display:flex;flex-direction:column;gap:3px}.ai-top b{font:700 17px/1.1 var(--f-display)}
 .ai-meter{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--tx2);padding:0;min-height:0;background:none;font-variant-numeric:tabular-nums}

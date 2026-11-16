@@ -180,18 +180,21 @@ A.aiOpen = () => {
     <div class="ai-body" id="ai-body"></div>
     <div class="ai-cmds" id="ai-cmds"></div>
     <form class="ai-in" id="ai-form"><button type="button" class="iconbtn ai-cmdbtn" data-act="aiCmds" aria-label="Commands" aria-expanded="false">${ICON.ai}</button><textarea id="ai-text" rows="1" placeholder="Ask your coach…" aria-label="Message"></textarea><button class="ai-send" id="ai-send" aria-label="Send">${ICON.up}</button></form>`;
-  document.body.appendChild(el); document.body.classList.add('ai-open');
+  document.body.appendChild(el); document.body.classList.add('ai-open'); aiLock();
   const ta = $('#ai-text'); ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(120, ta.scrollHeight) + 'px'; });
   ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); aiSend(); } });
   $('#ai-form').addEventListener('submit', e => { e.preventDefault(); aiSend(); });
   aiVV(); aiDraw(true); AI.tick = setInterval(aiMeterRefresh, 30000);
   if (!REDUCED()) el.animate([{ transform: 'translateY(24px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)' });
 };
-function aiClose() { const el = $('#ai'); if (!el) return; if (AI.ctl) AI.ctl.abort(); clearInterval(AI.tick); el.remove(); document.body.classList.remove('ai-open'); if (window.visualViewport) visualViewport.removeEventListener('resize', aiVVSet); }
+function aiClose() { const el = $('#ai'); if (!el) return; if (AI.ctl) AI.ctl.abort(); clearInterval(AI.tick); el.remove(); document.body.classList.remove('ai-open'); aiUnlock(); if (window.visualViewport) { visualViewport.removeEventListener('resize', aiVVSet); visualViewport.removeEventListener('scroll', aiVVSet); } }
 A.aiClose = aiClose;
 /* keep the input above the iPhone keyboard */
-function aiVVSet() { const el = $('#ai'); if (!el || !window.visualViewport) return; el.style.height = visualViewport.height + 'px'; el.style.top = visualViewport.offsetTop + 'px'; const b = $('#ai-body'); if (b && AI.stick) b.scrollTop = b.scrollHeight; }
-function aiVV() { if (window.visualViewport) { visualViewport.addEventListener('resize', aiVVSet); aiVVSet(); } }
+/* iPhone: the keyboard shrinks and pans the visible area, so the panel follows both its size and its offset, and the page underneath is pinned so it can't scroll into view */
+function aiVVSet() { const el = $('#ai'); if (!el || !window.visualViewport) return; const vv = visualViewport; el.style.height = Math.round(vv.height) + 'px'; el.style.transform = `translateY(${Math.max(0, Math.round(vv.offsetTop))}px)`; const b = $('#ai-body'); if (b && AI.stick) b.scrollTop = b.scrollHeight; }
+function aiVV() { if (window.visualViewport) { visualViewport.addEventListener('resize', aiVVSet); visualViewport.addEventListener('scroll', aiVVSet); aiVVSet(); } }
+function aiLock() { AI.sy = window.scrollY; const b = document.body.style; b.position = 'fixed'; b.top = `-${AI.sy}px`; b.left = '0'; b.right = '0'; }
+function aiUnlock() { const b = document.body.style; if (b.position !== 'fixed') return; b.position = ''; b.top = ''; b.left = ''; b.right = ''; window.scrollTo(0, AI.sy || 0); }
 
 function aiWelcomeHTML() {
   if (!geminiKey()) return `<div class="ai-empty"><div class="ai-logo">${ICON.ai}</div><h3>Add your AI key first</h3><p class="muted small">The assistant uses the same key as photo and label scanning. It stays on this phone.</p><button class="btn" data-act="aiKey">Add my key</button></div>`;
@@ -245,6 +248,6 @@ async function aiSend(text, shown) {
 A.aiFollow = d => {
   const m = aiChat(), x = m[+d.m]; if (!x || !x.follow || AI.busy) return;
   x.follow.off = 1; aiChatSave(m);
-  if (d.k === 'no') { aiDraw(); const ta = $('#ai-text'); if (ta) ta.focus(); return; }
+  if (d.k === 'no') { aiDraw(); return; }
   aiSend(d.k === 'alt' ? x.follow.alt : x.follow.yes);
 };

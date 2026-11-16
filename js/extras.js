@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '9.2';
+const APP_VERSION = '9.3';
 const CHANGELOG = [
+  ['9.3', ['🛠 Fix: tapping "No thanks" in the Assistant no longer pops up the keyboard, and the Assistant stays put over the screen behind it when the keyboard opens.']],
   ['9.2', ['💬 The Assistant ends its answers with a follow-up question and quick-reply buttons. Tap to keep going, or tap "No thanks" (or just ignore it) and ask something else.']],
   ['9.1', ['✨ New: the Assistant. Tap the sparkle at the top of any screen to ask about your training, food, weight, recovery, habits or jumps. It reads everything you\'ve logged.', '⚡ Quick commands: today\'s plan, what to eat, bulk check, last workout, week recap, plateau check, recovery, dunk progress, swap an exercise, hit my macros.', '✅ It can log food, tick habits, change your targets or swap exercises, but only when you tap to confirm.', '📊 A usage meter shows how many AI requests you\'ve used today, about how many are left, and when they reset.']],
   ['9.0', ['🪑 New: Captain\'s Chair Knee Raise under Core, with a demo. Back on the pad, forearms on the arm pads, knees up.']],
