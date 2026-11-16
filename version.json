@@ -1,7 +1,6 @@
 {
- "version": "10.13",
+ "version": "10.14",
  "notes": [
-  "\u2728 \"Ask your coach\" is now a card on Today with questions that fit the moment (today's plan in the morning, what to eat when protein is short, a review after you train). Hide it any time from Customize this screen.",
-  "\ud83c\udfcb\ufe0f After a workout, the summary has a \"Review this workout with your coach\" button."
+  "\ud83d\udd27 Under the hood: the app is ready to use Liftprint's own AI service once it's switched on, so testers won't need their own key. Nothing changes for you today."
  ]
 }

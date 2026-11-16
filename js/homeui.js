@@ -72,7 +72,7 @@ function coachCardHTML() {
   return `<section class="card coach-card"><button class="cc-h" data-act="aiAsk"><span class="cc-ic">${ICON.ai}</span><span class="grow"><b>Ask your coach</b><span>It knows your training, food and recovery</span></span>${isPro() ? ICON.chevR : '<span class="plan-pill pro" style="margin:0">PRO</span>'}</button>
     <div class="cc-chips">${coachPicks().map(i => `<button class="chip" data-act="aiAsk" data-i="${i}">${AI_CMDS[i][0]} ${esc(AI_CMDS[i][1])}</button>`).join('')}</div></section>`;
 }
-A.aiAsk = d => { if (!proGate('ai')) return; A.aiOpen(); if (d && d.i != null && geminiKey()) setTimeout(() => A.aiCmd({ i: d.i }), 260); };
+A.aiAsk = d => { if (!proGate('ai')) return; A.aiOpen(); if (d && d.i != null && aiReady()) setTimeout(() => A.aiCmd({ i: d.i }), 260); };
 { const open0 = A.aiOpen; A.aiOpen = (d, el) => { if (isPro() && !S().aiSeen) saveSettings({ aiSeen: 1 }); return open0(d, el); }; }
 { const ss = showSummary; showSummary = function () { const r = ss.apply(this, arguments); try { const b = document.querySelector('#sheet .sheet-b'); if (b && !b.querySelector('.sum-coach')) b.insertAdjacentHTML('beforeend', `<button class="btn ghost block sum-coach" data-act="sumCoach" style="margin-top:8px">${ICON.ai.replace('<svg', '<svg width="18" height="18"')} Review this workout with your coach</button>`); } catch (e) {} return r; }; }
 A.sumCoach = () => { closeAllSheets(); setTimeout(() => A.aiAsk({ i: 3 }), 300); };

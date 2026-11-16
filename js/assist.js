@@ -30,7 +30,9 @@ const aiLimit = () => Math.max(1, +S().aiDailyLimit || 250);
 const aiResetTxt = () => { const ms = aiuMsToReset(), h = Math.floor(ms / 3600000), m = Math.ceil((ms % 3600000) / 60000); return h ? `${h}h ${m}m` : `${m}m`; };
 const aiResetAt = () => new Date(Date.now() + aiuMsToReset()).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 function aiUseState() {
-  const u = aiUse(), lim = aiLimit(), left = Math.max(0, lim - u.n), pct = Math.min(1, u.n / lim);
+  const u = aiUse(); let lim = aiLimit();
+  if (typeof aiRelayOn === 'function' && aiRelayOn()) { try { const sv = JSON.parse(localStorage.getItem('onpaper.aiSrv') || 'null'); if (sv && sv.day === u.day) { u.n = sv.used; lim = sv.limit; } else if (sv) lim = sv.limit; } catch (e) {} }
+  const left = Math.max(0, lim - u.n), pct = Math.min(1, u.n / lim);
   const hitToday = u.hit && aiuDay(u.hit) === u.day, minute = u.recent.length;
   const tone = hitToday || left === 0 ? 'out' : pct >= 0.8 ? 'low' : 'ok';
   return { u, lim, left, pct, hitToday, minute, tone };
@@ -200,7 +202,7 @@ function aiLock() { AI.sy = window.scrollY; const b = document.body.style; b.pos
 function aiUnlock() { const b = document.body.style; if (b.position !== 'fixed') return; b.position = ''; b.top = ''; b.left = ''; b.right = ''; window.scrollTo(0, AI.sy || 0); }
 
 function aiWelcomeHTML() {
-  if (!geminiKey()) return `<div class="ai-empty"><div class="ai-logo">${ICON.ai}</div><h3>Add your AI key first</h3><p class="muted small">The assistant uses the same key as photo and label scanning. It stays on this phone.</p><button class="btn" data-act="aiKey">Add my key</button></div>`;
+  if (!aiReady()) return `<div class="ai-empty"><div class="ai-logo">${ICON.ai}</div><h3>Add your AI key first</h3><p class="muted small">The assistant uses the same key as photo and label scanning. It stays on this phone.</p><button class="btn" data-act="aiKey">Add my key</button></div>`;
   const nm = S().name ? `, ${esc(S().name)}` : '';
   return `<div class="ai-empty"><div class="ai-logo">${ICON.ai}</div><h3>Hey${nm}. What do you want to know?</h3><p class="muted small">I can see your workouts, lifts, food, weight, readiness, habits and jump log. I can also log food, tick habits, change targets or swap exercises when you tap to confirm.</p><p class="faint tiny">AI can be wrong. This is general fitness info, not medical advice. <button class="linkbtn tiny" data-act="legalOpen" data-k="health" style="font-size:inherit;padding:0">Health &amp; safety</button></p>
     <div class="ai-grid">${AI_CMDS.map((c, i) => `<button class="ai-gc" data-act="aiCmd" data-i="${i}"><span>${c[0]}</span>${esc(c[1])}</button>`).join('')}</div></div>`;
@@ -211,9 +213,9 @@ function aiDraw(scroll) {
   body.innerHTML = (m.length ? m.map((x, i) => x.role === 'user' ? `<div class="ai-msg me"><div>${esc(x.text).replace(/\n/g, '<br>')}</div></div>`
     : `<div class="ai-msg bot${x.err ? ' err' : ''}"><div>${x.err ? `<p>${esc(x.text)}</p>${i === m.length - 1 ? '<button class="btn ghost sm" data-act="aiRetry">Try again</button>' : ''}` : aiMd(x.text)}${(x.actions || []).length ? `<div class="ai-acts">${x.actions.map((a, j) => `<button class="ai-act${a.done ? ' done' : ''}" data-act="aiAct" data-m="${i}" data-a="${j}"${a.done ? ' disabled' : ''}>${a.done ? '✓ ' : ''}${esc(a.label)}</button>`).join('')}</div>` : ''}${x.follow ? `<p class="ai-fq">${esc(x.follow.q)}</p>${i === m.length - 1 && !x.follow.off && !AI.busy ? `<div class="ai-fb"><button class="ai-yes" data-act="aiFollow" data-m="${i}" data-k="yes">${esc(x.follow.yes)}</button>${x.follow.alt ? `<button class="ai-alt" data-act="aiFollow" data-m="${i}" data-k="alt">${esc(x.follow.alt)}</button>` : ''}<button class="ai-no" data-act="aiFollow" data-m="${i}" data-k="no">No thanks</button></div>` : ''}` : ''}</div></div>`).join('') : aiWelcomeHTML())
     + (AI.busy ? `<div class="ai-msg bot"><div><span class="ai-dots"><i></i><i></i><i></i></span>${AI.status ? `<span class="faint small"> ${esc(AI.status)}</span>` : ''} <button class="linkbtn small" data-act="aiStop">Stop</button></div></div>` : '');
-  $('#ai-cmds').innerHTML = m.length && geminiKey() ? AI_CMDS.map((c, i) => `<button class="chip" data-act="aiCmd" data-i="${i}">${c[0]} ${esc(c[1])}</button>`).join('') : '';
+  $('#ai-cmds').innerHTML = m.length && aiReady() ? AI_CMDS.map((c, i) => `<button class="chip" data-act="aiCmd" data-i="${i}">${c[0]} ${esc(c[1])}</button>`).join('') : '';
   $('#ai-cmds').hidden = !m.length || !UI.aiCmds;
-  const send = $('#ai-send'); if (send) send.disabled = AI.busy || !geminiKey();
+  const send = $('#ai-send'); if (send) send.disabled = AI.busy || !aiReady();
   if (scroll || near || AI.busy) { body.scrollTop = body.scrollHeight; AI.stick = true; }
 }
 A.aiCmds = (d, el) => { UI.aiCmds = !UI.aiCmds; if (el) el.setAttribute('aria-expanded', String(!!UI.aiCmds)); aiDraw(); };
@@ -226,7 +228,7 @@ A.aiClear = () => { const old = aiChat(); aiChatSave([]); closeSheet(); aiDraw(t
 
 async function aiSend(text, shown) {
   const ta = $('#ai-text'); text = (text ?? (ta ? ta.value : '')).trim(); if (!text || AI.busy) return;
-  if (!geminiKey()) return aiDraw();
+  if (!aiReady()) return aiDraw();
   const st = aiUseState(); if (st.hitToday) toast(`Your key hit its daily limit. It resets in ${aiResetTxt()}.`, { bad: true, ms: 4000 });
   if (ta && text === ta.value.trim()) { ta.value = ''; ta.style.height = 'auto'; }
   const m = aiChat(); m.push({ role: 'user', text: shown || text, prompt: shown ? text : undefined, ts: Date.now() }); aiChatSave(m);
@@ -237,7 +239,7 @@ async function aiSend(text, shown) {
   catch (e) { err = e; }
   AI.busy = false; AI.ctl = null; AI.status = '';
   const m2 = aiChat();
-  if (err) { if (err.code !== 'cancelled') m2.push({ role: 'bot', err: 1, text: err.code === 'rate_limited' ? (aiPerMinute(err.message) ? 'Too many requests in the last minute. Give it a minute and try again.' : `Your key is out of requests for today. It resets in ${aiResetTxt()} (${aiResetAt()}).`) : ({ overloaded: 'The AI is busy right now. Give it a minute and tap Try again.', bad_model: "The AI couldn't be reached with the current model setting. In Settings, clear the box under Advanced: model, then try again.", timeout: 'That took too long. Tap Try again.', no_key: 'Add your AI key in Settings first.' }[err.code] || aiErrorText(err) || 'Something went wrong. Try again.'), ts: Date.now() }); else { const last = m2[m2.length - 1]; if (last && last.role === 'user') { m2.pop(); if (ta && !ta.value) ta.value = last.prompt ? '' : last.text; } } }
+  if (err) { if (err.code !== 'cancelled') m2.push({ role: 'bot', err: 1, text: err.code === 'rate_limited' ? (aiPerMinute(err.message) ? 'Too many requests in the last minute. Give it a minute and try again.' : `Your key is out of requests for today. It resets in ${aiResetTxt()} (${aiResetAt()}).`) : ({ no_access: 'The Assistant needs your access code. Tap the PRO or FREE tag by the logo, then "Have a code?".', overloaded: 'The AI is busy right now. Give it a minute and tap Try again.', bad_model: "The AI couldn't be reached with the current model setting. In Settings, clear the box under Advanced: model, then try again.", timeout: 'That took too long. Tap Try again.', no_key: 'Add your AI key in Settings first.' }[err.code] || aiErrorText(err) || 'Something went wrong. Try again.'), ts: Date.now() }); else { const last = m2[m2.length - 1]; if (last && last.role === 'user') { m2.pop(); if (ta && !ta.value) ta.value = last.prompt ? '' : last.text; } } }
   else {
     const reply = typeof out === 'string' ? out : (out && (out.reply || out.text || out.answer)) || '';
     const acts = (Array.isArray(out && out.actions) ? out.actions : []).map(aiActCheck).filter(Boolean).slice(0, 4);

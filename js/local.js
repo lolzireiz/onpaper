@@ -59,6 +59,13 @@ const GEMINI_KEY = 'onpaper.geminiKey', GEMINI_MODEL = 'onpaper.geminiModel';
 const geminiKey = () => { try { return (localStorage.getItem(GEMINI_KEY) || '').replace(/[^\x21-\x7E]/g, ''); } catch (e) { return ''; } };
 const geminiModel = () => { try { const m = (localStorage.getItem(GEMINI_MODEL) || '').trim(); return m === 'gemini-flash-latest' ? '' : m; } catch (e) { return ''; } };
 const GEMINI_MODELS = ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-2.5-flash-lite', 'gemini-2.5-flash'];   // tried in order; retired models are skipped quietly
+/* AI relay: when this address is set, the app sends AI requests to Liftprint's own server (server/ai-relay.js) and nobody needs their own key.
+   Left empty, the app uses the key from Settings as before. A key typed into Settings always wins, so the owner can keep using theirs. */
+const AI_RELAY = '';
+const aiRelayOn = () => !!AI_RELAY && !geminiKey();
+const aiReady = () => !!geminiKey() || !!AI_RELAY;
+const aiDevice = () => { try { let d = localStorage.getItem('onpaper.device'); if (!d) { d = 'd' + newId() + Math.random().toString(36).slice(2, 10); localStorage.setItem('onpaper.device', d); } return d; } catch (e) { return 'd' + newId(); } };
+const aiCode = () => { try { return localStorage.getItem('onpaper.code') || ''; } catch (e) { return ''; } };
 const blobB64 = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(b); });
 const Gemini = {
   workingModel: null,
@@ -66,8 +73,10 @@ const Gemini = {
     const ctl = new AbortController(), timer = setTimeout(() => ctl.abort('timeout'), 50000);
     const onAbort = () => ctl.abort('cancel'); if (signal) signal.addEventListener('abort', onAbort);
     try {
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey())}`, { method: 'POST', signal: ctl.signal, headers: { 'Content-Type': 'application/json' }, body });
+      const relay = aiRelayOn();
+      const r = await fetch(relay ? `${AI_RELAY.replace(/\/$/, '')}/v1/ai?model=${encodeURIComponent(model)}` : `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey())}`, { method: 'POST', signal: ctl.signal, headers: { 'Content-Type': 'application/json', ...(relay ? { 'x-lp-device': aiDevice(), 'x-lp-code': aiCode() } : {}) }, body });
       const t = await r.text();
+      if (relay) { const used = r.headers.get('x-lp-used'), lim = r.headers.get('x-lp-limit'); if (used != null && lim != null) { try { localStorage.setItem('onpaper.aiSrv', JSON.stringify({ day: typeof aiuDay === 'function' ? aiuDay() : '', used: +used, limit: +lim })); } catch (e) {} } if (r.status === 401) throw { code: 'no_access', message: '401: access code needed' }; }
       if (!r.ok) { let msg = t; try { msg = JSON.parse(t).error.message; } catch (e) {} throw { code: r.status === 429 && !/quota|billing/i.test(msg) ? 'overloaded' : r.status === 429 ? 'rate_limited' : [500, 502, 503, 504].includes(r.status) ? 'overloaded' : r.status === 404 ? 'bad_model' : /api key|API_KEY|permission/i.test(msg) ? 'bad_key' : 'upstream_error', message: `${r.status}: ${String(msg).slice(0, 220)}` }; }
       return JSON.parse(t);
     } catch (e) {
@@ -79,7 +88,7 @@ const Gemini = {
   },
   async json(prompt, { images = [], signal, onStatus, system, history, temp, kind = 'food' } = {}) {
     if (kind !== 'test' && typeof isPro === 'function' && !isPro()) { openPaywall(kind === 'assist' ? 'ai' : 'snap'); throw { code: 'cancelled' }; }   // AI features are part of Pro
-    if (!geminiKey()) throw { code: 'no_key' };
+    if (!aiReady()) throw { code: 'no_key' };
     const parts = [{ text: prompt }];
     for (const b of [].concat(images)) parts.push({ inline_data: { mime_type: b.type || 'image/jpeg', data: await blobB64(b) } });
     const body = JSON.stringify({ ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}), contents: [...(history || []), { role: 'user', parts }], generationConfig: { responseMimeType: 'application/json', temperature: temp ?? 0.1 } });
@@ -110,7 +119,7 @@ const Gemini = {
   },
 };
 const errCode = e => { const m = String(e && e.message || '').match(/^(\d{3})/); return m ? `Error ${m[1]}` : (e && e.code ? `Error: ${e.code}` : ''); };
-function refreshCaps() { CAP.assets = LocalAssets; CAP.sample = geminiKey() ? Gemini : null; CAP.sampleImages = !!CAP.sample; }
+function refreshCaps() { CAP.assets = LocalAssets; CAP.sample = aiReady() ? Gemini : null; CAP.sampleImages = !!CAP.sample; }
 A.testGemini = async (d, el) => {
   const keyIn = $('#st-gk'); if (keyIn) { try { localStorage.setItem(GEMINI_KEY, keyIn.value.trim()); } catch (e) {} refreshCaps(); }
   const out = $('#gk-test'); if (!out) return;

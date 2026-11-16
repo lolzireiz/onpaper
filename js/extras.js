@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '10.13';
+const APP_VERSION = '10.14';
 const CHANGELOG = [
+  ['10.14', ['🔧 Under the hood: the app is ready to use Liftprint\'s own AI service once it\'s switched on, so testers won\'t need their own key. Nothing changes for you today.']],
   ['10.13', ['✨ "Ask your coach" is now a card on Today with questions that fit the moment (today\'s plan in the morning, what to eat when protein is short, a review after you train). Hide it any time from Customize this screen.', '🏋️ After a workout, the summary has a "Review this workout with your coach" button.']],
   ['10.12', ['🛠 Fix: when the AI is busy, the Assistant now says so and waits longer before giving up, instead of showing a confusing "couldn\'t find a model" message.']],
   ['10.11', ['🧭 The Assistant now answers "how strong / how high / how fit would I need to be to…" questions, even when they mention something unrelated like a car.']],

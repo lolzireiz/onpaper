@@ -188,6 +188,7 @@ function aiErrorText(e) {
   switch (e?.code) {
     case 'cancelled': return null;
     case 'no_key': return 'Add your AI key in Settings to scan labels.';
+    case 'no_access': return 'AI features need your access code. Tap the PRO or FREE tag by the logo, then "Have a code?".';
     case 'bad_key': return 'Your AI key was rejected. Re-copy it and use "Test my key" in Settings.';
     case 'bad_model': return "The scanner couldn't find a model to use. Clear the model under Advanced in Settings.";
     case 'timeout': return 'That took too long. Try again; a close, well-lit photo of just the label reads fastest.';

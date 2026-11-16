@@ -81,6 +81,7 @@ A.proCodeGo = async () => {
   const v = ($('#pro-code').value || '').trim().toUpperCase(); if (!v) return;
   let hex = ''; try { const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)); hex = [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join(''); } catch (e) {}
   if (hex !== PRO_CODE_HASH) return toast("That code didn't work.", { bad: true });
+  try { localStorage.setItem('onpaper.code', v); } catch (e) {}
   saveSettings({ pro: { kind: 'founder', since: Date.now() } }); closeSheet(); toast('Pro unlocked for good 🎉', { ms: 3500 }); if (typeof confetti === 'function') confetti({ n: 120 });
 };
 
