@@ -173,7 +173,7 @@ A.foodAdd = () => {
 function addSheetHTML() {
   const ai = !!CAP.sample, date = foodDate(), yn = (foodDay(addDays(date, -1)).items || []).length;
   const ways = [['barcodeScan', '▥', 'Scan barcode'], ai && ['foodSnap', ICON.camera, 'Snap a label'], ai && ['foodDescribe', ICON.spark, 'Describe it'], ['faManual', ICON.plus, 'Enter manually'], ['mealStart', '🍽', 'Build a meal'], yn && ['copyYesterday', '↺', date === todayStr() ? 'Copy yesterday' : 'Copy day before']].filter(Boolean);
-  return `<div class="fa-search">${ICON.search}<input id="fa-q" type="search" placeholder="Search your foods" autocomplete="off" autocapitalize="off" enterkeyhint="search" aria-label="Search your foods"></div>
+  return `<div class="fa-search">${ICON.search}<input id="fa-q" type="search" placeholder="Search foods" autocomplete="off" autocapitalize="off" enterkeyhint="search" aria-label="Search foods"></div>
     <button class="fa-hero" data-act="mealSnap"><span class="fa-hi" aria-hidden="true">📸</span><span class="grow"><b>Snap your meal</b><span class="faint">Take a photo, add details if you like, and get portions and macros.</span></span>${ICON.chevR}</button>
     <div class="fa-ways" style="--n:${ways.length <= 4 ? ways.length : 3}">${ways.map(([a, ic, l]) => `<button class="fa-way" data-act="${a}"><span class="fa-ic" aria-hidden="true">${ic}</span><span>${l}</span></button>`).join('')}</div>
     <div id="fa-list">${faListHTML('')}</div>
