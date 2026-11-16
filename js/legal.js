@@ -2,7 +2,8 @@
 /* ---------- Terms, privacy policy and health notices. One source for the in-app screens and the standalone terms.html / privacy.html pages.
    NOTE: these are plain-language starting documents. Have a lawyer review them before the App Store launch. ---------- */
 const LEGAL_VER = 1, LEGAL_DATE = 'November 16, 2026', LEGAL_MIN_AGE = 16;
-const LEGAL_CONTACT = 'https://github.com/lolzireiz/onpaper/issues';   // swap for a support email before launch
+const LEGAL_EMAIL = 'liftprintapp@gmail.com';   // becomes support@liftprint.app once the domain forwards
+const LEGAL_CONTACT = 'mailto:' + LEGAL_EMAIL;
 const LEGAL = {
   health: { t: 'Health & safety', h: `
 <p><b>Liftprint is a tracking and information tool. It is not medical advice and it is not a substitute for a doctor, dietitian, physical therapist or qualified coach.</b></p>
@@ -43,7 +44,7 @@ const LEGAL = {
 <h3>Security</h3><p>Your data is protected by your phone's own lock and storage protections. Anyone who can unlock your phone can open the app. Backup files are not encrypted, so store them somewhere you trust.</p>
 <h3>Children</h3><p>Liftprint is not for anyone under ${LEGAL_MIN_AGE}, and we don't knowingly collect data from children.</p>
 <h3>Changes</h3><p>If the app adds accounts, cloud sync, subscriptions or our own AI service, this policy will be updated before those features collect anything, and the app will tell you. The date at the top shows the latest version.</p>
-<h3>Contact</h3><p>Questions or requests: <a href="${LEGAL_CONTACT}" target="_blank" rel="noopener">contact us here</a>.</p>` },
+<h3>Contact</h3><p>Questions or requests: <a href="${LEGAL_CONTACT}">${LEGAL_EMAIL}</a>.</p>` },
 
   terms: { t: 'Terms of Use', h: `
 <p class="lg-meta">Last updated ${LEGAL_DATE}</p>
@@ -62,7 +63,7 @@ const LEGAL = {
 <h3>12. Indemnity</h3><p>If your misuse of the app or breach of these terms leads to a claim against us, you agree to cover our reasonable costs and losses from it.</p>
 <h3>13. Changes and ending</h3><p>We may update the app and these terms. If a change is significant, the app will tell you. Continuing to use it means you accept the new terms. You can stop using the app at any time by deleting it. We may stop offering the app or any feature.</p>
 <h3>14. Governing law</h3><p>These terms are governed by the laws of the Commonwealth of Massachusetts, USA, without regard to conflict-of-law rules, and disputes will be brought in the state or federal courts located there, unless the law where you live requires otherwise.</p>
-<h3>15. Contact</h3><p><a href="${LEGAL_CONTACT}" target="_blank" rel="noopener">Contact us here</a>.</p>` },
+<h3>15. Contact</h3><p><a href="${LEGAL_CONTACT}">${LEGAL_EMAIL}</a>.</p>` },
 };
 
 /* ----- in-app (skipped on the standalone pages, where the app isn't loaded) ----- */
