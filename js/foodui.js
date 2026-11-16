@@ -231,7 +231,7 @@ A.foodForget = (d, el) => {
   const go = () => {
     for (const f of mine) del('myfoods', f.id);
     saveSettings({ foodGone: { ...prev.foodGone, [k]: Date.now() }, foodPins: prev.foodPins.filter(x => x !== k), foodHide: prev.foodHide.filter(x => x !== k) });
-    if (inList) { const q = $('#fa-q'); $('#fa-list').innerHTML = faListHTML(q ? q.value : ''); } else if (!$('#fa-list')) closeSheet();
+    if (inList) { const q = $('#fa-q'), box = $('#fa-list'); if (box) box.innerHTML = faListHTML(q ? q.value : ''); } else if (!$('#fa-list')) closeSheet();   // the list may be gone if another screen opened while the row slid away
     toastUndo(`Deleted ${name} from your foods`, () => { for (const f of mine) put('myfoods', f.id, f); saveSettings(prev); if ($('#fa-list')) { const q = $('#fa-q'); $('#fa-list').innerHTML = faListHTML(q ? q.value : ''); } });
   };
   if (row && !REDUCED()) { row.style.height = row.offsetHeight + 'px'; void row.offsetWidth; row.classList.add('sw-gone'); setTimeout(go, 220); } else go();

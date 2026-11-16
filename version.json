@@ -1,7 +1,6 @@
 {
- "version": "10.15",
+ "version": "10.16",
  "notes": [
-  "\ud83d\udd0e Food search now goes beyond your own foods: type \"chicken\" or \"rice\" and pick from built-in common foods, or search brands and packaged foods by name.",
-  "\u21c4 Supersets: in a workout, open an exercise's \u22ef menu and pair it with another. Log one, it sends you to the other, and rest starts after both."
+  "\ud83d\udee0 Reliability pass: fixed a rare glitch when deleting a saved food and quickly opening another, and the top bar no longer overlaps on the smallest iPhones."
  ]
 }
