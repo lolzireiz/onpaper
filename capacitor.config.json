@@ -1,0 +1,9 @@
+{
+  "appId": "app.liftprint.ios",
+  "appName": "Liftprint",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#0b0b0d"
+  }
+}
