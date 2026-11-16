@@ -1,6 +1,6 @@
 {
- "version": "10.10",
+ "version": "10.11",
  "notes": [
-  "\ud83e\udded The Assistant now sticks to training, nutrition and recovery. Ask it about something unrelated and it will say so and steer back."
+  "\ud83e\udded The Assistant now answers \"how strong / how high / how fit would I need to be to\u2026\" questions, even when they mention something unrelated like a car."
  ]
 }

@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '10.10';
+const APP_VERSION = '10.11';
 const CHANGELOG = [
+  ['10.11', ['🧭 The Assistant now answers "how strong / how high / how fit would I need to be to…" questions, even when they mention something unrelated like a car.']],
   ['10.10', ['🧭 The Assistant now sticks to training, nutrition and recovery. Ask it about something unrelated and it will say so and steer back.']],
   ['10.9', ['📝 Exercise notes: add a note to any exercise mid-workout from its ⋯ menu (seat height, grip, how it felt). Next time you do that exercise, your last note is waiting.', '👈 Swipe left on a set during a workout to delete it. There\'s an Undo.']],
   ['10.8', ['🗺 Setup now ends with "your plan is ready": your daily calories and protein, plus a starter program built for your gym days and goals that you can add in one tap.', '📥 Import your history from Strong or Hevy (Settings → Backup & updates). PRs, charts and streaks rebuild from it, and you can undo it.']],
