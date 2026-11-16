@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '10.5';
+const APP_VERSION = '10.6';
 const CHANGELOG = [
+  ['10.6', ['🛠 Fix: the top bar now sits below the dark fade iPhones draw under the clock, so the logo is no longer dimmed.']],
   ['10.5', ['🧹 Less text on screen: the small explanations under cards are now hidden once you know the app. Turn them back on in Settings → Appearance → Tips & explanations.', '🧹 A tidier You tab: the two-week habit grid is behind "Fix a past day", and Appearance moved into Settings (there\'s a shortcut row at the bottom).']],
   ['10.4', ['🏋️ The logo is now clearly a weight plate: solid rim, three grip slots and the centre hole.', '🛠 Fix: the dark smudge at the top of the screen is gone (a hidden pop-up was casting a shadow there), and the top bar sits a little lower.']],
   ['10.3', ['🔥 New look: a new Liftprint logo and app icon (a weight plate drawn like a fingerprint) and a warmer brand colour. To see the new icon on your Home Screen, remove the app\'s shortcut and add it again.']],
