@@ -492,7 +492,7 @@ const MAC = [['p', 'Protein', 4, '#3392f5'], ['c', 'Carbs', 4, '#f5b915'], ['f',
 function macroTrendsHTML() {
   const n = UI.macRange || 7, t = todayStr(), days = [...Array(n)].map((_, i) => addDays(t, i - n + 1)), s = S();
   const rows = days.map(d => ({ d, t: foodTotals(d), logged: (foodDay(d).items || []).length > 0 }));
-  const lg = rows.filter(r => r.logged); if (lg.length < 2) return `<section class="card"><h2 class="sec-t">Macro trends</h2><p class="muted small" style="margin:0">Log food on a couple of days to see your calorie and macro trends.</p></section>`;
+  const lg = rows.filter(r => r.logged); if (lg.length < 2) return '';   // nothing to chart yet: stay out of the way
   const avg = k => lg.reduce((a, r) => a + r.t[k], 0) / lg.length, aCal = avg('cal');
   const W = 340, H = 150, max = Math.max(s.calTarget * 1.15, ...rows.map(r => r.t.cal)), bw = (W - 40) / n, Y = v => H - 18 - v / max * (H - 28);
   let bars = '';

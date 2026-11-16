@@ -740,6 +740,7 @@ body.ob-open .tabs{visibility:hidden}
 .pw-line{list-style:none;margin:0 4px 6px;padding:0 0 0 18px;border-left:2px solid var(--s3)}.pw-line li{position:relative;padding:0 0 12px;display:flex;flex-direction:column;font-size:14px}.pw-line li::before{content:"";position:absolute;left:-24px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--accent)}.pw-line span{color:var(--tx2);font-size:13px}
 .pw-foot{position:relative;padding:10px 20px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--s2);background:var(--bg)}.pw-cta{min-height:52px;font-size:17px;background:var(--grad)}
 .pw-fine{font-size:12px;color:var(--tx3);text-align:center;margin:8px 0 2px}.pw-links{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:6px}.pw-links button,.pw-links a{font-size:12.5px;color:var(--tx3);text-decoration:none;padding:4px 0;min-height:0;background:none}
+.ob-plan{display:flex;flex-direction:column;gap:12px}.op-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.op-stats div{background:rgba(255,255,255,.07);border-radius:16px;padding:14px 8px;text-align:center;display:flex;flex-direction:column;gap:2px}.op-stats b{font:800 22px/1.1 var(--f-display);background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}.op-stats span{font-size:12px;color:var(--tx2)}.op-prog{background:rgba(255,255,255,.07);border-radius:16px;padding:12px 14px}.op-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}.op-h span{font-size:12.5px;color:var(--tx3)}.op-day{display:flex;gap:10px;align-items:center;padding:7px 0;border-top:1px solid rgba(255,255,255,.07)}.op-day .grow{display:flex;flex-direction:column;min-width:0}.op-day .grow span{font-size:12.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.op-n{width:24px;height:24px;border-radius:50%;background:var(--grad);color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center;flex:none}.op-use{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;padding:2px 4px}
 .ob-pro .pw-feats li{background:rgba(255,255,255,.07)}.ob-free{display:block;margin:6px auto 0;color:var(--tx2);font-weight:600;font-size:15px;padding:10px 16px}
 .pro-card{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border-radius:18px;padding:14px;margin-bottom:12px;color:#fff;background:var(--grad)}.pro-card .grow{display:flex;flex-direction:column}.pro-card .grow span{font-size:13px;opacity:.9}.pro-ic{font-size:24px}.pro-card svg{width:18px;height:18px;opacity:.8}
 /* iPhone home-screen app: iOS lays a dark fade over the top ~40pt below the status bar, so top bars start a little lower to stay clear of it */
@@ -1013,6 +1014,7 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 <input type="file" id="file-photo" accept="image/*" hidden style="display:none">
 <input type="file" id="file-watch" accept="image/*" hidden style="display:none">
 <div id="onboard" hidden></div>
+<input type="file" id="file-import" accept=".csv,text/csv,text/plain" hidden style="display:none">
 <input type="file" id="file-backup" accept=".json,application/json,text/plain,text/json" hidden style="display:none">
 <script src="js/core.js"></script>
 <script src="js/local.js"></script>
@@ -1049,6 +1051,7 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 <script src="js/anim3d.js"></script>
 <script src="js/dunk.js"></script>
 <script src="js/onboard.js"></script>
+<script src="js/import.js"></script>
 <script src="js/legal.js"></script>
 <script src="js/pro.js"></script>
 <script src="js/homeui.js"></script>

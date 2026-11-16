@@ -114,10 +114,26 @@ if (typeof OB_VIEWS !== 'undefined') {
   const w0 = OB_VIEWS.welcome; OB_VIEWS.welcome = () => { const v = w0(); v.body += legalLineHTML(); return v; };
   OB_VIEWS.pro = () => ({ t: 'One more thing: try <span class="gtxt">Pro</span> free', sub: `${OB.a.name ? esc(OB.a.name) + ', your' : 'Your'} plan is ready. Pro adds the smart stuff on top. ${PRO_TRIAL_DAYS} days free, no payment details.`, next: `Start my ${PRO_TRIAL_DAYS} free days`,
     body: `<div class="ob-pro">${proPitchHTML()}<p class="pw-fine" style="text-align:center">After ${PRO_TRIAL_DAYS} days you keep everything in Free. Nothing is charged in this preview.</p><button class="ob-free" data-act="obProSkip">Continue with Free</button></div>` });
-  const open0 = openOnboarding; openOnboarding = function (mode) { open0(mode); if (OB.mode !== 'edit' && !proState().used && !OB.steps.includes('pro')) OB.steps.splice(OB.steps.indexOf('done'), 0, 'pro'); };
+  /* "your plan is ready": the numbers and a starter program built from the answers, shown before the finish */
+  OB_VIEWS.plan = () => {
+    const a = OB.a, pr = OB.plan = buildProgram(a.weeklyGoal || 4, a.goals || [], activeGym()), has = splitDays().length > 0;
+    if (OB.planUse == null) OB.planUse = !has;
+    return { t: `${a.name ? esc(a.name) + ', your' : 'Your'} plan is <span class="gtxt">ready</span>`, sub: `Built from your answers for ${PLAN_LBL[a.goal] || 'your goal'}. Everything here can be changed later.`, next: 'Looks good',
+      body: `<div class="ob-plan"><div class="op-stats ob-in"><div><b>${fmtN(a.cal)}</b><span>calories a day</span></div><div><b>${a.prot} g</b><span>protein a day</span></div><div><b>${pr.per}×</b><span>a week</span></div></div>
+        <div class="op-prog ob-in"><div class="op-h"><b>${esc(pr.label)}</b><span>${pr.days.length} workouts, repeating</span></div>${pr.days.map((d, i) => `<div class="op-day"><span class="op-n">${i + 1}</span><span class="grow"><b>${esc(d.name)}</b><span>${d.exercises.slice(0, 3).map(esc).join(' · ')}${d.exercises.length > 3 ? ` +${d.exercises.length - 3}` : ''}</span></span></div>`).join('')}</div>
+        ${has ? '<p class="pw-fine ob-in">You already have a split, so this one is just a suggestion.</p>' : `<label class="op-use ob-in"><input type="checkbox" data-act="obPlanUse" ${OB.planUse ? 'checked' : ''}><span>Add this program to my Train tab</span></label>`}
+        <p class="pw-fine ob-in">A starting point, not medical advice. If your weight isn't moving the way you want after 2 to 3 weeks, adjust calories by 150 to 200.</p></div>` };
+  };
+  A.obPlanUse = (d, el) => { OB.planUse = el.checked; };
+  const open0 = openOnboarding; openOnboarding = function (mode) { open0(mode); if (OB.mode === 'edit') return; OB.plan = null; OB.planUse = null; if (!OB.steps.includes('plan')) OB.steps.splice(OB.steps.indexOf('done'), 0, 'plan'); if (!proState().used && !OB.steps.includes('pro')) OB.steps.splice(OB.steps.indexOf('done'), 0, 'pro'); };
   const next0 = A.obNext; A.obNext = () => {
     const st = OB.steps[OB.i]; legalAccept();
-    if (OB.steps[OB.i + 1] === 'pro') { obCollect(); obSave(); }
+    if (OB.steps[OB.i + 1] === 'plan') {   // untouched default targets + a known bodyweight: work the numbers out for them
+      obCollect(); const a = OB.a, typed = num(a.weight), lb = typed > 0 ? (a.unit === 'metric' ? typed / LB_KG : typed) : latestWeighin()?.weight;
+      if (lb && a.cal === DEFAULTS.calTarget && a.prot === DEFAULTS.proteinTarget) { const fem = a.bodyModel === 'female', adj = { bulk: 250, maintain: 0, cut: -450 }[a.goal] ?? 0; a.cal = Math.max(fem ? 1400 : 1600, Math.round((lb * (fem ? 14 : 15) + adj) / 50) * 50); a.prot = Math.round(lb * (a.goal === 'cut' ? 1 : 0.9) / 5) * 5; OB.seen.add('food'); if ($('#ob-cal')) { $('#ob-cal').value = a.cal; $('#ob-prot').value = a.prot; } }
+    }
+    if (OB.steps[OB.i + 1] === 'plan' || OB.steps[OB.i + 1] === 'pro') { obCollect(); obSave(); }
+    if (st === 'plan' && OB.planUse && OB.plan && !splitDays().length) saveSettings({ split: { days: OB.plan.days.map(({ why, ...x }) => x) }, weeklyGoal: OB.plan.per });
     if (st === 'pro') proStartTrial(true);
     next0();
   };

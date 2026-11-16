@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '10.7';
+const APP_VERSION = '10.8';
 const CHANGELOG = [
+  ['10.8', ['🗺 Setup now ends with "your plan is ready": your daily calories and protein, plus a starter program built for your gym days and goals that you can add in one tap.', '📥 Import your history from Strong or Hevy (Settings → Backup & updates). PRs, charts and streaks rebuild from it, and you can undo it.']],
   ['10.7', ['🦝 The food buddies got a glow-up: soft shading, highlights and a shadow under their feet.', '🙈 The buddy is optional. Tap Hide on its card to turn it off, and bring it back any time from the bottom of the Food tab.']],
   ['10.6', ['🛠 Fix: the top bar now sits below the dark fade iPhones draw under the clock, so the logo is no longer dimmed.']],
   ['10.5', ['🧹 Less text on screen: the small explanations under cards are now hidden once you know the app. Turn them back on in Settings → Appearance → Tips & explanations.', '🧹 A tidier You tab: the two-week habit grid is behind "Fix a past day", and Appearance moved into Settings (there\'s a shortcut row at the bottom).']],
