@@ -99,7 +99,7 @@ function readinessRowHTML() {
 }
 A.readyOpen = () => {
   const d = dailyOf();
-  Sheet.rd = { sleep: d.sleep ?? null, energy: d.energy ?? null, soreMap: { ...(d.soreMap || {}) } };
+  Sheet.rd = { sleep: d.sleep ?? (d.hk && d.hk.sleep) ?? null, energy: d.energy ?? null, soreMap: { ...(d.soreMap || {}) } };
   // first check-in of the day: suggest soreness from what you trained in the last 3 days
   if (!d.soreMap) { const rec = baseRecovery(); for (const [g, ids] of Object.entries(SORE_GROUPS)) { const v = Math.min(...ids.map(i => rec[i] ?? 100)); Sheet.rd.sug = Sheet.rd.sug || {}; if (v < 80) Sheet.rd.sug[g] = v < 50 ? 2 : 1; } }
   openSheet('Readiness', '');

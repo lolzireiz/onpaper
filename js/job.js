@@ -105,3 +105,22 @@ A.jobRemove = async () => { const E = Sheet.jobE; if (!(await ask(`Remove ${E.na
 /* ----- where it shows up ----- */
 { const ac = actsCardHTML; actsCardHTML = function () { return ac() + jobCardHTML(); }; }
 { const tl = trainingLoad; trainingLoad = function (days) { return tl(days) + workLoad(days); }; }
+
+/* v10.23: work shifts tire muscles too. A full heavy shift takes the carrying muscles down about a third,
+   fading over roughly two days, so the smart pick, readiness map and workout builder go easier after a hard day. */
+const JOB_FAT = { Forearms: 1, 'Upper back': 0.8, 'Lower back': 0.85, Calves: 0.6, Quads: 0.5, Glutes: 0.5, Hamstrings: 0.4, Core: 0.4, Shoulders: 0.3 };
+const JOB_DROP = [0, 6, 18, 34];   // % off the main muscles for an 8-hour shift, by effort level
+function workFatigue() {
+  const now = Date.now(), out = {};
+  for (const w of workRecent(4)) {
+    const t = w.ts || parseDate(w.date).getTime() + 17 * 36e5, hrs = Math.max(0, (now - t) / 36e5); if (hrs > 72) continue;
+    const c = jobCalc(w), drop = ((+w.hours || 0) / 8 * (JOB_DROP[w.effort] || JOB_DROP[2]) + Math.min(10, c.handled / 200)) * Math.exp(-hrs / 36);
+    for (const [g, k] of Object.entries(JOB_FAT)) out[g] = (out[g] || 0) + drop * k;
+  }
+  return out;
+}
+{ const mr = muscleRecovery; muscleRecovery = function (sm) {
+  const base = mr(sm), wf = workFatigue(); if (!Object.keys(wf).length) return base;
+  const out = { ...base }; for (const [g, d] of Object.entries(wf)) for (const id of SORE_GROUPS[g] || []) out[id] = Math.round(clamp(out[id] - Math.min(45, d), 0, 100));
+  return out;
+}; }
