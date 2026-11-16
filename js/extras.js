@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '10.19';
+const APP_VERSION = '10.20';
 const CHANGELOG = [
+  ['10.20', ['✨ Build me a workout now says what it does best: it fits your gym\'s equipment.']],
   ['10.19', ['✨ Build me a workout (Pro): on the Train tab, tap “Build me a workout”, say what you want (explosive legs for jumping, a bigger bench, an easy recovery day…), pick one of your gyms or “Any gym” and how long you have. Your coach writes the whole session from your lifts, goals and recovery: a name, exercises in order, sets, reps and a cue for each. Start it right away, save it as a workout day, or ask for a change.']],
   ['10.18', ['🧰 Work shifts: have a physical job? Set it up once (Train tab → Physical job?), then log a shift in seconds: hours, how hard it was and the weight you moved. You get the total you lifted and an estimated burn, and hard shifts now count toward your training load and readiness.', '✨ With the Assistant on, describe a typical day and it sets the job up for you. The Assistant also takes your shifts into account.']],
   ['10.17', ['💾 Backups now also carry your access code, so restoring on a new phone brings back everything in one go.']],

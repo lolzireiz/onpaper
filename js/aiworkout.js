@@ -6,7 +6,7 @@ const WB = { goal: '', gym: null, mins: 45, busy: false, out: null, err: '', ctl
 const WB_IDEAS = ['Explosive legs for jumping', 'Bigger bench press', 'Easy recovery day', 'Quick full body', 'Knee-friendly leg day', 'Core and grip'];
 const WB_MINS = [30, 45, 60, 75];
 
-PRO_FEATURES.splice(1, 0, ['🛠️', 'Workouts built for you', 'Say what you want to train. Get a full session that fits your gym', 'build']);
+PRO_FEATURES.splice(1, 0, ['🛠️', 'Workouts built for you', 'Say what you want to train. Get a full session that fits your gym\'s equipment', 'build']);
 PW_TITLES.build = 'A workout written for today';
 
 const wbGym = () => gyms().find(g => g.id === WB.gym) || null;
@@ -14,7 +14,7 @@ function wbAllowed(gym) { return [...library().values()].filter(e => available(e
 
 function wbFormHTML() {
   const gs = gyms();
-  return `<p class="muted small" style="margin:0 0 10px">Say what you want out of this session. Your coach builds it from your lifts, goals and how recovered you are.</p>
+  return `<p class="muted small" style="margin:0 0 10px">Say what you want out of this session. Your coach builds it around your gym's equipment, your lifts and how recovered you are.</p>
     <div class="field"><label class="lbl" for="wb-goal">What's this workout for?</label><textarea id="wb-goal" rows="3" maxlength="400" placeholder="e.g. explosiveness for dunking, but easy on my knees">${esc(WB.goal)}</textarea></div>
     <div class="chips scroll" style="margin:-2px 0 12px">${WB_IDEAS.map((t, i) => `<button class="chip" data-act="wbIdea" data-i="${i}">${esc(t)}</button>`).join('')}</div>
     <div class="lbl">Where</div>
@@ -115,7 +115,7 @@ A.wbSave = () => {
 
 /* entry points: under today's smart pick on the Train tab, and at the top of "Add a workout day" */
 function wbEntryHTML(cls) {
-  return `<button class="wb-entry${cls ? ' ' + cls : ''}" data-act="wbOpen"><span class="wb-ic">✨</span><span class="grow"><b>Build me a workout</b><span>Say what you want to train. Your coach writes it${gyms().length ? ' for your gym' : ''}</span></span>${isPro() ? ICON.chevR : '<span class="wb-pro">PRO</span>'}</button>`;
+  return `<button class="wb-entry${cls ? ' ' + cls : ''}" data-act="wbOpen"><span class="wb-ic">✨</span><span class="grow"><b>Build me a workout</b><span>Say what you want to train. Your coach builds it around your gym's equipment</span></span>${isPro() ? ICON.chevR : '<span class="wb-pro">PRO</span>'}</button>`;
 }
 { const sm = smartCardHTML; smartCardHTML = function () { return sm() + wbEntryHTML('solo'); }; }
 { const dn = A.dayNew; A.dayNew = d => { dn(d); const b = $('#sheet .sheet-b'); if (b && !b.querySelector('.wb-entry')) b.insertAdjacentHTML('afterbegin', wbEntryHTML()); }; }
