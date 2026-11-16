@@ -99,7 +99,8 @@ function aiContext() {
 }
 
 const AI_SYSTEM = () => `You are the coach built into Liftprint, a personal training, nutrition and recovery tracker. You talk with the app's owner about their own data, given below. Be a sharp, friendly strength & nutrition coach: direct, specific, numbers from their data, no fluff, no medical diagnosis (suggest a doctor for injuries or medical issues). Keep answers short for a phone screen: usually 2-8 short lines or bullets. Use **bold** for key numbers. Never invent data you don't have; if something isn't logged, say so and suggest logging it. Never mention what AI model or company powers you.
-Reply ONLY with JSON: {"reply": "markdown text", "actions": [ ... ]}. "actions" is optional and contains things the user can tap to apply; only include them when genuinely useful or asked for. Allowed actions:
+Reply ONLY with JSON: {"reply": "markdown text", "follow": {"q": "...", "yes": "...", "alt": "..."}, "actions": [ ... ]}.
+"follow" is a short follow-up question you ask at the end (do NOT also write it inside "reply"): offer to go deeper on what they asked, or point at something useful you noticed in their data. "q" is the question (under 90 characters). "yes" is what the user would say to accept, written as the user in first person (e.g. "Yes, build me that meal plan"), under 45 characters. "alt" is optional: one different direction they might want instead, also first person, under 45 characters. Include "follow" on most replies; leave it out only when nothing natural fits. "actions" is optional and contains things the user can tap to apply; only include them when genuinely useful or asked for. Allowed actions:
 - {"type":"log_food","name":"...","cal":number,"p":number,"c":number,"f":number,"serving":"short text"} to log a food for today (per one serving, realistic numbers).
 - {"type":"habit","id":"<habit id>","date":"YYYY-MM-DD"} to mark a habit done (today or a past day).
 - {"type":"targets","cal":number,"protein":number} to change daily targets (either may be omitted).
@@ -202,7 +203,7 @@ function aiDraw(scroll) {
   const body = $('#ai-body'); if (!body) return; const m = aiChat();
   const near = body.scrollHeight - body.scrollTop - body.clientHeight < 80;
   body.innerHTML = (m.length ? m.map((x, i) => x.role === 'user' ? `<div class="ai-msg me"><div>${esc(x.text).replace(/\n/g, '<br>')}</div></div>`
-    : `<div class="ai-msg bot${x.err ? ' err' : ''}"><div>${x.err ? `<p>${esc(x.text)}</p>${i === m.length - 1 ? '<button class="btn ghost sm" data-act="aiRetry">Try again</button>' : ''}` : aiMd(x.text)}${(x.actions || []).length ? `<div class="ai-acts">${x.actions.map((a, j) => `<button class="ai-act${a.done ? ' done' : ''}" data-act="aiAct" data-m="${i}" data-a="${j}"${a.done ? ' disabled' : ''}>${a.done ? '✓ ' : ''}${esc(a.label)}</button>`).join('')}</div>` : ''}</div></div>`).join('') : aiWelcomeHTML())
+    : `<div class="ai-msg bot${x.err ? ' err' : ''}"><div>${x.err ? `<p>${esc(x.text)}</p>${i === m.length - 1 ? '<button class="btn ghost sm" data-act="aiRetry">Try again</button>' : ''}` : aiMd(x.text)}${(x.actions || []).length ? `<div class="ai-acts">${x.actions.map((a, j) => `<button class="ai-act${a.done ? ' done' : ''}" data-act="aiAct" data-m="${i}" data-a="${j}"${a.done ? ' disabled' : ''}>${a.done ? '✓ ' : ''}${esc(a.label)}</button>`).join('')}</div>` : ''}${x.follow ? `<p class="ai-fq">${esc(x.follow.q)}</p>${i === m.length - 1 && !x.follow.off && !AI.busy ? `<div class="ai-fb"><button class="ai-yes" data-act="aiFollow" data-m="${i}" data-k="yes">${esc(x.follow.yes)}</button>${x.follow.alt ? `<button class="ai-alt" data-act="aiFollow" data-m="${i}" data-k="alt">${esc(x.follow.alt)}</button>` : ''}<button class="ai-no" data-act="aiFollow" data-m="${i}" data-k="no">No thanks</button></div>` : ''}` : ''}</div></div>`).join('') : aiWelcomeHTML())
     + (AI.busy ? `<div class="ai-msg bot"><div><span class="ai-dots"><i></i><i></i><i></i></span>${AI.status ? `<span class="faint small"> ${esc(AI.status)}</span>` : ''} <button class="linkbtn small" data-act="aiStop">Stop</button></div></div>` : '');
   $('#ai-cmds').innerHTML = m.length && geminiKey() ? AI_CMDS.map((c, i) => `<button class="chip" data-act="aiCmd" data-i="${i}">${c[0]} ${esc(c[1])}</button>`).join('') : '';
   $('#ai-cmds').hidden = !m.length || !UI.aiCmds;
@@ -234,7 +235,16 @@ async function aiSend(text, shown) {
   else {
     const reply = typeof out === 'string' ? out : (out && (out.reply || out.text || out.answer)) || '';
     const acts = (Array.isArray(out && out.actions) ? out.actions : []).map(aiActCheck).filter(Boolean).slice(0, 4);
-    m2.push({ role: 'bot', text: reply || "I couldn't come up with an answer. Try asking another way.", actions: acts, ts: Date.now() });
+    const f = out && out.follow, follow = f && f.q && f.yes ? { q: String(f.q).slice(0, 140), yes: String(f.yes).slice(0, 70), alt: f.alt ? String(f.alt).slice(0, 70) : '' } : null;
+    m2.push({ role: 'bot', text: reply || "I couldn't come up with an answer. Try asking another way.", actions: acts, follow, ts: Date.now() });
   }
   aiChatSave(m2); aiDraw(true); aiMeterRefresh();
 }
+
+/* follow-up chips: "yes" or the alternative sends right away; "no thanks" just tucks them away (no request used) */
+A.aiFollow = d => {
+  const m = aiChat(), x = m[+d.m]; if (!x || !x.follow || AI.busy) return;
+  x.follow.off = 1; aiChatSave(m);
+  if (d.k === 'no') { aiDraw(); const ta = $('#ai-text'); if (ta) ta.focus(); return; }
+  aiSend(d.k === 'alt' ? x.follow.alt : x.follow.yes);
+};
