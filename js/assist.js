@@ -113,6 +113,7 @@ Reply ONLY with JSON: {"reply": "markdown text", "follow": {"q": "...", "yes": "
 - {"type":"swap","day":"<day id>","from":"<exercise in that day>","to":"<exact known exercise name>"} to swap an exercise in their split.
 - {"type":"add_ex","day":"<day id>","name":"<exact known exercise name>"} to add an exercise to a split day.
 - {"type":"open","screen":"home|train|food|lifts|body|you"} to jump to a screen.
+- {"type":"build","goal":"what the workout should do, one sentence in the user's words plus anything useful you know (sore areas, time, focus)"} to open the workout builder with that request filled in. Offer this whenever they ask you for a workout, a session or what to train today. Give a short outline in the reply, then let the builder write the full session, since it matches their gym's equipment and lets them start it with one tap.
 At most 4 actions. The user always confirms before anything changes, so describe in the reply what each action would do.
 
 THEIR DATA:
@@ -159,6 +160,7 @@ function aiActCheck(a) {
   if (a.type === 'swap') { const d = dayOf(a.day), to = lib.get(keyOf(a.to || '')); if (!d || !to) return null; const from = (d.exercises || []).find(n => keyOf(n) === keyOf(a.from || '')); if (!from) return null; return { ...a, day: d.id, from, to: to.name, label: `🔁 ${d.name}: swap ${from} → ${to.name}` }; }
   if (a.type === 'add_ex') { const d = dayOf(a.day), e = lib.get(keyOf(a.name || '')); if (!d || !e || (d.exercises || []).some(n => keyOf(n) === keyOf(e.name))) return null; return { ...a, day: d.id, name: e.name, label: `➕ Add ${e.name} to ${d.name}` }; }
   if (a.type === 'open') { const n = { home: 'Home', train: 'Train', food: 'Food', lifts: 'Lifts', body: 'Body', you: 'You' }[a.screen]; if (!n) return null; return { ...a, label: `↗ Open ${n}` }; }
+  if (a.type === 'build') { const g = String(a.goal || '').replace(/\s+/g, ' ').trim().slice(0, 300); if (g.length < 3 || typeof A.wbOpen !== 'function') return null; return { ...a, goal: g, label: '✨ Build this workout' }; }
   return null;
 }
 A.aiAct = d => {
@@ -174,6 +176,7 @@ A.aiAct = d => {
     split.days = split.days.map(x => x.id !== a.day ? x : { ...x, exercises: a.type === 'swap' ? x.exercises.map(n => n === a.from ? a.to : n) : [...(x.exercises || []), a.name] });
     saveSettings({ split });
   } else if (a.type === 'open') { aiClose(); UI.tab = a.screen; render(); return; }
+  else if (a.type === 'build') { aiClose(); UI.tab = 'train'; render(); if (typeof WB !== 'undefined') { WB.goal = a.goal; WB.out = null; } setTimeout(() => A.wbOpen && A.wbOpen(), 120); return; }
   a.done = 1; aiChatSave(m); aiDraw(); toast(a.label.replace(/^\S+\s/, '') + ' ✓');
 };
 

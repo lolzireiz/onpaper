@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '10.21';
+const APP_VERSION = '10.22';
 const CHANGELOG = [
+  ['10.22', ['✨ Ask the Assistant for a workout and it now offers a “Build this workout” button that opens the builder with your request filled in.']],
   ['10.21', ['🦘 Six jump-training exercises with demos: Box Jump, Broad Jump, Tuck Jump, Split Squat Jump, Depth Jump and Pogo Hops. They count toward jumping, power and sprint goals, and the workout builder can now write real explosiveness sessions. Have a plyo box? Add it under your gym\'s equipment.', 'Workout builder: remove any exercise from a built workout before you start it.']],
   ['10.20', ['✨ Build me a workout now says what it does best: it fits your gym\'s equipment.']],
   ['10.19', ['✨ Build me a workout (Pro): on the Train tab, tap “Build me a workout”, say what you want (explosive legs for jumping, a bigger bench, an easy recovery day…), pick one of your gyms or “Any gym” and how long you have. Your coach writes the whole session from your lifts, goals and recovery: a name, exercises in order, sets, reps and a cue for each. Start it right away, save it as a workout day, or ask for a change.']],
