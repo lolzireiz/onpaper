@@ -76,6 +76,8 @@ A.openSettings = () => {
   const s = S(), names = [...new Set([...liftList().map(L => L.name), ...Object.values(s.big3 || {})])];
   const sel = (k, label) => `<div class="field"><label class="lbl" for="b3-${k}">${label}</label><select id="b3-${k}" name="b3${k}">${names.map(n => `<option ${keyOf(n) === keyOf(s.big3?.[k]) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`;
   openSheet('Settings', `
+    ${typeof planRowHTML === 'function' ? planRowHTML() : ''}
+    <details class="sset"><summary><span class="si" aria-hidden="true">🎨</span><span class="grow"><b>Appearance</b><span class="faint small">Theme, accent colour, sounds</span></span></summary><div class="sset-b" id="st-look">${appearanceHTML()}</div></details>
     <details class="sset" open><summary><span class="si" aria-hidden="true">🎯</span><span class="grow"><b>You &amp; goals</b><span class="faint small">Goals, units, body diagrams</span></span></summary><div class="sset-b">
     <div class="field"><span class="lbl">Your goals</span>${myGoals().length ? `<div class="gbadges" style="margin:0">${myGoals().map(g => `<span class="gbadge"><i aria-hidden="true">${GOALS[g][0]}</i>${esc(GOALS[g][1])}</span>`).join('')}</div>` : '<p class="muted small" style="margin:0">None picked yet. Exercises that help your goals get a badge.</p>'}${mySports().length ? `<p class="faint small" style="margin:6px 0 0">Into: ${mySports().map(x => `${SPORT[x].e} ${esc(SPORT[x].l)}`).join(', ')}</p>` : ''}</div>
     <div class="fields"><button class="btn ghost" data-act="editGoals">${myGoals().length ? 'Edit goals' : 'Pick goals'}</button><button class="btn ghost" data-act="startOnboarding">Redo setup</button></div>

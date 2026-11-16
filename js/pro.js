@@ -58,7 +58,7 @@ function openPaywall(focus) {
       <h1 class="pw-t pw-in" style="--i:1">${PW_TITLES[focus] || 'Get more from every rep'}</h1>
       <p class="pw-sub pw-in" style="--i:2">${st.pro ? (st.kind === 'trial' ? `Your free trial has <b>${st.daysLeft} day${st.daysLeft === 1 ? '' : 's'}</b> left.` : 'You have Pro. Thanks for being here early.') : st.ended ? 'Your trial ended. Everything you logged is still here, and the free features still work.' : 'Everything in Free, plus the smart stuff.'}</p>
       ${proPitchHTML(focus)}
-      <details class="pw-free"><summary>What's free forever</summary><ul>${PRO_FREE.map(x => `<li>${x}</li>`).join('')}</ul></details>
+      ${proCompareHTML()}
       ${st.pro && st.kind !== 'trial' ? '' : proPlansHTML()}
       ${!st.used ? `<ol class="pw-line"><li><b>Today</b><span>Full Pro access, free</span></li><li><b>Day ${PRO_TRIAL_DAYS - 2}</b><span>A reminder shows up on your Today screen</span></li><li><b>Day ${PRO_TRIAL_DAYS}</b><span>Trial ends. You keep everything in Free</span></li></ol>` : ''}
     </div>
@@ -88,9 +88,18 @@ A.proCodeGo = async () => {
 for (const [act, key] of [['aiOpen', 'ai'], ['mealSnap', 'snap'], ['wrapOpen', 'wrap'], ['budgetOpen', 'budget']]) { const f = A[act]; if (f) A[act] = (d, el) => proGate(key) && f(d, el); }
 
 /* ----- You tab: Pro card + Customize + legal ----- */
+/* Free vs Pro, side by side */
+function proCompareHTML() {
+  const rows = [...PRO_FREE.map(x => [x, 1]), ...PRO_FEATURES.map(f => [f[1], 0])];
+  return `<table class="pw-cmp"><thead><tr><th></th><th>Free</th><th class="p">Pro</th></tr></thead><tbody>${rows.map(([n, free]) => `<tr><td>${n}</td><td>${free ? '✓' : '<i>–</i>'}</td><td class="p">✓</td></tr>`).join('')}</tbody></table>`;
+}
+const planName = () => { const st = proState(); return st.kind === 'founder' ? 'Pro · Founder' : st.kind === 'sub' ? 'Pro' : st.kind === 'trial' ? `Pro trial · ${st.daysLeft}d left` : 'Free'; };
+const planPillHTML = () => { const st = proState(); return `<button class="plan-pill${st.pro ? ' pro' : ''}" data-act="pwOpen" aria-label="Your plan: ${planName()}. See plans">${st.pro ? 'PRO' : 'FREE'}</button>`; };
+function planRowHTML() { const st = proState(); return `<button class="plan-row${st.pro ? ' pro' : ''}" data-act="plansFromSettings"><span class="pro-ic">✨</span><span class="grow"><b>Your plan: ${planName()}</b><span>${st.pro ? 'Everything is unlocked. See what Free and Pro include' : 'Compare Free and Pro, or start a free trial'}</span></span>${ICON.chevR}</button>`; }
+A.plansFromSettings = () => { closeSheet(); openPaywall(); };
 function proCardHTML() {
   const st = proState();
-  if (st.pro && st.kind !== 'trial') return '';
+  if (st.pro && st.kind !== 'trial') return `<button class="pro-card on" data-act="pwOpen"><span class="pro-ic">✨</span><span class="grow"><b>Liftprint Pro${st.kind === 'founder' ? ' · Founder' : ''}</b><span>Everything unlocked. Tap to compare plans</span></span>${ICON.chevR}</button>`;
   if (st.kind === 'trial') return `<button class="pro-card on" data-act="pwOpen"><span class="pro-ic">✨</span><span class="grow"><b>Pro trial · ${st.daysLeft} day${st.daysLeft === 1 ? '' : 's'} left</b><span>See what you keep with Pro</span></span>${ICON.chevR}</button>`;
   return `<button class="pro-card" data-act="pwOpen"><span class="pro-ic">✨</span><span class="grow"><b>${st.ended ? 'Get Pro back' : `Try Liftprint Pro free`}</b><span>${st.ended ? 'Assistant, photo logging, smart budget and more' : `${PRO_TRIAL_DAYS} days of the Assistant, photo logging and more`}</span></span>${ICON.chevR}</button>`;
 }
@@ -118,3 +127,8 @@ if (typeof OB_VIEWS !== 'undefined') {
 /* people who were using the app before the terms existed see them once */
 A.legalNotice = () => openSheet('A quick heads-up', `<p class="small legal-notice" style="margin-top:0">Liftprint now has Terms of Use and a Privacy Policy. The short version:</p><ul class="small" style="padding-left:18px;line-height:1.5"><li>Your data stays on this phone. We never see it.</li><li>AI features send what you submit to the AI service, using your own key.</li><li>Liftprint is a tracking tool, not medical advice. Numbers and AI answers are estimates.</li><li>It's for people ${LEGAL_MIN_AGE} and older.</li></ul><div class="col" style="gap:8px"><button class="btn ghost block" data-act="legalOpen" data-k="health">Health &amp; safety</button><button class="btn ghost block" data-act="legalOpen" data-k="privacy">Privacy Policy</button><button class="btn ghost block" data-act="legalOpen" data-k="terms">Terms of Use</button><button class="btn block" data-act="legalOk">Got it, I agree</button></div>`, { onClose: legalNag });
 A.legalOk = () => { legalAccept(); closeSheet(); };
+
+/* plan tag beside the logo on Today and beside the title on You */
+{ const ht = Views.home.title; Views.home.title = () => ht().replace('</span>', '</span>' + planPillHTML()); const yt = Views.you.title; Views.you.title = () => yt().replace('</h1>', ' ' + planPillHTML() + '</h1>'); }
+/* theme and colour changes made inside Settings refresh their own buttons */
+for (const k of ['setTheme', 'setAccent', 'setSounds']) { const f = A[k]; if (f) A[k] = (d, el) => { f(d, el); const box = $('#st-look'); if (box) box.innerHTML = appearanceHTML(); }; }

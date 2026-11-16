@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '10.1';
+const APP_VERSION = '10.2';
 const CHANGELOG = [
+  ['10.2', ['🏷 A PRO or FREE tag now sits beside the logo. Tap it to compare the plans side by side. Your plan is also the first row in Settings.', '🎨 Theme, accent colour and sounds are now in Settings under Appearance too.']],
   ['10.1', ['🛠 Fix: the terms notice now comes back until you tap agree, including after you open one of the documents from it.', '🛠 Fix: with lots of goals, the weekly recap\'s Goal work row now shows a count and your top three so it no longer runs off the screen.']],
   ['10.0', ['🧩 A calmer Today screen you can make your own: hide or reorder any card from "Customize this screen". Extra reminders now tuck behind one line.', '✨ Liftprint Pro: the Assistant, Snap your meal, smart calorie budget, PR predictions and monthly wrap are now Pro. You were here early, so everything stays unlocked for you.', '📜 New: Terms of Use, Privacy Policy and a Health & safety notice (You → About & legal), plus Erase all data.', '🔥 New default colour: Ember. Your other colours are still in You → Appearance.']],
   ['9.3', ['🛠 Fix: tapping "No thanks" in the Assistant no longer pops up the keyboard, and the Assistant stays put over the screen behind it when the keyboard opens.']],

@@ -1,7 +1,7 @@
 {
- "version": "10.1",
+ "version": "10.2",
  "notes": [
-  "\ud83d\udee0 Fix: the terms notice now comes back until you tap agree, including after you open one of the documents from it.",
-  "\ud83d\udee0 Fix: with lots of goals, the weekly recap's Goal work row now shows a count and your top three so it no longer runs off the screen."
+  "\ud83c\udff7 A PRO or FREE tag now sits beside the logo. Tap it to compare the plans side by side. Your plan is also the first row in Settings.",
+  "\ud83c\udfa8 Theme, accent colour and sounds are now in Settings under Appearance too."
  ]
 }
