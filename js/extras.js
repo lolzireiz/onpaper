@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '10.17';
+const APP_VERSION = '10.18';
 const CHANGELOG = [
+  ['10.18', ['🧰 Work shifts: have a physical job? Set it up once (Train tab → Physical job?), then log a shift in seconds: hours, how hard it was and the weight you moved. You get the total you lifted and an estimated burn, and hard shifts now count toward your training load and readiness.', '✨ With the Assistant on, describe a typical day and it sets the job up for you. The Assistant also takes your shifts into account.']],
   ['10.17', ['💾 Backups now also carry your access code, so restoring on a new phone brings back everything in one go.']],
   ['10.16', ['🛠 Reliability pass: fixed a rare glitch when deleting a saved food and quickly opening another, and the top bar no longer overlaps on the smallest iPhones.']],
   ['10.15', ['🔎 Food search now goes beyond your own foods: type "chicken" or "rice" and pick from built-in common foods, or search brands and packaged foods by name.', '⇄ Supersets: in a workout, open an exercise\'s ⋯ menu and pair it with another. Log one, it sends you to the other, and rest starts after both.']],

@@ -1,6 +1,7 @@
 {
- "version": "10.17",
+ "version": "10.18",
  "notes": [
-  "\ud83d\udcbe Backups now also carry your access code, so restoring on a new phone brings back everything in one go."
+  "\ud83e\uddf0 Work shifts: have a physical job? Set it up once (Train tab \u2192 Physical job?), then log a shift in seconds: hours, how hard it was and the weight you moved. You get the total you lifted and an estimated burn, and hard shifts now count toward your training load and readiness.",
+  "\u2728 With the Assistant on, describe a typical day and it sets the job up for you. The Assistant also takes your shifts into account."
  ]
 }
