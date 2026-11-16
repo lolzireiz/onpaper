@@ -32,7 +32,7 @@ function wbOutHTML() {
   const o = WB.out, g = wbGym(), nSets = o.ex.reduce((a, x) => a + x.sets, 0);
   return `<div class="wb-head"><div class="eyebrow">${g ? esc(g.name) : 'Any gym'} · about ${o.mins} min · ${plural(nSets, 'set')}</div><h2 class="lift-h" style="font-size:30px;margin:2px 0 6px">${esc(o.name)}</h2>${o.why ? `<p class="muted small" style="margin:0">${esc(o.why)}</p>` : ''}</div>
     ${o.warm ? `<div class="wb-warm"><b>Warm-up</b><span>${esc(o.warm)}</span></div>` : ''}
-    <div class="wb-list">${o.ex.map((x, i) => `<div class="wb-ex"><span class="wb-n">${i + 1}</span><span class="grow"><b>${esc(x.name)}</b>${x.note ? `<span>${esc(x.note)}</span>` : ''}</span><span class="wb-t rnum">${x.sets}×${esc(x.reps)}${isTimed(x.name) ? 's' : ''}</span>${typeof musBtn === 'function' ? musBtn(x.name) : ''}</div>`).join('')}</div>
+    <div class="wb-list">${o.ex.map((x, i) => `<div class="wb-ex"><span class="wb-n">${i + 1}</span><span class="grow"><b>${esc(x.name)}</b>${x.note ? `<span>${esc(x.note)}</span>` : ''}</span><span class="wb-t rnum">${x.sets}×${esc(x.reps)}${isTimed(x.name) ? 's' : ''}</span>${typeof musBtn === 'function' ? musBtn(x.name) : ''}${o.ex.length > 2 ? `<button class="iconbtn wb-rm" data-act="wbRm" data-i="${i}" aria-label="Remove ${esc(x.name)}">${ICON.x}</button>` : ''}</div>`).join('')}</div>
     ${o.dropped ? `<p class="faint tiny" style="margin:8px 0 0">${plural(o.dropped, 'exercise')} left out because ${g ? "this gym doesn't have the equipment" : "it isn't in the exercise list"}.</p>` : ''}
     <button class="btn block" data-act="wbStart" style="margin-top:14px">${activeWorkout() ? 'Finish your current workout first' : 'Start this workout'}</button>
     <div class="fields" style="margin-top:8px"><button class="btn ghost" data-act="wbSave">Save as a workout day</button><button class="btn ghost" data-act="wbAgain">Change it</button></div>
@@ -52,6 +52,7 @@ A.wbIdea = d => { WB.goal = WB_IDEAS[+d.i]; WB.err = ''; wbDraw(); };
 A.wbGym = d => { wbRead(); WB.gym = d.id || null; wbDraw(); };
 A.wbMins = d => { wbRead(); WB.mins = +d.m; wbDraw(); };
 A.wbCancel = () => { if (WB.ctl) WB.ctl.abort(); WB.busy = false; wbDraw(); };
+A.wbRm = d => { const o = WB.out; if (!o || o.ex.length <= 2) return; o.ex.splice(+d.i, 1); wbDraw(); };
 A.wbAgain = () => { WB.out = null; WB.err = ''; wbDraw(); setTimeout(() => $('#wb-goal')?.focus(), 80); };
 
 /* keep only real library exercises this gym can do; tidy sets and reps */

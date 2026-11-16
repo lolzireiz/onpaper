@@ -3,7 +3,7 @@
 
 const GROUPS = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Forearms', 'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core'];
 const EQUIP = [
-  ['Free weights', [['barbell', 'Barbell + plates'], ['rack', 'Squat / power rack'], ['bench', 'Flat bench'], ['incline', 'Incline / adjustable bench'], ['db', 'Dumbbells'], ['ez', 'EZ curl bar'], ['kb', 'Kettlebells']]],
+  ['Free weights', [['barbell', 'Barbell + plates'], ['rack', 'Squat / power rack'], ['bench', 'Flat bench'], ['incline', 'Incline / adjustable bench'], ['db', 'Dumbbells'], ['ez', 'EZ curl bar'], ['kb', 'Kettlebells'], ['box', 'Plyo box / sturdy step']]],
   ['Machines', [['smith', 'Smith machine'], ['legpress', 'Leg press'], ['hack', 'Hack squat'], ['legext', 'Leg extension'], ['legcurl', 'Leg curl'], ['chestpress', 'Chest press machine'], ['shoulderpress', 'Shoulder press machine'], ['pecdeck', 'Pec deck / rear delt'], ['calf', 'Calf raise machine'], ['hipthrust', 'Hip thrust machine'], ['abductor', 'Hip abductor / adductor'], ['mtsrow', 'MTS / iso-lateral row machine'], ['abcrunch', 'Ab crunch machine'], ['captain', "Captain's chair"], ['tbar', 'T-bar row'], ['preacher', 'Preacher bench']]],
   ['Cables & stations', [['cable', 'Cable station'], ['lat', 'Lat pulldown'], ['row', 'Seated cable row'], ['pullup', 'Pull-up bar'], ['dip', 'Dip station'], ['ghd', 'Back extension / GHD']]],
 ];
@@ -33,7 +33,7 @@ const LIBRARY = [
   ['Crunch', 'Core', []], ['Lying Leg Raise', 'Core', []], ['Russian Twist', 'Core', ['db']], ['Ab Wheel Rollout', 'Core', []],
   ['Wrist Curl', 'Forearms', ['db', 'bench']], ['Reverse Wrist Curl', 'Forearms', ['db', 'bench']], ['Barbell Wrist Curl', 'Forearms', ['barbell', 'bench']], ['Reverse Curl', 'Forearms', ['barbell']], ['Dead Hang', 'Forearms', ['pullup']], ['Plate Pinch', 'Forearms', ['barbell']],
   ['Arnold Press', 'Shoulders', ['db', 'incline']], ['Front Raise', 'Shoulders', ['db']], ['Upright Row', 'Shoulders', ['barbell']],
-  ['Jump Squat', 'Quads', []], ['Lateral Bounds', 'Quads', []], ['Lateral Lunge', 'Quads', ['db']], ['Step-up', 'Quads', ['db', 'bench']],
+  ['Jump Squat', 'Quads', []], ['Box Jump', 'Quads', ['box']], ['Broad Jump', 'Quads', []], ['Tuck Jump', 'Quads', []], ['Split Squat Jump', 'Quads', []], ['Depth Jump', 'Quads', ['box']], ['Pogo Hops', 'Calves', []], ['Lateral Bounds', 'Quads', []], ['Lateral Lunge', 'Quads', ['db']], ['Step-up', 'Quads', ['db', 'bench']],
   ['Single-Leg RDL', 'Hamstrings', ['db']], ['Tibialis Raise', 'Calves', []],
 ].map(([name, group, equip]) => ({ name, group, equip }));
 const TEMPLATES = {

@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '10.20';
+const APP_VERSION = '10.21';
 const CHANGELOG = [
+  ['10.21', ['🦘 Six jump-training exercises with demos: Box Jump, Broad Jump, Tuck Jump, Split Squat Jump, Depth Jump and Pogo Hops. They count toward jumping, power and sprint goals, and the workout builder can now write real explosiveness sessions. Have a plyo box? Add it under your gym\'s equipment.', 'Workout builder: remove any exercise from a built workout before you start it.']],
   ['10.20', ['✨ Build me a workout now says what it does best: it fits your gym\'s equipment.']],
   ['10.19', ['✨ Build me a workout (Pro): on the Train tab, tap “Build me a workout”, say what you want (explosive legs for jumping, a bigger bench, an easy recovery day…), pick one of your gyms or “Any gym” and how long you have. Your coach writes the whole session from your lifts, goals and recovery: a name, exercises in order, sets, reps and a cue for each. Start it right away, save it as a workout day, or ask for a change.']],
   ['10.18', ['🧰 Work shifts: have a physical job? Set it up once (Train tab → Physical job?), then log a shift in seconds: hours, how hard it was and the weight you moved. You get the total you lifted and an estimated burn, and hard shifts now count toward your training load and readiness.', '✨ With the Assistant on, describe a typical day and it sets the job up for you. The Assistant also takes your shifts into account.']],
@@ -162,7 +163,7 @@ const EX_MUSCLES = {
   'farmer carry': ['forearms traps', 'abs obliques upper_back'], 'crunch': ['abs', 'obliques'], 'lying leg raise': ['abs', 'obliques'], 'russian twist': ['obliques abs', 'delts'], 'ab wheel rollout': ['abs', 'obliques lats lower_back'],
   'wrist curl': ['forearms'], 'reverse wrist curl': ['forearms'], 'barbell wrist curl': ['forearms'], 'reverse curl': ['forearms biceps'], 'dead hang': ['forearms', 'lats upper_back'], 'plate pinch': ['forearms', 'traps'],
   'arnold press': ['delts side_delts', 'triceps traps'], 'front raise': ['delts', 'side_delts traps'], 'upright row': ['side_delts traps', 'delts biceps forearms'], 'cable woodchop': ['obliques abs', 'delts glutes'], 'pallof press': ['obliques abs', 'delts'], 'dead bug': ['abs', 'obliques'],
-  'jump squat': ['quads glutes', 'calves hamstrings'], 'lateral bounds': ['glutes abductors quads', 'calves adductors'], 'lateral lunge': ['quads adductors glutes', 'hamstrings abductors'], 'step-up': ['quads glutes', 'hamstrings calves'],
+  'jump squat': ['quads glutes', 'calves hamstrings'], 'box jump': ['quads glutes', 'calves hamstrings'], 'broad jump': ['glutes quads', 'hamstrings calves'], 'tuck jump': ['quads glutes', 'calves abs'], 'split squat jump': ['quads glutes', 'calves hamstrings'], 'depth jump': ['quads calves', 'glutes hamstrings'], 'pogo hops': ['calves', 'quads'], 'lateral bounds': ['glutes abductors quads', 'calves adductors'], 'lateral lunge': ['quads adductors glutes', 'hamstrings abductors'], 'step-up': ['quads glutes', 'hamstrings calves'],
   'single-leg rdl': ['hamstrings glutes', 'lower_back abductors forearms'], 'tibialis raise': ['calves', ''],
 };
 const GROUP_MUSCLES = { Chest: ['chest', 'delts triceps'], Back: ['lats upper_back', 'biceps rear_delts'], Shoulders: ['delts side_delts', 'triceps'], Biceps: ['biceps', 'forearms'], Triceps: ['triceps'], Quads: ['quads', 'glutes'], Hamstrings: ['hamstrings', 'glutes'], Glutes: ['glutes', 'hamstrings'], Calves: ['calves'], Core: ['abs', 'obliques'] };

@@ -189,7 +189,7 @@ function allSets() {
   });
 }
 /* Bodyweight exercises: share of bodyweight moved (common estimates). Load = share × bodyweight + added weight (total of both dumbbells). */
-const BW_FACTOR = { 'pull-ups': 1, 'chin-ups': 1, 'dips': 1, 'push-ups': 0.64, 'dumbbell standing calf raise': 1, 'bulgarian split squat': 0.85, 'walking lunge': 0.85, 'goblet squat': 0.85, 'hanging leg raise': 0.35, 'back extension': 0.5, 'decline sit-up': 0.5, 'jump squat': 0.85, 'lateral bounds': 0.85, 'lateral lunge': 0.85, 'step-up': 0.85 };
+const BW_FACTOR = { 'pull-ups': 1, 'chin-ups': 1, 'dips': 1, 'push-ups': 0.64, 'dumbbell standing calf raise': 1, 'bulgarian split squat': 0.85, 'walking lunge': 0.85, 'goblet squat': 0.85, 'hanging leg raise': 0.35, 'back extension': 0.5, 'decline sit-up': 0.5, 'jump squat': 0.85, 'box jump': 0.85, 'broad jump': 0.85, 'tuck jump': 0.85, 'split squat jump': 0.85, 'depth jump': 0.85, 'pogo hops': 0.85, 'lateral bounds': 0.85, 'lateral lunge': 0.85, 'step-up': 0.85 };
 function bwFactor(name) { const k = keyOf(name), o = (S().bwOverride || {})[k]; return o != null ? +o : (BW_FACTOR[k] || 0); }
 const setBw = s => s.bwt || bwOn(s.date)?.weight || S().lastBw || 0;
 const loadTxt = rec => rec.bwf ? `${rec.added ? '+' + fw(rec.added) : 'BW'}${rec.w ? ` <span class="faint">≈${fw(rec.w, 0)}</span>` : ''}` : `${fw(rec.w)}`;

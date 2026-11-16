@@ -88,7 +88,7 @@ const EX_GOALS = {
   'Farmer Carry': ['grip', 'everyday', 'core', 'posture', 'longevity'], 'Cable Woodchop': ['power', 'core', 'agility'], 'Pallof Press': ['core', 'backhealth', 'balance', 'injury'],
   'Dead Bug': ['core', 'backhealth', 'balance', 'posture'], 'Crunch': ['core'], 'Lying Leg Raise': ['core'], 'Russian Twist': ['core', 'power'], 'Ab Wheel Rollout': ['core', 'backhealth'],
   'Wrist Curl': ['grip', 'arms'], 'Reverse Wrist Curl': ['grip', 'arms', 'injury'], 'Barbell Wrist Curl': ['grip', 'arms'], 'Reverse Curl': ['grip', 'arms'], 'Dead Hang': ['grip', 'relative', 'posture'], 'Plate Pinch': ['grip'],
-  'Arnold Press': ['shoulders'], 'Front Raise': ['shoulders'], 'Upright Row': ['shoulders', 'posture'], 'Jump Squat': ['jump', 'power', 'sprint', 'legs'], 'Lateral Bounds': ['agility', 'jump', 'balance', 'injury'],
+  'Arnold Press': ['shoulders'], 'Front Raise': ['shoulders'], 'Upright Row': ['shoulders', 'posture'], 'Jump Squat': ['jump', 'power', 'sprint', 'legs'], 'Box Jump': ['jump', 'power', 'sprint', 'legs'], 'Broad Jump': ['jump', 'power', 'sprint'], 'Tuck Jump': ['jump', 'power'], 'Split Squat Jump': ['jump', 'power', 'balance', 'legs'], 'Depth Jump': ['jump', 'power'], 'Pogo Hops': ['jump', 'sprint', 'power'], 'Lateral Bounds': ['agility', 'jump', 'balance', 'injury'],
   'Lateral Lunge': ['agility', 'mobility', 'injury', 'legs', 'balance'], 'Step-up': ['legs', 'balance', 'jump', 'everyday', 'longevity'],
   'Single-Leg RDL': ['balance', 'glutes', 'injury', 'sprint'], 'Tibialis Raise': ['injury', 'sprint', 'jump', 'longevity'],
 };
