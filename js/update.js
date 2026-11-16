@@ -4,6 +4,7 @@ const Upd = { state: 'idle', latest: null, checkedAt: 0 };
 const cmpVer = (a, b) => { const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number); for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; } return 0; };
 async function checkUpdate() {
   if (Upd.state === 'checking' || Upd.state === 'applying') return;
+  if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) { Upd.state = 'current'; Upd.checkedAt = Date.now(); return; }   // native app: updates arrive with the app itself
   Upd.state = 'checking'; drawUpd();
   try {
     const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw 0;

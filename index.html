@@ -1073,6 +1073,6 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 <script src="js/aiworkout.js"></script>
 <script src="js/health.js"></script>
 <script src="js/app.js"></script>
-<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+<script>if ('serviceWorker' in navigator && !(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform())) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>
