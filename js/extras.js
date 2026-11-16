@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '9.3';
+const APP_VERSION = '10.0';
 const CHANGELOG = [
+  ['10.0', ['🧩 A calmer Today screen you can make your own: hide or reorder any card from "Customize this screen". Extra reminders now tuck behind one line.', '✨ Liftprint Pro: the Assistant, Snap your meal, smart calorie budget, PR predictions and monthly wrap are now Pro. You were here early, so everything stays unlocked for you.', '📜 New: Terms of Use, Privacy Policy and a Health & safety notice (You → About & legal), plus Erase all data.', '🔥 New default colour: Ember. Your other colours are still in You → Appearance.']],
   ['9.3', ['🛠 Fix: tapping "No thanks" in the Assistant no longer pops up the keyboard, and the Assistant stays put over the screen behind it when the keyboard opens.']],
   ['9.2', ['💬 The Assistant ends its answers with a follow-up question and quick-reply buttons. Tap to keep going, or tap "No thanks" (or just ignore it) and ask something else.']],
   ['9.1', ['✨ New: the Assistant. Tap the sparkle at the top of any screen to ask about your training, food, weight, recovery, habits or jumps. It reads everything you\'ve logged.', '⚡ Quick commands: today\'s plan, what to eat, bulk check, last workout, week recap, plateau check, recovery, dunk progress, swap an exercise, hit my macros.', '✅ It can log food, tick habits, change your targets or swap exercises, but only when you tap to confirm.', '📊 A usage meter shows how many AI requests you\'ve used today, about how many are left, and when they reset.']],

@@ -1,6 +1,9 @@
 {
- "version": "9.3",
+ "version": "10.0",
  "notes": [
-  "\ud83d\udee0 Fix: tapping \"No thanks\" in the Assistant no longer pops up the keyboard, and the Assistant stays put over the screen behind it when the keyboard opens."
+  "\ud83e\udde9 A calmer Today screen you can make your own: hide or reorder any card from \"Customize this screen\". Extra reminders now tuck behind one line.",
+  "\u2728 Liftprint Pro: the Assistant, Snap your meal, smart calorie budget, PR predictions and monthly wrap are now Pro. You were here early, so everything stays unlocked for you.",
+  "\ud83d\udcdc New: Terms of Use, Privacy Policy and a Health & safety notice (You \u2192 About & legal), plus Erase all data.",
+  "\ud83d\udd25 New default colour: Ember. Your other colours are still in You \u2192 Appearance."
  ]
 }

@@ -13,7 +13,7 @@ const r10 = v => Math.round(v / 10) * 10;
 function calBudget(date = todayStr()) {
   return Store.cached('bud:' + date, () => {
     const s = S(), base = s.calTarget || 2500, n = budDays(), eaten = dayCal(date);
-    if (!n) return { base, ceiling: base, carry: 0, raw: 0, cap: 0, rows: [], eaten, left: base - eaten, off: true, n: 0 };
+    if (!n || (typeof isPro === 'function' && !isPro())) return { base, ceiling: base, carry: 0, raw: 0, cap: 0, rows: [], eaten, left: base - eaten, off: true, n: 0 };
     const rows = [];
     for (let i = n - 1; i >= 1; i--) { const d = addDays(date, -i), cal = dayCal(d), tracked = budTracked(d, base); rows.push({ d, cal, tracked, diff: tracked ? base - cal : 0, forced: dailyOf(d).budget || '' }); }
     const raw = rows.reduce((a, r) => a + r.diff, 0), cap = r10(base * BUD_CAP), carry = r10(clamp(raw, -cap, cap)), ceiling = base + carry;

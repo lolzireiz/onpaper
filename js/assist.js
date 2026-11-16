@@ -199,7 +199,7 @@ function aiUnlock() { const b = document.body.style; if (b.position !== 'fixed')
 function aiWelcomeHTML() {
   if (!geminiKey()) return `<div class="ai-empty"><div class="ai-logo">${ICON.ai}</div><h3>Add your AI key first</h3><p class="muted small">The assistant uses the same key as photo and label scanning. It stays on this phone.</p><button class="btn" data-act="aiKey">Add my key</button></div>`;
   const nm = S().name ? `, ${esc(S().name)}` : '';
-  return `<div class="ai-empty"><div class="ai-logo">${ICON.ai}</div><h3>Hey${nm}. What do you want to know?</h3><p class="muted small">I can see your workouts, lifts, food, weight, readiness, habits and jump log. I can also log food, tick habits, change targets or swap exercises when you tap to confirm.</p>
+  return `<div class="ai-empty"><div class="ai-logo">${ICON.ai}</div><h3>Hey${nm}. What do you want to know?</h3><p class="muted small">I can see your workouts, lifts, food, weight, readiness, habits and jump log. I can also log food, tick habits, change targets or swap exercises when you tap to confirm.</p><p class="faint tiny">AI can be wrong. This is general fitness info, not medical advice. <button class="linkbtn tiny" data-act="legalOpen" data-k="health" style="font-size:inherit;padding:0">Health &amp; safety</button></p>
     <div class="ai-grid">${AI_CMDS.map((c, i) => `<button class="ai-gc" data-act="aiCmd" data-i="${i}"><span>${c[0]}</span>${esc(c[1])}</button>`).join('')}</div></div>`;
 }
 function aiDraw(scroll) {

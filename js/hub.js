@@ -6,19 +6,20 @@ const dailyOf = (d = todayStr()) => Store.docs.daily?.[d] || { date: d };
 const putDaily = (d, patch) => put('daily', d, { ...clone(dailyOf(d)), date: d, ...patch });
 
 /* ======================= themes ======================= */
-const ACCENTS = [['#3392f5', 'Blue'], ['#3ccf82', 'Green'], ['#ff7a45', 'Orange'], ['#a970ff', 'Purple'], ['#ff4f8b', 'Pink'], ['#f5b915', 'Gold']];
+const ACCENT_DEF = '#f4511e';   // warm, high-energy default; blue stays as a calmer option
+const ACCENTS = [['#f4511e', 'Ember'], ['#3392f5', 'Blue'], ['#3ccf82', 'Green'], ['#ff7a45', 'Orange'], ['#a970ff', 'Purple'], ['#ff4f8b', 'Pink'], ['#f5b915', 'Gold']];
 function applyTheme() {
   const s = S(), r = document.documentElement, th = s.theme || 'dark';
   if (r.dataset.theme !== th) r.dataset.theme = th;
-  r.style.setProperty('--accent', s.accent || '#3392f5');
+  r.style.setProperty('--accent', s.accent || ACCENT_DEF);
   const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = th === 'light' ? '#f2f2f7' : '#000000';
-  try { localStorage.setItem('lp.theme', th); localStorage.setItem('lp.accent', s.accent || '#3392f5'); } catch (e) {}   // so the next launch paints the right theme instantly
+  try { localStorage.setItem('lp.theme', th); localStorage.setItem('lp.accent', s.accent || ACCENT_DEF); } catch (e) {}   // so the next launch paints the right theme instantly
 }
 { const base = render; render = function () { applyTheme(); base(); }; }
 A.setTheme = d => { saveSettings({ theme: d.v }); };
 A.setAccent = d => { saveSettings({ accent: d.v }); };
 function appearanceHTML() {
-  const s = S(), th = s.theme || 'dark', ac = s.accent || '#3392f5';
+  const s = S(), th = s.theme || 'dark', ac = s.accent || ACCENT_DEF;
   return `<div class="field"><span class="lbl">Theme</span><div class="seg">${[['dark', 'Dark'], ['oled', 'True black'], ['light', 'Light']].map(([k, l]) => `<button data-act="setTheme" data-v="${k}" aria-pressed="${th === k}">${l}</button>`).join('')}</div></div>
     <div class="field"><span class="lbl">Accent colour</span><div class="swatches">${ACCENTS.map(([c, n]) => `<button class="swatch" data-act="setAccent" data-v="${c}" style="--c:${c}" aria-label="${n}" aria-pressed="${ac === c}"></button>`).join('')}</div></div>`;
 }
@@ -276,7 +277,7 @@ function showSummary(id) {
 }
 A.sumShare = async d => {
   const w0 = Store.docs.workouts[d.id]; if (!w0) return; const w = { ...w0, id: d.id }, st = workoutStats(w), W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d'), F = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif', ac = S().accent || '#3392f5';
+  const g = c.getContext('2d'), F = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif', ac = S().accent || ACCENT_DEF;
   const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#1d1d24'); bg.addColorStop(1, '#09090b'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
   g.fillStyle = ac; g.fillRect(80, 110, 10, 110);
   g.fillStyle = '#fff'; g.font = `800 78px ${F}`; g.fillText(fitText(g, w.dayName || 'Workout', 860), 116, 180);

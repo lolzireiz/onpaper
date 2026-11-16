@@ -82,7 +82,7 @@ async function prImage(L, s) {
 const MILES_LB = [95, 135, 155, 185, 205, 225, 245, 275, 295, 315, 335, 365, 385, 405, 455, 495, 545, 585, 635, 675, 725];
 const MILES_KG = [40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 220, 240, 260, 280, 300];
 function liftForecast(L) {
-  if (!L || L.bwf || !L.e1 || isTimed(L.name)) return null;
+  if (!L || L.bwf || !L.e1 || isTimed(L.name) || (typeof isPro === 'function' && !isPro())) return null;
   return Store.cached('fc:' + L.key, () => {
     const since = addDays(todayStr(), -70), by = new Map();
     for (const s of L.sets) if (s.hit && !s.warm && s.date >= since && s.r <= 12 && s.w > 0) by.set(s.date, Math.max(by.get(s.date) || 0, s.e1));

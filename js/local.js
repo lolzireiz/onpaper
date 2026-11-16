@@ -78,6 +78,7 @@ const Gemini = {
     } finally { clearTimeout(timer); if (signal) signal.removeEventListener('abort', onAbort); }
   },
   async json(prompt, { images = [], signal, onStatus, system, history, temp, kind = 'food' } = {}) {
+    if (kind !== 'test' && typeof isPro === 'function' && !isPro()) { openPaywall(kind === 'assist' ? 'ai' : 'snap'); throw { code: 'cancelled' }; }   // AI features are part of Pro
     if (!geminiKey()) throw { code: 'no_key' };
     const parts = [{ text: prompt }];
     for (const b of [].concat(images)) parts.push({ inline_data: { mime_type: b.type || 'image/jpeg', data: await blobB64(b) } });
@@ -115,7 +116,7 @@ A.testGemini = async (d, el) => {
   if (!geminiKey()) { out.textContent = 'Paste your key first.'; return; }
   el.disabled = true; out.innerHTML = '<span class="thinking">Testing…</span>';
   const t0 = Date.now();
-  try { await Gemini.json('Reply with only this JSON: {"ok": true}'); out.innerHTML = `<span style="color:var(--ok)">✓ Works!</span> <span class="faint">Answered in ${((Date.now() - t0) / 1000).toFixed(1)}s.</span>`; }
+  try { await Gemini.json('Reply with only this JSON: {"ok": true}', { kind: 'test' }); out.innerHTML = `<span style="color:var(--ok)">✓ Works!</span> <span class="faint">Answered in ${((Date.now() - t0) / 1000).toFixed(1)}s.</span>`; }
   catch (e) { out.innerHTML = `<span style="color:var(--miss)">✗ ${esc(aiErrorText(e) || 'Stopped')}</span>${e.message ? `<br><span class="faint tiny">${esc(errCode(e))}</span>` : ''}`; }
   el.disabled = false;
 };
