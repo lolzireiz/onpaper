@@ -31,7 +31,7 @@ function big3CardHTML() {
     <div class="stats"><div class="stat"><span class="k">Est. total</span><span class="v">${fw(b.total, 0)}<span class="unit">${U.wu}</span></span></div><div class="stat"><span class="k">Tested singles</span><span class="v">${b.singles ? fw(b.singles, 0) : '—'}</span></div><div class="stat"><span class="k">× bodyweight</span><span class="v">${lw ? trim(b.total / lw.weight, 2) : '—'}</span></div></div>
     ${b.parts.some(p => p.L && strengthLevel(p.L)) ? `<div class="slvl-chips">${b.parts.map(p => levelChip(p.L)).join('')}</div>` : ''}
     ${b.pts.length > 1 ? chartSlot('big3', { h: 150, label: 'Estimated Big 3 total over time', series: [{ type: 'step', pts: b.pts.map(p => ({ ...p, y: U.w(p.y) })), extend: true, end: true }], yFmt: v => trim(v, 0), tip: p => `<b>${trim(p.y, 0)} ${U.wu}</b> est. total · ${fmtDate(p.date)}` }) : ''}
-    <p class="faint small">${b.parts.map(p => `${esc(p.name)} ${fw(p.L.e1, 0)}`).join(' + ')}. Estimated 1RMs use the Epley formula from your best set.</p></section>`;
+    <p class="faint small hint">${b.parts.map(p => `${esc(p.name)} ${fw(p.L.e1, 0)}`).join(' + ')}. Estimated 1RMs use the Epley formula from your best set.</p></section>`;
 }
 const ftin = i => `${Math.floor(i / 12)}′ ${trim(i % 12, 2)}″`;
 function dunkCardHTML() {
@@ -101,8 +101,8 @@ function liftDetailHTML(L) {
   </section>
   <section class="card"><h2 class="sec-t">Your bodyweight over the same time</h2>
     ${chartSlot('liftbw-' + slug(L.key), { h: 130, x0, x1, label: 'Bodyweight over the same period', empty: 'Log weigh-ins to compare your strength with your bodyweight.', series: [{ type: 'line', pts: ws.map(w => ({ x: wiX(w), y: U.w(w.weight), w })), end: true }], yFmt: v => trim(v, 0), tip: p => `<b>${fw(p.w.weight)} ${U.wu}</b> · ${fmtDate(p.w.date)}${p.w.time ? ' ' + fmtTime(p.w.time) : ''}` })}
-    <p class="faint small">Same dates as the chart above, so you can see whether a PR or a miss lined up with a heavier or lighter bodyweight.</p></section>
-  ${repCells ? `<section class="card"><h2 class="sec-t">Rep maxes</h2><div class="repmax">${repCells}</div><p class="faint small">Your heaviest weight for each rep count. Lifting more for the same reps (or more reps at the same weight) counts as a PR.</p></section>` : ''}
+    <p class="faint small hint">Same dates as the chart above, so you can see whether a PR or a miss lined up with a heavier or lighter bodyweight.</p></section>
+  ${repCells ? `<section class="card"><h2 class="sec-t">Rep maxes</h2><div class="repmax">${repCells}</div><p class="faint small hint">Your heaviest weight for each rep count. Lifting more for the same reps (or more reps at the same weight) counts as a PR.</p></section>` : ''}
   <section class="card flush"><div class="card-h" style="padding-top:12px"><h2 class="sec-t">History</h2><div class="seg" style="width:190px"><button data-act="liftFilter" data-f="key" aria-pressed="${UI.liftFilter !== 'all'}">PRs &amp; misses</button><button data-act="liftFilter" data-f="all" aria-pressed="${UI.liftFilter === 'all'}">All sets</button></div></div>
     ${rows.length ? rows.slice(0, UI.histAll === L.key ? 999 : 8).map(s => setHistoryRow(L, s)).join('') + (rows.length > 8 && UI.histAll !== L.key ? `<button class="linkbtn center more-rows" data-act="histAll" data-k="${esc(L.key)}">Show all ${rows.length}</button>` : '') : '<p class="muted small" style="padding:10px 0 16px">No PRs or misses yet.</p>'}</section>`;
 }

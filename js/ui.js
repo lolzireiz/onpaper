@@ -74,7 +74,6 @@ Views.you = {
       <div class="chips" style="margin-top:8px">${mg.length ? mg.slice(0, 6).map(g => `<span class="gchip">${GOALS[g][0]} ${esc(GOALS[g][1])}</span>`).join('') : ''}<button class="chip" data-act="goalsEditYou">${mg.length ? 'Edit goals' : '+ Pick goals'}</button></div></div></section>`;
     h += habitsCardHTML(true);
     h += milestonesCardHTML().replace('<h2 class="sec-t">Milestones</h2>', `<h2 class="sec-t">Milestones</h2>`);
-    h += `<section class="card"><h2 class="sec-t">Appearance</h2>${appearanceHTML()}</section>`;
     const rows = [['⚙️', 'Settings', 'Units, targets, rest timer, alerts', 'openSettings'], ['🔋', 'Readiness check-in', 'Sleep, soreness, energy', 'readyOpen'], ['🗓️', 'Weekly recap', 'Share your week', 'recapOpen'], ['💾', 'Back up now', lastBackup() ? `Last backup ${fmtDate(lastBackup())}` : 'No backup yet', 'backupNow'], ['📄', 'Export CSV', 'Sets, weigh-ins, food, activities', 'csvExport'], ['✨', "What's new", `Version ${APP_VERSION}`, 'whatsNewAll']];
     h += `<section class="card flush list-card">${rows.map(([ic, t, sub, act]) => `<button class="row" data-act="${act}"><span class="li-ic">${ic}</span><span class="grow"><b>${t}</b><div class="faint small">${esc(sub)}</div></span>${ICON.chevR.replace('<svg', '<svg width="16" height="16" style="opacity:.4"')}</button>`).join('')}</section>`;
     return h;

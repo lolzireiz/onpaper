@@ -34,7 +34,7 @@ function weeklyAverages(list, n = 6) {
 }
 function weeklyAvgHTML(list) {
   const ws = weeklyAverages(list); if (ws.length < 2) return '';
-  return `<section class="card"><h2 class="sec-t">Weekly averages</h2><p class="faint small" style="margin:0">Average of every weigh-in in each week (Mon–Sun). Easier to read than single days.</p>
+  return `<section class="card"><h2 class="sec-t">Weekly averages</h2><p class="faint small hint" style="margin:0">Average of every weigh-in in each week (Mon–Sun). Easier to read than single days.</p>
     <div class="wkavg">${ws.map(w => `<div class="row"><span class="grow">${w.s === weekStart(todayStr()) ? '<b>This week</b>' : 'Week of ' + fmtDate(w.s, { rel: false })}<div class="faint tiny">${plural(w.n, 'weigh-in')}</div></span><b class="rnum">${fw(w.avg)} ${U.wu}</b><span class="rnum small ${w.d == null ? 'faint' : ''}" style="min-width:58px;text-align:right">${w.d == null ? '—' : signed(U.w(w.d))}</span></div>`).join('')}</div></section>`;
 }
 

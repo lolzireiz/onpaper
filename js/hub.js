@@ -12,16 +12,21 @@ function applyTheme() {
   const s = S(), r = document.documentElement, th = s.theme || 'dark';
   if (r.dataset.theme !== th) r.dataset.theme = th;
   r.style.setProperty('--accent', s.accent || ACCENT_DEF);
+  document.body.classList.toggle('no-hints', !hintsOn());
   const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = th === 'light' ? '#f2f2f7' : '#000000';
   try { localStorage.setItem('lp.theme', th); localStorage.setItem('lp.accent', s.accent || ACCENT_DEF); } catch (e) {}   // so the next launch paints the right theme instantly
 }
 { const base = render; render = function () { applyTheme(); base(); }; }
 A.setTheme = d => { saveSettings({ theme: d.v }); };
 A.setAccent = d => { saveSettings({ accent: d.v }); };
+/* small explanations under cards: on while you're new (first two weeks), then tucked away unless you turn them back on */
+const hintsOn = () => { const s = S(); return s.hints != null ? !!s.hints : !(typeof s.onboarded === 'number' && Date.now() - s.onboarded > 14 * 864e5) && s.proInit !== 'old'; };
+A.setHints = d => { saveSettings({ hints: d.v === 'on' }); };
 function appearanceHTML() {
   const s = S(), th = s.theme || 'dark', ac = s.accent || ACCENT_DEF;
   return `<div class="field"><span class="lbl">Theme</span><div class="seg">${[['dark', 'Dark'], ['oled', 'True black'], ['light', 'Light']].map(([k, l]) => `<button data-act="setTheme" data-v="${k}" aria-pressed="${th === k}">${l}</button>`).join('')}</div></div>
-    <div class="field"><span class="lbl">Accent colour</span><div class="swatches">${ACCENTS.map(([c, n]) => `<button class="swatch" data-act="setAccent" data-v="${c}" style="--c:${c}" aria-label="${n}" aria-pressed="${ac === c}"></button>`).join('')}</div></div>`;
+    <div class="field"><span class="lbl">Accent colour</span><div class="swatches">${ACCENTS.map(([c, n]) => `<button class="swatch" data-act="setAccent" data-v="${c}" style="--c:${c}" aria-label="${n}" aria-pressed="${ac === c}"></button>`).join('')}</div></div>
+    <div class="field"><span class="lbl">Tips &amp; explanations</span><div class="seg">${[['on', 'Show'], ['off', 'Hide']].map(([k, l]) => `<button data-act="setHints" data-v="${k}" aria-pressed="${hintsOn() === (k === 'on')}">${l}</button>`).join('')}</div></div>`;
 }
 
 /* ======================= recovery & readiness ======================= */
@@ -424,13 +429,14 @@ function habitsCardHTML(full) {
     ${past ? `<p class="hab-past small">Marking <b>${esc(habDayWord(sel))}</b>${sel === addDays(t, -1) ? ` (${esc(fmtDay(sel))})` : ''} · <button class="linkbtn" data-act="habDayPick" data-date="${t}">Back to today</button></p>` : ''}` : '';
   return `<section class="card habits${past ? ' hab-pastmode' : ''}"><div class="card-h"><h2 class="sec-t">Habits</h2><span class="faint small">${n} of ${hs.length} ${past ? esc(sel === addDays(t, -1) ? 'yesterday' : fmtDate(sel)) : 'today'}${full ? '' : ' · <button class="linkbtn" data-act="habitsEdit">Edit</button>'}</span></div>
     ${days}<div class="hab-list">${hs.map(h => { const done = habitDone(h, sel), st = habitStreak(h); return `<button class="hab${done ? ' on' : ''}" data-act="habitTap" data-id="${h.id}" data-date="${sel}" aria-pressed="${done}"><span class="he">${h.e}</span><span class="grow"><b>${esc(h.n)}</b><span class="faint tiny">${st ? `🔥 ${st}-day streak` : past ? `Tap if you did it ${esc(habDayWord(sel))}` : h.auto ? 'Checks itself off' : 'Tap when done'}</span></span><span class="hchk">${done ? '✓' : ''}</span></button>`; }).join('')}</div>
-    ${full ? `<div class="hab-grid"><span></span>${[...Array(14)].map((_, i) => `<span class="faint tiny">${'MTWTFSS'[(parseDate(addDays(t, i - 13)).getDay() + 6) % 7]}</span>`).join('')}${hs.map(h => `<span class="he">${h.e}</span>${[...Array(14)].map((_, i) => { const d = addDays(t, i - 13), on = habitDone(h, d); return `<button class="${on ? 'on' : ''}${d === sel ? ' sel' : ''}" data-act="habitTap" data-id="${h.id}" data-date="${d}" aria-pressed="${on}" aria-label="${esc(h.n)}, ${esc(fmtDay(d))}"></button>`; }).join('')}`).join('')}</div><p class="faint tiny hab-tip">Tap a square to fix any of the last two weeks.</p><button class="btn ghost block" data-act="habitsEdit">Edit habits</button>` : ''}</section>`;
+    ${full ? `<button class="linkbtn hab-histbtn" data-act="habHist">${UI.habHist ? 'Hide history' : 'Fix a past day · last 2 weeks'}</button>${UI.habHist ? `<div class="hab-grid"><span></span>${[...Array(14)].map((_, i) => `<span class="faint tiny">${'MTWTFSS'[(parseDate(addDays(t, i - 13)).getDay() + 6) % 7]}</span>`).join('')}${hs.map(h => `<span class="he">${h.e}</span>${[...Array(14)].map((_, i) => { const d = addDays(t, i - 13), on = habitDone(h, d); return `<button class="${on ? 'on' : ''}${d === sel ? ' sel' : ''}" data-act="habitTap" data-id="${h.id}" data-date="${d}" aria-pressed="${on}" aria-label="${esc(h.n)}, ${esc(fmtDay(d))}"></button>`; }).join('')}`).join('')}</div><p class="faint tiny hab-tip">Tap a square to tick or untick that day.</p>` : ''}<button class="btn ghost block" data-act="habitsEdit">Edit habits</button>` : ''}</section>`;
 }
 A.habitTap = (d, el) => {
   const h = myHabits().find(x => x.id === d.id); if (!h) return; const t = todayStr(), date = d.date && d.date <= t ? d.date : t, cur = habitDone(h, date), dd = dailyOf(date);
   putDaily(date, { h: { ...(dd.h || {}), [h.id]: cur ? 0 : 1 } }); if (!cur && el) sparkle(el);
   if (date !== t) { if (UI.habDay && UI.habDay.date === date) UI.habDay.ts = Date.now(); toast(`${h.e} ${h.n}: ${cur ? 'unchecked' : 'done'} ${habDayWord(date)}`); }
 };
+A.habHist = () => { UI.habHist = !UI.habHist; render(); };
 A.habDayPick = d => { UI.habDay = d.date === todayStr() ? null : { date: d.date, ts: Date.now() }; render(); };
 A.habitsEdit = () => { Sheet.hab = clone(myHabits()); drawHabEdit(); };
 function drawHabEdit() {

@@ -111,7 +111,7 @@ function forecastCardHTML(L) {
   else if (f.flat) body = `Holding steady over the last ${f.span} weeks, so there's no trend to project yet. Add a little weight or a rep and it'll show up.`;
   else if (f.far) body = `You're climbing about ${trim(U.w(f.perWk), 1)} ${U.wu} a week. At that pace ${f.target} ${U.wu} is more than a year out.`;
   else body = `At your current pace (+${trim(U.w(f.perWk), 1)} ${U.wu} a week over the last ${f.span} weeks), your estimated 1RM reaches <b>${f.target} ${wuEx(L.name)}</b> in ${weeksTxt(f.weeks)}, around ${fmtDate(f.date)}.`;
-  return `<section class="card fc-card"><div class="card-h"><h2 class="sec-t" style="margin:0">🔮 Prediction</h2></div><p class="small" style="margin:6px 0 0">${body}</p><p class="faint tiny" style="margin:6px 0 0">Based on your best set each session. Progress usually slows as you get stronger, so treat it as a target, not a promise.</p></section>`;
+  return `<section class="card fc-card"><div class="card-h"><h2 class="sec-t" style="margin:0">🔮 Prediction</h2></div><p class="small" style="margin:6px 0 0">${body}</p><p class="faint tiny hint" style="margin:6px 0 0">Based on your best set each session. Progress usually slows as you get stronger, so treat it as a target, not a promise.</p></section>`;
 }
 {
   const ld = liftDetailHTML;

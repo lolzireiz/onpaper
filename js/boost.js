@@ -107,7 +107,7 @@ function strengthCardHTML(L) {
     <div class="slvl-bar" role="img" aria-label="${esc(s.name)}, ${trim(s.ratio, 2)} times bodyweight">${LVL.slice(1).map((n, k) => `<i class="${k < s.i ? 'on' : ''}" style="--c:${LVL_COL[k + 1]}">${k === s.i - 1 ? '<b></b>' : ''}</i>`).join('')}</div>
     <div class="faint tiny slvl-lbl">${LVL.slice(1).map(n => `<span>${n}</span>`).join('')}</div>
     <p class="small" style="margin:0">Your est. 1RM is <b>${trim(s.ratio, 2)}× bodyweight</b> (${fw(L.e1, 0)} ${U.wu} at ${fw(s.bw, 0)} ${U.wu}).${s.next ? ` <b>${s.nextName}</b> starts at ${s.next}× → about <b>${fw(s.nextW, 0)} ${U.wu}</b> at your current weight.` : ' That\'s elite. 🔥'}</p>
-    <p class="faint tiny" style="margin:0">Based on common strength standards for ${S().bodyModel === 'female' ? 'women' : 'men'}. A rough guide, not a verdict.</p></section>`;
+    <p class="faint tiny hint" style="margin:0">Based on common strength standards for ${S().bodyModel === 'female' ? 'women' : 'men'}. A rough guide, not a verdict.</p></section>`;
 }
 const levelChip = L => { const s = L && strengthLevel(L); return s ? `<span class="slvl-chip" style="--c:${LVL_COL[s.i]}">${esc(L.name)}: <b>${s.name}</b> · ${trim(s.ratio, 2)}×</span>` : ''; };
 
@@ -233,7 +233,7 @@ function proteinIdeasHTML() {
   Sheet.pIdeas = ideas;
   return `<details class="card pideas"${UI.pOpen ? ' open' : ''}><summary><span class="grow"><b>💪 Protein ideas</b><span class="faint small" style="display:block">${trim(ideas[0].need, 0)} g to go · ${ideas.length} quick ${ideas.length === 1 ? 'combo' : 'combos'} from your foods</span></span></summary><div class="pideas-b">
     ${ideas.map((c, i) => `<button class="pidea" data-act="pIdeaAdd" data-i="${i}"><span class="grow">${c.parts.map(x => `<b>${x.q > 1 ? x.q + '× ' : ''}${esc(x.f.name)}</b>`).join(' <span class="faint">+</span> ')}<span class="faint small" style="display:block">${trim(c.p, 0)} g protein · ${trim(c.cal, 0)} kcal${c.calLeft > 0 && c.cal > c.calLeft + 80 ? ` · <span style="color:#f5c542">${trim(c.cal - c.calLeft, 0)} over your calories</span>` : ''}</span></span><span class="pidea-add" aria-hidden="true">${ICON.plus.replace('<svg', '<svg width="18" height="18"')}</span></button>`).join('')}
-    <p class="faint tiny" style="margin:0">Built from your saved and recent foods. Tap one to add it all.</p></div></details>`;
+    <p class="faint tiny hint" style="margin:0">Built from your saved and recent foods. Tap one to add it all.</p></div></details>`;
 }
 A.pIdeaAdd = d => {
   const c = (Sheet.pIdeas || [])[+d.i]; if (!c) return; const date = UI.foodDate || todayStr(), before = foodTotals(date), day = clone(foodDay(date)), added = [];

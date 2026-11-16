@@ -96,15 +96,16 @@ function proCompareHTML() {
 const planName = () => { const st = proState(); return st.kind === 'founder' ? 'Pro · Founder' : st.kind === 'sub' ? 'Pro' : st.kind === 'trial' ? `Pro trial · ${st.daysLeft}d left` : 'Free'; };
 const planPillHTML = () => { const st = proState(); return `<button class="plan-pill${st.pro ? ' pro' : ''}" data-act="pwOpen" aria-label="Your plan: ${planName()}. See plans">${st.pro ? 'PRO' : 'FREE'}</button>`; };
 function planRowHTML() { const st = proState(); return `<button class="plan-row${st.pro ? ' pro' : ''}" data-act="plansFromSettings"><span class="pro-ic">✨</span><span class="grow"><b>Your plan: ${planName()}</b><span>${st.pro ? 'Everything is unlocked. See what Free and Pro include' : 'Compare Free and Pro, or start a free trial'}</span></span>${ICON.chevR}</button>`; }
+A.openLook = () => { A.openSettings(); setTimeout(() => { const b = $('#st-look'); if (b) { b.closest('details').open = true; b.scrollIntoView({ block: 'center' }); } }, 80); };
 A.plansFromSettings = () => { closeSheet(); openPaywall(); };
 function proCardHTML() {
   const st = proState();
-  if (st.pro && st.kind !== 'trial') return `<button class="pro-card on" data-act="pwOpen"><span class="pro-ic">✨</span><span class="grow"><b>Liftprint Pro${st.kind === 'founder' ? ' · Founder' : ''}</b><span>Everything unlocked. Tap to compare plans</span></span>${ICON.chevR}</button>`;
+  if (st.pro && st.kind !== 'trial') return '';
   if (st.kind === 'trial') return `<button class="pro-card on" data-act="pwOpen"><span class="pro-ic">✨</span><span class="grow"><b>Pro trial · ${st.daysLeft} day${st.daysLeft === 1 ? '' : 's'} left</b><span>See what you keep with Pro</span></span>${ICON.chevR}</button>`;
   return `<button class="pro-card" data-act="pwOpen"><span class="pro-ic">✨</span><span class="grow"><b>${st.ended ? 'Get Pro back' : `Try Liftprint Pro free`}</b><span>${st.ended ? 'Assistant, photo logging, smart budget and more' : `${PRO_TRIAL_DAYS} days of the Assistant, photo logging and more`}</span></span>${ICON.chevR}</button>`;
 }
 { const yr = Views.you.render; Views.you.render = function () {
-  const st = proState(), rows = [['🧩', 'Customize Home', 'Choose what shows on Today', 'homeEdit'], ['✨', 'Liftprint Pro', st.pro ? (st.kind === 'trial' ? `Trial · ${st.daysLeft} days left` : st.kind === 'founder' ? 'Founder access · everything unlocked' : 'Active') : 'See plans', 'pwOpen'], ['📜', 'About & legal', 'Health & safety, privacy, terms, erase data', 'aboutOpen']];
+  const st = proState(), rows = [['🎨', 'Appearance', 'Theme, colour, sounds, tips', 'openLook'], ['🧩', 'Customize Home', 'Choose what shows on Today', 'homeEdit'], ['✨', 'Liftprint Pro', st.pro ? (st.kind === 'trial' ? `Trial · ${st.daysLeft} days left` : st.kind === 'founder' ? 'Founder access · everything unlocked' : 'Active') : 'See plans', 'pwOpen'], ['📜', 'About & legal', 'Health & safety, privacy, terms, erase data', 'aboutOpen']];
   return proCardHTML() + yr() + `<section class="card flush list-card">${rows.map(([ic, t, sub, act]) => `<button class="row" data-act="${act}"><span class="li-ic">${ic}</span><span class="grow"><b>${t}</b><div class="faint small">${esc(sub)}</div></span>${ICON.chevR.replace('<svg', '<svg width="16" height="16" style="opacity:.4"')}</button>`).join('')}</section>`;
 }; }
 
@@ -131,4 +132,4 @@ A.legalOk = () => { legalAccept(); closeSheet(); };
 /* plan tag beside the logo on Today and beside the title on You */
 { const ht = Views.home.title; Views.home.title = () => ht().replace('</span>', '</span>' + planPillHTML()); const yt = Views.you.title; Views.you.title = () => yt().replace('</h1>', ' ' + planPillHTML() + '</h1>'); }
 /* theme and colour changes made inside Settings refresh their own buttons */
-for (const k of ['setTheme', 'setAccent', 'setSounds']) { const f = A[k]; if (f) A[k] = (d, el) => { f(d, el); const box = $('#st-look'); if (box) box.innerHTML = appearanceHTML(); }; }
+for (const k of ['setTheme', 'setAccent', 'setSounds', 'setHints']) { const f = A[k]; if (f) A[k] = (d, el) => { f(d, el); const box = $('#st-look'); if (box) box.innerHTML = appearanceHTML(); }; }

@@ -93,7 +93,7 @@ function usualsHTML(date) {
     ${todo.length ? `<button class="btn block us-staples" data-act="usualStaples">📌 Add ${todo.length === pins.length ? 'your' : 'the other'} ${todo.length} daily ${todo.length === 1 ? 'staple' : 'staples'} <span class="faint">· ${fmtN(kc)} kcal</span></button>` : ''}
     <div class="usuals">${shown.map(u => tileHTML(u, date)).join('')}</div>
     ${us.length > USUAL_SHOW ? `<button class="linkbtn center" style="width:100%" data-act="usualsMore">${UI.usualsAll ? 'Show less' : `Show all ${us.length}`}</button>` : ''}
-    <p class="faint tiny center" style="margin:8px 0 0">Tap to add · hold for options${pins.length ? '' : ' · pin daily staples to add them all at once'}</p></section>`;
+    <p class="faint tiny center hint" style="margin:8px 0 0">Tap to add · hold for options${pins.length ? '' : ' · pin daily staples to add them all at once'}</p></section>`;
 }
 function tileHTML(u, date) {
   const it = u.it, c = cntOn(u.k, date), sub = [amtShort(it), `${fmtN(itK(it))} kcal`].filter(Boolean).join(' · ');
