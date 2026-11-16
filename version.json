@@ -1,6 +1,6 @@
 {
- "version": "10.11",
+ "version": "10.12",
  "notes": [
-  "\ud83e\udded The Assistant now answers \"how strong / how high / how fit would I need to be to\u2026\" questions, even when they mention something unrelated like a car."
+  "\ud83d\udee0 Fix: when the AI is busy, the Assistant now says so and waits longer before giving up, instead of showing a confusing \"couldn't find a model\" message."
  ]
 }

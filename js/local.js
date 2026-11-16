@@ -58,7 +58,7 @@ const LocalAssets = {
 const GEMINI_KEY = 'onpaper.geminiKey', GEMINI_MODEL = 'onpaper.geminiModel';
 const geminiKey = () => { try { return (localStorage.getItem(GEMINI_KEY) || '').replace(/[^\x21-\x7E]/g, ''); } catch (e) { return ''; } };
 const geminiModel = () => { try { const m = (localStorage.getItem(GEMINI_MODEL) || '').trim(); return m === 'gemini-flash-latest' ? '' : m; } catch (e) { return ''; } };
-const GEMINI_MODELS = ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+const GEMINI_MODELS = ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-2.5-flash-lite', 'gemini-2.5-flash'];   // tried in order; retired models are skipped quietly
 const blobB64 = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(b); });
 const Gemini = {
   workingModel: null,
@@ -85,18 +85,18 @@ const Gemini = {
     const body = JSON.stringify({ ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}), contents: [...(history || []), { role: 'user', parts }], generationConfig: { responseMimeType: 'application/json', temperature: temp ?? 0.1 } });
     const custom = geminiModel(), models = custom ? [custom] : (this.workingModel ? [this.workingModel, ...GEMINI_MODELS.filter(m => m !== this.workingModel)] : GEMINI_MODELS);
     const wait = ms => new Promise((res, rej) => { const t = setTimeout(res, ms); if (signal) signal.addEventListener('abort', () => { clearTimeout(t); rej({ code: 'cancelled' }); }, { once: true }); });
-    const t0 = Date.now(); let last, busy = 0;
+    const t0 = Date.now(); let last, real, busy = 0;   // real = the last error that wasn't just "this model name doesn't exist"
     for (const m of models) {
       for (let attempt = 0; attempt < 2; attempt++) {
-        if (Date.now() - t0 > 75000) throw last || { code: 'timeout' };
+        if (Date.now() - t0 > 75000) throw real || last || { code: 'timeout' };
         try {
           const j = await this.call(m, body, signal); this.workingModel = m; if (typeof aiUseAdd === 'function') aiUseAdd(kind, j.usageMetadata, m);
           const txt = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
           if (!txt) throw { code: j.promptFeedback?.blockReason ? 'refused' : 'empty_completion' };
           try { return JSON.parse(txt); } catch (e) { const mm = txt.match(/[\[{][\s\S]*[\]}]/); if (mm) { try { return JSON.parse(mm[0]); } catch (e2) {} } throw { code: 'invalid_json' }; }
         } catch (e) {
-          last = e;
-          if (e.code === 'overloaded') { busy++; if (onStatus) onStatus('Taking longer than usual…'); if (attempt === 0) { await wait(1200); continue; } break; }
+          last = e; if (e.code !== 'bad_model') real = e;
+          if (e.code === 'overloaded') { busy++; if (onStatus) onStatus('Taking longer than usual…'); if (attempt === 0) { await wait(1500 + busy * 700); continue; } break; }
           if (e.code === 'bad_model') break;
           if (e.code === 'rate_limited' && typeof aiUseHit === 'function') aiUseHit(e.message);
           throw e;
@@ -104,6 +104,7 @@ const Gemini = {
       }
       if (this.workingModel === m) this.workingModel = null;
     }
+    if (real) last = real;   // a busy service matters more than a retired model name further down the list
     if (last && last.code === 'overloaded') last.message = `${last.message} (tried ${models.length} models, ${busy} busy answers)`;
     throw last;
   },

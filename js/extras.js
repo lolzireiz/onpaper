@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '10.11';
+const APP_VERSION = '10.12';
 const CHANGELOG = [
+  ['10.12', ['🛠 Fix: when the AI is busy, the Assistant now says so and waits longer before giving up, instead of showing a confusing "couldn\'t find a model" message.']],
   ['10.11', ['🧭 The Assistant now answers "how strong / how high / how fit would I need to be to…" questions, even when they mention something unrelated like a car.']],
   ['10.10', ['🧭 The Assistant now sticks to training, nutrition and recovery. Ask it about something unrelated and it will say so and steer back.']],
   ['10.9', ['📝 Exercise notes: add a note to any exercise mid-workout from its ⋯ menu (seat height, grip, how it felt). Next time you do that exercise, your last note is waiting.', '👈 Swipe left on a set during a workout to delete it. There\'s an Undo.']],

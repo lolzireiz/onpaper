@@ -237,7 +237,7 @@ async function aiSend(text, shown) {
   catch (e) { err = e; }
   AI.busy = false; AI.ctl = null; AI.status = '';
   const m2 = aiChat();
-  if (err) { if (err.code !== 'cancelled') m2.push({ role: 'bot', err: 1, text: err.code === 'rate_limited' ? (aiPerMinute(err.message) ? 'Too many requests in the last minute. Give it a minute and try again.' : `Your key is out of requests for today. It resets in ${aiResetTxt()} (${aiResetAt()}).`) : (aiErrorText(err) || 'Something went wrong. Try again.'), ts: Date.now() }); else { const last = m2[m2.length - 1]; if (last && last.role === 'user') { m2.pop(); if (ta && !ta.value) ta.value = last.prompt ? '' : last.text; } } }
+  if (err) { if (err.code !== 'cancelled') m2.push({ role: 'bot', err: 1, text: err.code === 'rate_limited' ? (aiPerMinute(err.message) ? 'Too many requests in the last minute. Give it a minute and try again.' : `Your key is out of requests for today. It resets in ${aiResetTxt()} (${aiResetAt()}).`) : ({ overloaded: 'The AI is busy right now. Give it a minute and tap Try again.', bad_model: "The AI couldn't be reached with the current model setting. In Settings, clear the box under Advanced: model, then try again.", timeout: 'That took too long. Tap Try again.', no_key: 'Add your AI key in Settings first.' }[err.code] || aiErrorText(err) || 'Something went wrong. Try again.'), ts: Date.now() }); else { const last = m2[m2.length - 1]; if (last && last.role === 'user') { m2.pop(); if (ta && !ta.value) ta.value = last.prompt ? '' : last.text; } } }
   else {
     const reply = typeof out === 'string' ? out : (out && (out.reply || out.text || out.answer)) || '';
     const acts = (Array.isArray(out && out.actions) ? out.actions : []).map(aiActCheck).filter(Boolean).slice(0, 4);
