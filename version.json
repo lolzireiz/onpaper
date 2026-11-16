@@ -1,7 +1,7 @@
 {
- "version": "10.8",
+ "version": "10.9",
  "notes": [
-  "\ud83d\uddfa Setup now ends with \"your plan is ready\": your daily calories and protein, plus a starter program built for your gym days and goals that you can add in one tap.",
-  "\ud83d\udce5 Import your history from Strong or Hevy (Settings \u2192 Backup & updates). PRs, charts and streaks rebuild from it, and you can undo it."
+  "\ud83d\udcdd Exercise notes: add a note to any exercise mid-workout from its \u22ef menu (seat height, grip, how it felt). Next time you do that exercise, your last note is waiting.",
+  "\ud83d\udc48 Swipe left on a set during a workout to delete it. There's an Undo."
  ]
 }

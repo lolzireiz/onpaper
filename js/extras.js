@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '10.8';
+const APP_VERSION = '10.9';
 const CHANGELOG = [
+  ['10.9', ['📝 Exercise notes: add a note to any exercise mid-workout from its ⋯ menu (seat height, grip, how it felt). Next time you do that exercise, your last note is waiting.', '👈 Swipe left on a set during a workout to delete it. There\'s an Undo.']],
   ['10.8', ['🗺 Setup now ends with "your plan is ready": your daily calories and protein, plus a starter program built for your gym days and goals that you can add in one tap.', '📥 Import your history from Strong or Hevy (Settings → Backup & updates). PRs, charts and streaks rebuild from it, and you can undo it.']],
   ['10.7', ['🦝 The food buddies got a glow-up: soft shading, highlights and a shadow under their feet.', '🙈 The buddy is optional. Tap Hide on its card to turn it off, and bring it back any time from the bottom of the Food tab.']],
   ['10.6', ['🛠 Fix: the top bar now sits below the dark fade iPhones draw under the clock, so the logo is no longer dimmed.']],
