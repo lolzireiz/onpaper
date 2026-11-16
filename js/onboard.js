@@ -33,13 +33,9 @@ A.editGoals = () => { closeSheet(); openOnboarding('edit'); };
 
 /* ---------- logo with ridges that draw themselves ---------- */
 function obLogo() {
-  const cx = 100, cy = 106, specs = [[24, 165, 375], [34, 150, 390, 300], [44, 140, 400, 235], [54, 132, 408, 330], [64, 126, 414, 255]];
-  const pt = (rx, ry, a) => [cx + rx * Math.cos(a * Math.PI / 180), cy + ry * Math.sin(a * Math.PI / 180)];
-  const arc = (rx, a0, a1, k) => { const ry = rx * 1.12, [x0, y0] = pt(rx, ry, a0), [x1, y1] = pt(rx, ry, a1); return `<path pathLength="1" style="--d:${k * 0.09}s" d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${rx} ${ry.toFixed(1)} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}"/>`; };
-  let p = '', k = 0; for (const [rx, a0, a1, br] of specs) { if (br) { p += arc(rx, a0, br - 9, k++) + arc(rx, br + 9, a1, k++); } else p += arc(rx, a0, a1, k++); }
-  return `<svg class="ob-logo" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="obg" x1=".1" y1="0" x2=".9" y2="1"><stop offset="0" stop-color="#ffb238"/><stop offset=".5" stop-color="#ff4f6d"/><stop offset="1" stop-color="#b13dff"/></linearGradient></defs>
-    <g class="ridges" fill="none" stroke="url(#obg)" stroke-width="6.6" stroke-linecap="round">${p}</g>
-    <g class="bar" fill="#fff"><rect x="71" y="105.8" width="58" height="4.4" rx="2.2"/><rect x="78.4" y="96" width="6.6" height="24" rx="2.3"/><rect x="71" y="99.5" width="5.4" height="17" rx="2"/><rect x="115.6" y="96" width="6.6" height="24" rx="2.3"/><rect x="123.6" y="99.5" width="5.4" height="17" rx="2"/></g></svg>`;
+  return `<svg class="ob-logo" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="obg" x1=".05" y1="0" x2=".95" y2="1"><stop offset="0" stop-color="#ffa62b"/><stop offset=".55" stop-color="#f4511e"/><stop offset="1" stop-color="#e8284f"/></linearGradient></defs>
+    <g class="ridges" fill="none" stroke="url(#obg)" stroke-width="11.5" stroke-linecap="round"><path pathLength="1" style="--d:0.00s" d="M84.7 91.1 A20 20 0 1 1 82.7 114.0"/><path pathLength="1" style="--d:0.09s" d="M118.3 138.4 A39 39 0 0 1 62.9 91.9"/><path pathLength="1" style="--d:0.18s" d="M71.9 76.9 A39 39 0 0 1 130.7 128.0"/><path pathLength="1" style="--d:0.27s" d="M145.7 68.3 A58 58 0 0 1 56.9 142.8"/><path pathLength="1" style="--d:0.36s" d="M45.5 123.8 A58 58 0 0 1 129.0 53.8"/></g>
+    <g class="bar" fill="#fff"><circle cx="100" cy="104" r="7.5"/></g></svg>`;
 }
 
 /* ---------- views ---------- */

@@ -22,7 +22,7 @@
   --bg:#000;--s1:#121214;--s2:#1d1d20;--s3:#2c2c31;--line:#222226;
   --tx:#f5f5f7;--tx2:#a3a3ab;--tx3:#6c6c74;
   --accent:#f4511e;--miss:#f25454;--ok:#3ccf82;
-  --grad:linear-gradient(135deg,#ffb238 0%,#ff4f6d 52%,#b13dff 100%);
+  --grad:linear-gradient(135deg,#ffa62b 0%,#f4511e 55%,#e8284f 100%);
   --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
   --f-body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --r:16px;
@@ -42,7 +42,7 @@ h1,h2,h3{text-wrap:balance}
 .top{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(env(safe-area-inset-top) + 10px) 12px 8px 16px;min-height:58px}
 .top h1{font:800 30px/1 var(--f-display);letter-spacing:.005em}
 .top-r{display:flex;align-items:center;gap:6px}
-.wordmark{font:800 34px/1 var(--f-display);letter-spacing:-.01em}
+.wordmark{font:800 30px/1 var(--f-display);letter-spacing:-.025em}
 .wordmark i{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .iconbtn{width:40px;height:40px;display:grid;place-items:center;border-radius:999px;color:var(--tx)}
 .iconbtn:active{background:var(--s2)}
@@ -875,9 +875,9 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 /* launch: the mark draws in, stars twinkle, then it flies to the logo. Taps go straight through. */
 #splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#000;pointer-events:none;transition:background-color .45s ease,opacity .38s ease}
 [data-theme=light] #splash{background:#f2f2f7}
-#splash .sp-mark{width:136px;height:136px;overflow:visible;filter:drop-shadow(0 0 14px rgba(255,79,109,.4));transform-origin:center}
+#splash .sp-mark{width:136px;height:136px;overflow:visible;filter:drop-shadow(0 8px 26px rgba(244,81,30,.45));transform-origin:center}
 .sp-arc{stroke-dasharray:1;stroke-dashoffset:1;animation:spDraw .62s var(--d) cubic-bezier(.3,.7,.25,1) forwards}
-.sp-bar{fill:var(--tx,#fff);transform:scale(.35);opacity:0;animation:spPop .42s .36s cubic-bezier(.3,1.7,.5,1) forwards}
+.sp-bar{fill:#fff;transform:scale(.35);opacity:0;animation:spPop .42s .36s cubic-bezier(.3,1.7,.5,1) forwards}
 .sp-star{opacity:0;animation:spTw .62s var(--d) ease-out forwards}
 @keyframes spDraw{to{stroke-dashoffset:0}}
 @keyframes spPop{to{transform:scale(1);opacity:1}}
@@ -889,8 +889,8 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 @media (prefers-reduced-motion:reduce){.sp-arc{animation:none;stroke-dashoffset:0}.sp-bar{animation:none;transform:none;opacity:1}.sp-star{display:none}}
 /* logo: the app mark + wordmark */
 .wordmark{display:inline-flex;align-items:center;gap:8px}
-.lp-mark{width:32px;height:32px;flex:none;overflow:visible;filter:drop-shadow(0 0 6px rgba(255,79,109,.35));cursor:pointer;-webkit-tap-highlight-color:transparent}
-.lp-mark .lp-bar{fill:var(--tx)}
+.lp-mark{width:34px;height:34px;flex:none;overflow:visible;filter:drop-shadow(0 2px 6px rgba(244,81,30,.35));cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lp-mark .lp-bar{fill:#fff}
 .lp-land{animation:lpLand .5s cubic-bezier(.3,1.6,.5,1)}@keyframes lpLand{40%{transform:scale(1.18)}100%{transform:scale(1)}}
 .lp-tw .lp-arc{animation:lpRe .55s var(--d) cubic-bezier(.3,.7,.25,1) both}@keyframes lpRe{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
 
@@ -990,7 +990,7 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 </style>
 </head>
 <body>
-<div id="splash" aria-hidden="true"><svg class="sp-mark" viewBox="80 80 864 864"><defs><linearGradient id="spg" x1=".1" y1="0" x2=".9" y2="1"><stop offset="0" stop-color="#ffb238"/><stop offset=".5" stop-color="#ff4f6d"/><stop offset="1" stop-color="#b13dff"/></linearGradient></defs><g fill="none" stroke="url(#spg)" stroke-width="40" stroke-linecap="round"><path class="sp-arc" pathLength="1" style="--d:0.020s" d="M396.1 574.8 A120.0 134.4 0 1 1 627.9 574.8"/><path class="sp-arc" pathLength="1" style="--d:0.065s" d="M364.8 635.2 A170.0 190.4 0 0 1 572.9 362.2"/><path class="sp-arc" pathLength="1" style="--d:0.110s" d="M619.0 392.0 A170.0 190.4 0 0 1 659.2 635.2"/><path class="sp-arc" pathLength="1" style="--d:0.155s" d="M343.5 698.4 A220.0 246.4 0 0 1 359.2 362.8"/><path class="sp-arc" pathLength="1" style="--d:0.200s" d="M415.6 318.5 A220.0 246.4 0 0 1 680.5 698.4"/><path class="sp-arc" pathLength="1" style="--d:0.245s" d="M331.3 764.7 A270.0 302.4 0 1 1 721.8 349.7"/><path class="sp-arc" pathLength="1" style="--d:0.290s" d="M764.1 431.6 A270.0 302.4 0 0 1 692.7 764.7"/><path class="sp-arc" pathLength="1" style="--d:0.335s" d="M323.9 830.0 A320.0 358.4 0 0 1 381.8 212.6"/><path class="sp-arc" pathLength="1" style="--d:0.380s" d="M478.6 183.6 A320.0 358.4 0 0 1 700.1 830.0"/></g><g transform="translate(512 546)"><g class="sp-bar"><rect x="-150" y="-11" width="300" height="22" rx="11"/><rect x="-112" y="-62" width="34" height="124" rx="12"/><rect x="-150" y="-44" width="28" height="88" rx="10"/><rect x="78" y="-62" width="34" height="124" rx="12"/><rect x="122" y="-44" width="28" height="88" rx="10"/></g></g><g class="sp-stars" fill="url(#spg)"><path class="sp-star" style="--d:0.48s" transform="translate(170 300) scale(78)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/><path class="sp-star" style="--d:0.58s" transform="translate(860 330) scale(61)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/><path class="sp-star" style="--d:0.7s" transform="translate(905 640) scale(48)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/><path class="sp-star" style="--d:0.64s" transform="translate(120 690) scale(51)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/><path class="sp-star" style="--d:0.8s" transform="translate(300 140) scale(41)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/><path class="sp-star" style="--d:0.54s" transform="translate(760 150) scale(68)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/><path class="sp-star" style="--d:0.86s" transform="translate(520 90) scale(37)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/></g></svg></div>
+<div id="splash" aria-hidden="true"><svg class="sp-mark" viewBox="80 80 864 864"><defs><linearGradient id="spg" x1=".05" y1="0" x2=".95" y2="1"><stop offset="0" stop-color="#ffa62b"/><stop offset=".55" stop-color="#f4511e"/><stop offset="1" stop-color="#e8284f"/></linearGradient></defs><rect x="80" y="80" width="864" height="864" rx="210" fill="url(#spg)"/><g fill="none" stroke="#fff" stroke-width="60" stroke-linecap="round"><path class="sp-arc" pathLength="1" style="--d:0.020s" d="M435.4 447.7 A100 100 0 1 1 425.4 562.0"/><path class="sp-arc" pathLength="1" style="--d:0.090s" d="M603.5 684.2 A195 195 0 0 1 326.5 451.7"/><path class="sp-arc" pathLength="1" style="--d:0.160s" d="M371.7 376.5 A195 195 0 0 1 665.7 632.1"/><path class="sp-arc" pathLength="1" style="--d:0.230s" d="M740.5 333.5 A290 290 0 0 1 296.5 706.0"/><path class="sp-arc" pathLength="1" style="--d:0.300s" d="M239.5 611.2 A290 290 0 0 1 657.0 260.9"/></g><g transform="translate(512 512)"><g class="sp-bar"><circle r="38"/></g></g><g class="sp-stars" fill="url(#spg)"><path class="sp-star" style="--d:0.48s" transform="translate(170 300) scale(78)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/><path class="sp-star" style="--d:0.58s" transform="translate(860 330) scale(61)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/><path class="sp-star" style="--d:0.7s" transform="translate(905 640) scale(48)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/><path class="sp-star" style="--d:0.64s" transform="translate(120 690) scale(51)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/><path class="sp-star" style="--d:0.8s" transform="translate(300 140) scale(41)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/><path class="sp-star" style="--d:0.54s" transform="translate(760 150) scale(68)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/><path class="sp-star" style="--d:0.86s" transform="translate(520 90) scale(37)" d="M0 -1C.12 -.25 .25 -.12 1 0C.25 .12 .12 .25 0 1C-.12 .25 -.25 .12 -1 0C-.25 -.12 -.12 -.25 0 -1Z"/></g></svg></div>
 <script>window.SPLASH_T0=performance.now();setTimeout(function(){var s=document.getElementById('splash');if(s&&!s.dataset.out){s.dataset.out=1;s.classList.add('out');setTimeout(function(){s.remove()},400)}},3200);</script>
 <div id="app">
   <header class="top" id="top"></header>

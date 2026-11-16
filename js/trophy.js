@@ -2,7 +2,7 @@
 /* Progress extras: the trophy wall (every PR, newest first, with a shareable PR card), PR predictions from your
    estimated-1RM trend, and the story-style monthly wrap. */
 
-const LP_ARCS = ["M396.1 574.8 A120.0 134.4 0 1 1 627.9 574.8", "M364.8 635.2 A170.0 190.4 0 0 1 572.9 362.2", "M619.0 392.0 A170.0 190.4 0 0 1 659.2 635.2", "M343.5 698.4 A220.0 246.4 0 0 1 359.2 362.8", "M415.6 318.5 A220.0 246.4 0 0 1 680.5 698.4", "M331.3 764.7 A270.0 302.4 0 1 1 721.8 349.7", "M764.1 431.6 A270.0 302.4 0 0 1 692.7 764.7", "M323.9 830.0 A320.0 358.4 0 0 1 381.8 212.6", "M478.6 183.6 A320.0 358.4 0 0 1 700.1 830.0"];
+const LP_ARCS = ["M435.4 447.7 A100 100 0 1 1 425.4 562.0", "M603.5 684.2 A195 195 0 0 1 326.5 451.7", "M371.7 376.5 A195 195 0 0 1 665.7 632.1", "M740.5 333.5 A290 290 0 0 1 296.5 706.0", "M239.5 611.2 A290 290 0 0 1 657.0 260.9"];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const monthName = ym => MONTHS[+ym.slice(5, 7) - 1];
 const curYM = () => todayStr().slice(0, 7);
@@ -49,11 +49,10 @@ A.prShare = async d => {
 };
 function drawMark(g, cx, cy, size, alpha = 1) {
   const sc = size / 864; g.save(); g.globalAlpha = alpha; g.translate(cx - 512 * sc, cy - 512 * sc); g.scale(sc, sc);
-  const gr = g.createLinearGradient(100, 100, 900, 900); gr.addColorStop(0, '#ffb238'); gr.addColorStop(.5, '#ff4f6d'); gr.addColorStop(1, '#b13dff');
-  g.strokeStyle = gr; g.lineWidth = 40; g.lineCap = 'round'; g.shadowColor = 'rgba(255,79,109,.55)'; g.shadowBlur = 30;
+  const gr = g.createLinearGradient(100, 100, 900, 900); gr.addColorStop(0, '#ffa62b'); gr.addColorStop(.55, '#f4511e'); gr.addColorStop(1, '#e8284f');
+  g.strokeStyle = gr; g.lineWidth = 58; g.lineCap = 'round'; g.shadowColor = 'rgba(244,81,30,.5)'; g.shadowBlur = 30;
   for (const p of LP_ARCS) g.stroke(new Path2D(p));
-  g.shadowBlur = 0; g.fillStyle = '#fff'; g.translate(512, 546);
-  for (const [x, y, w, h, r] of [[-150, -11, 300, 22, 11], [-112, -62, 34, 124, 12], [-150, -44, 28, 88, 10], [78, -62, 34, 124, 12], [122, -44, 28, 88, 10]]) { roundRect(g, x, y, w, h, r); g.fill(); }
+  g.shadowBlur = 0; g.fillStyle = '#fff'; g.beginPath(); g.arc(512, 512, 38, 0, Math.PI * 2); g.fill();
   g.restore();
 }
 function drawStar(g, x, y, r, col) { g.save(); g.translate(x, y); g.fillStyle = col; g.beginPath(); g.moveTo(0, -r); g.quadraticCurveTo(r * .12, -r * .12, r, 0); g.quadraticCurveTo(r * .12, r * .12, 0, r); g.quadraticCurveTo(-r * .12, r * .12, -r, 0); g.quadraticCurveTo(-r * .12, -r * .12, 0, -r); g.fill(); g.restore(); }
@@ -61,7 +60,7 @@ async function prImage(L, s) {
   const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d'), F = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
   const bg = g.createRadialGradient(W / 2, H * .36, 40, W / 2, H * .45, H * .8); bg.addColorStop(0, '#2a1834'); bg.addColorStop(.55, '#0e0b12'); bg.addColorStop(1, '#000'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
-  const gr = g.createLinearGradient(140, 0, W - 140, 0); gr.addColorStop(0, '#ffb238'); gr.addColorStop(.5, '#ff4f6d'); gr.addColorStop(1, '#b13dff');
+  const gr = g.createLinearGradient(140, 0, W - 140, 0); gr.addColorStop(0, '#ffa62b'); gr.addColorStop(.55, '#f4511e'); gr.addColorStop(1, '#e8284f');
   drawMark(g, W / 2, 300, 300);
   [[190, 210, 26], [880, 260, 34], [930, 470, 18], [140, 470, 20], [770, 120, 16]].forEach(([x, y, r], i) => drawStar(g, x, y, r, ['#ffb238', '#ff4f6d', '#b13dff', '#ff8a5c', '#ffd27a'][i]));
   g.textAlign = 'center';
@@ -202,7 +201,7 @@ A.wrapShare = async d => {
   const m = monthStats(d.m), W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d'), F = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
   const bg = g.createRadialGradient(W / 2, 260, 40, W / 2, 500, 1100); bg.addColorStop(0, '#2a1834'); bg.addColorStop(.55, '#0e0b12'); bg.addColorStop(1, '#000'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
-  const gr = g.createLinearGradient(100, 0, W - 100, 0); gr.addColorStop(0, '#ffb238'); gr.addColorStop(.5, '#ff4f6d'); gr.addColorStop(1, '#b13dff');
+  const gr = g.createLinearGradient(100, 0, W - 100, 0); gr.addColorStop(0, '#ffa62b'); gr.addColorStop(.55, '#f4511e'); gr.addColorStop(1, '#e8284f');
   drawMark(g, W / 2, 200, 200); g.textAlign = 'center';
   g.fillStyle = '#9a9aa6'; g.font = `600 40px ${F}`; g.fillText(m.sofar ? 'MY MONTH SO FAR' : 'MY MONTH IN LIFTING', W / 2, 390);
   g.fillStyle = gr; g.font = `900 120px ${F}`; g.fillText(`${monthName(m.ym)}`, W / 2, 510);
