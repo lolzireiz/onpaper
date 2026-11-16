@@ -1,7 +1,6 @@
 {
- "version": "10.18",
+ "version": "10.19",
  "notes": [
-  "\ud83e\uddf0 Work shifts: have a physical job? Set it up once (Train tab \u2192 Physical job?), then log a shift in seconds: hours, how hard it was and the weight you moved. You get the total you lifted and an estimated burn, and hard shifts now count toward your training load and readiness.",
-  "\u2728 With the Assistant on, describe a typical day and it sets the job up for you. The Assistant also takes your shifts into account."
+  "\u2728 Build me a workout (Pro): on the Train tab, tap \u201cBuild me a workout\u201d, say what you want (explosive legs for jumping, a bigger bench, an easy recovery day\u2026), pick one of your gyms or \u201cAny gym\u201d and how long you have. Your coach writes the whole session from your lifts, goals and recovery: a name, exercises in order, sets, reps and a cue for each. Start it right away, save it as a workout day, or ask for a change."
  ]
 }

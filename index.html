@@ -101,6 +101,15 @@ button.row:active{opacity:.7}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chips.scroll{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px;padding:0 16px;scrollbar-width:none}
 .chips.scroll::-webkit-scrollbar{display:none}
+.wb-entry{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:16px;margin:0 0 12px;background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 22%,var(--s2)),var(--s2));border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);color:var(--tx)}
+.wb-entry.solo{width:auto;margin:0 16px 12px;display:flex}
+.wb-entry .wb-ic{font-size:22px;flex:none}.wb-entry b{display:block;font-size:15px}.wb-entry .grow span{display:block;font-size:12.5px;color:var(--tx2);margin-top:1px}
+.wb-entry svg{flex:none;opacity:.5;width:18px;height:18px}.wb-pro{flex:none;font-size:10.5px;font-weight:800;letter-spacing:.06em;padding:3px 7px;border-radius:999px;background:var(--grad);color:#fff}
+.wb-wait{display:flex;flex-direction:column;align-items:center;gap:10px;padding:34px 0 20px;text-align:center}.wb-wait p{margin:0}
+.wb-warm{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:var(--s2);margin:12px 0 0;font-size:13px}.wb-warm span{color:var(--tx2)}
+.wb-list{margin-top:10px}.wb-ex{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line,rgba(255,255,255,.07))}.wb-ex:last-child{border-bottom:0}
+.wb-ex b{display:block;font-size:15px}.wb-ex .grow span{display:block;font-size:12.5px;color:var(--tx2);margin-top:1px}
+.wb-n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--s2);font-size:12px;font-weight:700;display:grid;place-items:center}.wb-t{flex:none;font-weight:700;font-size:14px}
 .chip{flex:none;min-height:36px;padding:0 14px;border-radius:999px;background:var(--s2);color:var(--tx);font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;border:1px solid transparent}
 .chip[aria-pressed="true"]{background:var(--tx);color:#000}
 .chip[aria-pressed="true"] .faint{color:#555}
@@ -1060,6 +1069,7 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 <script src="js/legal.js"></script>
 <script src="js/pro.js"></script>
 <script src="js/homeui.js"></script>
+<script src="js/aiworkout.js"></script>
 <script src="js/app.js"></script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
