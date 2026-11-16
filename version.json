@@ -1,6 +1,6 @@
 {
- "version": "10.16",
+ "version": "10.17",
  "notes": [
-  "\ud83d\udee0 Reliability pass: fixed a rare glitch when deleting a saved food and quickly opening another, and the top bar no longer overlaps on the smallest iPhones."
+  "\ud83d\udcbe Backups now also carry your access code, so restoring on a new phone brings back everything in one go."
  ]
 }

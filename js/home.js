@@ -129,7 +129,7 @@ A.saveSettings = () => {
   refreshCaps(); closeSheet(); toast('Settings saved');
 };
 A.exportData = json => {
-  const data = { app: 'liftprint', exported: new Date().toISOString(), settings: S(), push: { topic: lsGet(PUSH_TOPIC) || '', on: pushOn() }, ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
+  const data = { app: 'liftprint', exported: new Date().toISOString(), settings: S(), push: { topic: lsGet(PUSH_TOPIC) || '', on: pushOn() }, local: { code: lsGet('onpaper.code') || '' }, ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
   const blob = new Blob([typeof json === 'string' && json ? json : JSON.stringify(data)], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
   a.href = url; a.download = `liftprint-backup-${todayStr()}.json`; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Backup downloaded. Save it to Files or iCloud.');
@@ -154,6 +154,7 @@ async function onBackupChosen(f) {
     if (!(await ask(`Restore this backup${when ? ` from ${fmtDate(when, { rel: false })}` : ''}? It has ${parts.join(', ') || `${n} ${n === 1 ? 'entry' : 'entries'}`}. Anything already on this phone is kept; matching entries are replaced.`, { ok: 'Restore' }))) return toast('Restore cancelled.');
     if (data.settings && typeof data.settings === 'object') Store.settings = { ...DEFAULTS, ...Store.settings, ...(data.settings.buddy === undefined ? { buddy: true } : {}), ...data.settings };
     for (const c of COLLS) { const m = { ...(Store.docs[c] || {}) }; for (const d of rows(c)) { const { id, ...rest } = d; m[id] = rest; } Store.docs[c] = m; }
+    if (data.local && /^[A-Z0-9-]{6,40}$/.test(data.local.code || '') && !lsGet('onpaper.code')) lsSet('onpaper.code', data.local.code);
     if (data.push && /^onpaper-[a-z0-9]{6,}$/.test(data.push.topic || '')) { lsSet(PUSH_TOPIC, data.push.topic); if (data.push.on) lsSet(PUSH_ON, '1'); }
     if (nPhotos) for (const [k, u] of Object.entries(data.photoFiles)) { try { const bl = dataURLToBlob(u); await IDB.set('photos', k, bl); if (Store.blobs[k]) URL.revokeObjectURL(Store.blobs[k]); Store.blobs[k] = URL.createObjectURL(bl); } catch (e) {} }
     Store.rev++; changed();
