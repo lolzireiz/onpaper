@@ -1,6 +1,6 @@
 {
- "version": "11.3",
+ "version": "11.4",
  "notes": [
-  "\ud83d\udcf8 Progress photos now sync with your account too, once photo storage is switched on for the app. Delete a photo on one device and it is removed everywhere."
+  "Account section in Settings now shows a photo sync status line."
  ]
 }

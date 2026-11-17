@@ -96,18 +96,19 @@ async function acPhotoProbe(token, uid) {
   try { await sbCall('/storage/v1/object/list/photos', { method: 'POST', token, body: { prefix: uid, limit: 1 } }); Acct.photosOK = true; } catch (e) { Acct.photosOK = false; }
 }
 async function acPhotoSync(token, uid) {
-  if (Acct.photoBusy) return; Acct.photoBusy = true; let got = 0;
+  if (Acct.photoBusy) return; Acct.photoBusy = true; let got = 0; const stat = { want: 0, here: 0, up: 0, down: 0, err: '' }; Acct.photoStat = stat;
   try {
     let st = await IDB.get('kv', 'syncPhotos'); if (!st || st.__uid !== uid) st = { __uid: uid, ids: {} };
     const want = new Set(Store.list('photos').map(p => p.assetId || p.local).filter(Boolean)), have = new Set(await IDB.keys('photos'));
+    stat.want = want.size; stat.here = [...want].filter(i => have.has(i)).length;
     const base = `${SB_URL}/storage/v1/object`, hdr = { apikey: SB_KEY, Authorization: 'Bearer ' + token };
     for (const id of want) {
       if (have.has(id)) { if (st.ids[id]) continue;
         const blob = await IDB.get('photos', id); if (!blob) continue;
-        const r = await fetch(`${base}/photos/${uid}/${id}`, { method: 'POST', headers: { ...hdr, 'Content-Type': blob.type || 'image/jpeg', 'x-upsert': 'true' }, body: blob }); if (r.ok) st.ids[id] = 1; else if (r.status === 404) break;
+        const r = await fetch(`${base}/photos/${uid}/${id}`, { method: 'POST', headers: { ...hdr, 'Content-Type': blob.type || 'image/jpeg', 'x-upsert': 'true' }, body: blob }); if (r.ok) { st.ids[id] = 1; stat.up++; } else { stat.err = `upload ${r.status}: ${(await r.text()).slice(0, 90)}`; if (r.status === 404) break; }
       } else {
-        const r = await fetch(`${base}/authenticated/photos/${uid}/${id}`, { headers: hdr }); if (!r.ok) continue;
-        const blob = await r.blob(); await IDB.set('photos', id, blob); if (Store.blobs[id]) URL.revokeObjectURL(Store.blobs[id]); Store.blobs[id] = URL.createObjectURL(blob); st.ids[id] = 1; got++;
+        const r = await fetch(`${base}/authenticated/photos/${uid}/${id}`, { headers: hdr }); if (!r.ok) { stat.err = `download ${r.status}: ${(await r.text()).slice(0, 90)}`; continue; }
+        const blob = await r.blob(); await IDB.set('photos', id, blob); if (Store.blobs[id]) URL.revokeObjectURL(Store.blobs[id]); Store.blobs[id] = URL.createObjectURL(blob); st.ids[id] = 1; got++; stat.down++; stat.here++;
       }
     }
     for (const id of Object.keys(st.ids)) if (!want.has(id)) {   // photo deleted (here or on another device): drop the file everywhere
@@ -116,8 +117,8 @@ async function acPhotoSync(token, uid) {
       delete st.ids[id];
     }
     await IDB.set('kv', 'syncPhotos', st);
-  } catch (e) {}
-  Acct.photoBusy = false; if (got) { Store.rev++; changed(); }
+  } catch (e) { stat.err = 'photo sync stopped: ' + String(e && e.message || e).slice(0, 90); }
+  Acct.photoBusy = false; if (got) { Store.rev++; changed(); } acRowDraw();
 }
 async function acPhotoWipe(token, uid) {   // before deleting the account
   try { const st = await IDB.get('kv', 'syncPhotos'); const ids = new Set([...(st && st.__uid === uid ? Object.keys(st.ids) : []), ...Store.list('photos').map(p => p.assetId || p.local).filter(Boolean)]);
@@ -186,6 +187,7 @@ function acRowHTML() {
   const line = Acct.busy ? 'Syncing…' : Acct.syncErr ? esc(Acct.syncErr) : Acct.last ? `Synced ${new Date(Acct.last).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Signed in';
   return `<details class="sset" id="st-ac"><summary><span class="si" aria-hidden="true">☁️</span><span class="grow"><b>${esc(a.email || 'Your account')}</b><span class="faint small"${Acct.syncErr ? ' style="color:var(--miss)"' : ''}>${line}</span></span></summary><div class="sset-b">
     <p class="muted small" style="margin:0 0 10px">Everything you log is saved to your account and kept in step across your devices. ${Acct.photosOK ? 'Progress photos are included.' : 'Progress photos stay on this phone for now.'}</p>
+    <p class="faint tiny" style="margin:-4px 0 10px">Status: ${Store.list('photos').length} photo entries · ${Acct.photoStat ? `${Acct.photoStat.here} of ${Acct.photoStat.want} pictures on this device · sent ${Acct.photoStat.up}, received ${Acct.photoStat.down}${Acct.photoStat.err ? ' · ' + esc(Acct.photoStat.err) : ''}` : 'pictures not checked yet'} · photo storage ${Acct.photosOK ? 'on' : 'off'}</p>
     <div class="fields"><button class="btn" data-act="acSync">Sync now</button><button class="btn ghost" data-act="acSignOut">Sign out</button></div>
     <button class="linkbtn" data-act="acDelete" style="color:var(--miss);margin-top:10px;font-size:13px">Delete my account</button></div></details>`;
 }
