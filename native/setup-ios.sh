@@ -12,4 +12,9 @@ setkey NSHealthShareUsageDescription "Liftprint reads your workouts, steps, slee
 setkey NSHealthUpdateUsageDescription "Liftprint does not write to Health. This permission is only requested if you turn on saving workouts in a future version."
 setkey NSCameraUsageDescription "Liftprint uses the camera to scan barcodes and take meal and progress photos."
 setkey NSPhotoLibraryUsageDescription "Liftprint lets you pick meal, progress and screenshot photos from your library."
+# iPhone: portrait only (the app is designed for one orientation)
+$PB -c "Delete :UISupportedInterfaceOrientations" "$PLIST" 2>/dev/null || true
+$PB -c "Add :UISupportedInterfaceOrientations array" "$PLIST"
+$PB -c "Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationPortrait" "$PLIST"
+setkey CFBundleDisplayName "Liftprint"
 echo "Info.plist updated. Now add the HealthKit capability in Xcode."

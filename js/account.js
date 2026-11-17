@@ -7,8 +7,9 @@
    last sync wins; untouched records take the account's version. */
 const SB_URL = 'https://jvpgdhblwbfkxtdadrab.supabase.co', SB_KEY = 'sb_publishable_CFc95Kcoo6jU8xvEaqkJug_itWw1jH9';
 const AC_KEY = 'lp.auth', AC_CUR = 'lp.syncCursor', AC_SHADOW = 'syncShadow';
-const SYNC_COLLS = COLLS.filter(c => c !== 'photos');   // photo files live on the device for now
-const Acct = { busy: false, step: 'email', email: '', err: '', sending: false, last: 0, syncErr: '', pending: null, t: null };
+/* progress photos sync only once the account's photo storage is confirmed working, so another device never gets photo entries without the pictures */
+const acColls = () => Acct.photosOK ? COLLS : COLLS.filter(c => c !== 'photos');
+const Acct = { photosOK: false, busy: false, step: 'email', email: '', err: '', sending: false, last: 0, syncErr: '', pending: null, t: null };
 const acGet = () => { try { return JSON.parse(localStorage.getItem(AC_KEY) || 'null'); } catch (e) { return null; } };
 const acSet = v => { try { v ? localStorage.setItem(AC_KEY, JSON.stringify(v)) : localStorage.removeItem(AC_KEY); } catch (e) {} };
 const acOn = () => !!acGet();
@@ -32,7 +33,7 @@ async function acToken() {
 const canon = v => Array.isArray(v) ? v.map(canon) : v && typeof v === 'object' ? Object.keys(v).sort().reduce((o, k) => { if (v[k] !== undefined) o[k] = canon(v[k]); return o; }, {}) : v;
 function acHash(v) { const s = JSON.stringify(canon(v)); let h = 5381, g = 52711; for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h = (h * 33 ^ c) >>> 0; g = (g * 31 + c) >>> 0; } return h.toString(36) + g.toString(36) + s.length.toString(36); }
 function acLocal() {
-  const m = new Map(); for (const c of SYNC_COLLS) for (const [id, d] of Object.entries(Store.docs[c] || {})) m.set(c + '/' + id, { c, id, data: d });
+  const m = new Map(); for (const c of acColls()) for (const [id, d] of Object.entries(Store.docs[c] || {})) m.set(c + '/' + id, { c, id, data: d });
   m.set('_settings/main', { c: '_settings', id: 'main', data: Store.settings }); for (const v of m.values()) v.h = acHash(v.data); return m;
 }
 async function acPull(token, since) {
@@ -42,17 +43,19 @@ async function acPull(token, since) {
   } return out;
 }
 async function acPush(token, rows) { for (let i = 0; i < rows.length; i += 150) await sbCall('/rest/v1/docs?on_conflict=user_id,coll,id', { method: 'POST', token, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: rows.slice(i, i + 150) }); }
-function acApply(c, id, data) { if (c === '_settings') Store.settings = { ...DEFAULTS, ...clone(data || {}) }; else if (SYNC_COLLS.includes(c)) Store.docs[c] = { ...Store.docs[c], [id]: clone(data) }; }
-function acRemove(c, id) { if (c === '_settings' || !SYNC_COLLS.includes(c)) return; const m = { ...Store.docs[c] }; delete m[id]; Store.docs[c] = m; }
+function acApply(c, id, data) { if (c === '_settings') Store.settings = { ...DEFAULTS, ...clone(data || {}) }; else if (acColls().includes(c)) Store.docs[c] = { ...Store.docs[c], [id]: clone(data) }; }
+function acRemove(c, id) { if (c === '_settings' || !acColls().includes(c)) return; const m = { ...Store.docs[c] }; delete m[id]; Store.docs[c] = m; }
 const acHasData = () => ['workouts', 'food', 'weighins'].some(c => Object.keys(Store.docs[c] || {}).length);
 
 async function syncNow(opt = {}) {
   const a = acGet(); if (!a || Acct.busy || Store.mode !== 'local' || !Store.loaded) return null;
   Acct.busy = true; Acct.syncErr = ''; acRowDraw(); let res = { up: 0, down: 0 };
   try {
-    const token = await acToken();
+    const token = await acToken(); await acPhotoProbe(token, a.uid);
     let shadow = await IDB.get('kv', AC_SHADOW); const first = !shadow || shadow.__uid !== a.uid; if (first) shadow = { __uid: a.uid };
-    const remote = await acPull(token, first ? null : localStorage.getItem(AC_CUR)), local = acLocal(); let touched = false, cursor = first ? null : localStorage.getItem(AC_CUR);
+    if (shadow.__photos) Acct.photosOK = true;   // once photos have synced on this device they always do, so none are ever skipped
+    const full = first || (Acct.photosOK && !shadow.__photos); if (Acct.photosOK) shadow.__photos = '1'; const colls = acColls();
+    const remote = await acPull(token, full ? null : localStorage.getItem(AC_CUR)), local = acLocal(); let touched = false, cursor = first ? null : localStorage.getItem(AC_CUR);
     for (const r of remote) if (!cursor || r.updated_at > cursor) cursor = r.updated_at;
     let mode = 'normal';
     if (first) {
@@ -61,11 +64,12 @@ async function syncNow(opt = {}) {
       if (!mode) { Acct.busy = false; Acct.pending = { live }; acChoose(live); acRowDraw(); return null; }
     }
     if (mode === 'cloud') {   // take the account's copy wholesale
-      for (const c of SYNC_COLLS) Store.docs[c] = {};
-      for (const r of remote) { const k = r.coll + '/' + r.id; if (r.deleted) continue; acApply(r.coll, r.id, r.data); shadow[k] = acHash(r.data); res.down++; }
+      for (const c of colls) Store.docs[c] = {};
+      for (const r of remote) { const k = r.coll + '/' + r.id; if (r.deleted || (r.coll !== '_settings' && !colls.includes(r.coll))) continue; acApply(r.coll, r.id, r.data); shadow[k] = acHash(r.data); res.down++; }
       touched = true;
     } else {
       for (const r of remote) {
+        if (r.coll !== '_settings' && !colls.includes(r.coll)) continue;
         const k = r.coll + '/' + r.id, L = local.get(k), was = shadow[k], rh = r.deleted ? null : acHash(r.data);
         if (r.deleted) { if (L && L.h === was) { acRemove(r.coll, r.id); local.delete(k); delete shadow[k]; touched = true; res.down++; } else if (!L) delete shadow[k]; continue; }
         if (!L) { if (was && !first) continue; /* deleted here since last sync: the delete wins */ acApply(r.coll, r.id, r.data); shadow[k] = rh; touched = true; res.down++; continue; }
@@ -77,13 +81,47 @@ async function syncNow(opt = {}) {
     if (touched) { Store.rev++; changed(); acPersistRaw(); }
     const now = touched ? acLocal() : local, rows = [];
     for (const [k, L] of now) if (shadow[k] !== L.h) rows.push({ coll: L.c, id: L.id, data: canon(L.data), deleted: false });
-    for (const k of Object.keys(shadow)) if (k !== '__uid' && !now.has(k)) { const i = k.indexOf('/'); rows.push({ coll: k.slice(0, i), id: k.slice(i + 1), data: null, deleted: true }); }
+    for (const k of Object.keys(shadow)) if (k.slice(0, 2) !== '__' && !now.has(k)) { const i = k.indexOf('/'); if (k.slice(0, i) !== '_settings' && !colls.includes(k.slice(0, i))) continue; rows.push({ coll: k.slice(0, i), id: k.slice(i + 1), data: null, deleted: true }); }
     if (rows.length) { await acPush(token, rows); for (const r of rows) { const k = r.coll + '/' + r.id; if (r.deleted) delete shadow[k]; else shadow[k] = now.get(k).h; } res.up = rows.length; }
     await IDB.set('kv', AC_SHADOW, shadow); if (cursor) localStorage.setItem(AC_CUR, cursor);
     Acct.last = Date.now(); Acct.pending = null;
+    if (Acct.photosOK) acPhotoSync(token, a.uid);   // pictures follow in the background
     if (touched && S().onboarded && typeof obClose === 'function' && !$('#onboard').hidden) obClose();
   } catch (e) { res = null; if (e && e.code !== 'signed_out') Acct.syncErr = e.code === 'offline' ? 'Offline. Will sync when you are back online.' : `Sync problem (${e.code}): ${String(e.message || '').slice(0, 140)}`; }
   Acct.busy = false; acRowDraw(); return res;
+}
+/* ---------- progress photo files (Supabase Storage, private bucket "photos", one folder per account) ---------- */
+async function acPhotoProbe(token, uid) {
+  if (Acct.photosOK || Acct.probed && Date.now() - Acct.probed < 600000) return; Acct.probed = Date.now();
+  try { await sbCall('/storage/v1/object/list/photos', { method: 'POST', token, body: { prefix: uid, limit: 1 } }); Acct.photosOK = true; } catch (e) { Acct.photosOK = false; }
+}
+async function acPhotoSync(token, uid) {
+  if (Acct.photoBusy) return; Acct.photoBusy = true; let got = 0;
+  try {
+    let st = await IDB.get('kv', 'syncPhotos'); if (!st || st.__uid !== uid) st = { __uid: uid, ids: {} };
+    const want = new Set(Store.list('photos').map(p => p.assetId || p.local).filter(Boolean)), have = new Set(await IDB.keys('photos'));
+    const base = `${SB_URL}/storage/v1/object`, hdr = { apikey: SB_KEY, Authorization: 'Bearer ' + token };
+    for (const id of want) {
+      if (have.has(id)) { if (st.ids[id]) continue;
+        const blob = await IDB.get('photos', id); if (!blob) continue;
+        const r = await fetch(`${base}/photos/${uid}/${id}`, { method: 'POST', headers: { ...hdr, 'Content-Type': blob.type || 'image/jpeg', 'x-upsert': 'true' }, body: blob }); if (r.ok) st.ids[id] = 1; else if (r.status === 404) break;
+      } else {
+        const r = await fetch(`${base}/authenticated/photos/${uid}/${id}`, { headers: hdr }); if (!r.ok) continue;
+        const blob = await r.blob(); await IDB.set('photos', id, blob); if (Store.blobs[id]) URL.revokeObjectURL(Store.blobs[id]); Store.blobs[id] = URL.createObjectURL(blob); st.ids[id] = 1; got++;
+      }
+    }
+    for (const id of Object.keys(st.ids)) if (!want.has(id)) {   // photo deleted (here or on another device): drop the file everywhere
+      try { await fetch(`${base}/photos/${uid}/${id}`, { method: 'DELETE', headers: hdr }); } catch (e) {}
+      if (have.has(id)) { try { await IDB.del('photos', id); } catch (e) {} if (Store.blobs[id]) { URL.revokeObjectURL(Store.blobs[id]); delete Store.blobs[id]; } }
+      delete st.ids[id];
+    }
+    await IDB.set('kv', 'syncPhotos', st);
+  } catch (e) {}
+  Acct.photoBusy = false; if (got) { Store.rev++; changed(); }
+}
+async function acPhotoWipe(token, uid) {   // before deleting the account
+  try { const st = await IDB.get('kv', 'syncPhotos'); const ids = new Set([...(st && st.__uid === uid ? Object.keys(st.ids) : []), ...Store.list('photos').map(p => p.assetId || p.local).filter(Boolean)]);
+    for (const id of ids) await fetch(`${SB_URL}/storage/v1/object/photos/${uid}/${id}`, { method: 'DELETE', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + token } }); } catch (e) {}
 }
 /* saving to the phone also queues a sync a few seconds later */
 const acPersistRaw = persist;
@@ -95,7 +133,7 @@ setTimeout(() => { if (acOn()) syncNow(); }, 1800);
 function acChoose(n) {
   openSheet('Your account already has data', `<p class="muted small" style="margin:0 0 14px">This phone has data and your account has ${plural(n, 'saved record')} too. What should happen?</p>
     <button class="btn block" data-act="acChoice" data-c="merge">Combine them</button><p class="faint tiny" style="margin:6px 0 14px">Keeps everything from both. Where the same entry differs, this phone's version is kept.</p>
-    <button class="btn ghost block" data-act="acChoice" data-c="cloud">Replace this phone with my account</button><p class="faint tiny" style="margin:6px 0 0">This phone's entries are removed and the account's are loaded. Progress photos on this phone stay.</p>`);
+    <button class="btn ghost block" data-act="acChoice" data-c="cloud">Replace this phone with my account</button><p class="faint tiny" style="margin:6px 0 0">This phone's entries are removed and the account's are loaded. </p>`);
 }
 A.acChoice = async d => { if (d.c === 'cloud' && !await ask("Replace this phone's data with your account's? This can't be undone.", { ok: 'Replace', danger: true })) return; closeSheet(); const r = await syncNow({ choice: d.c }); if (r) toast('Synced with your account'); };
 
@@ -133,11 +171,11 @@ A.acSync = async () => { const r = await syncNow(); if (r) toast('Synced'); else
 A.acSignOut = async () => {
   if (!await ask('Sign out? Your data stays on this phone but stops syncing.', { ok: 'Sign out' })) return;
   const a = acGet(); try { if (a) await sbCall('/auth/v1/logout', { method: 'POST', token: a.access }); } catch (e) {}
-  acSet(null); try { await IDB.del('kv', AC_SHADOW); localStorage.removeItem(AC_CUR); } catch (e) {} acRowDraw(); toast('Signed out');
+  acSet(null); try { await IDB.del('kv', AC_SHADOW); await IDB.del('kv', 'syncPhotos'); localStorage.removeItem(AC_CUR); } catch (e) {} Acct.photosOK = false; Acct.probed = 0; acRowDraw(); toast('Signed out');
 };
 A.acDelete = async () => {
   if (!await ask('Delete your account and everything stored in it? Data on this phone stays until you erase it. This cannot be undone.', { ok: 'Delete account', danger: true })) return;
-  try { await sbCall('/rest/v1/rpc/delete_me', { method: 'POST', token: await acToken(), body: {} }); } catch (e) { return toast("Couldn't delete the account. Try again, or email support.", { bad: true }); }
+  try { const tk = await acToken(); if (Acct.photosOK) await acPhotoWipe(tk, acGet().uid); await sbCall('/rest/v1/rpc/delete_me', { method: 'POST', token: tk, body: {} }); } catch (e) { return toast("Couldn't delete the account. Try again, or email support.", { bad: true }); }
   acSet(null); try { await IDB.del('kv', AC_SHADOW); localStorage.removeItem(AC_CUR); } catch (e) {} acRowDraw(); toast('Account deleted');
 };
 
@@ -147,7 +185,7 @@ function acRowHTML() {
   if (!a) return `<button class="plan-row" id="st-ac" data-act="acOpen"><span class="pro-ic">☁️</span><span class="grow"><b>Sign in</b><span>Back up your data and load it on any device</span></span>${ICON.chevR}</button>`;
   const line = Acct.busy ? 'Syncing…' : Acct.syncErr ? esc(Acct.syncErr) : Acct.last ? `Synced ${new Date(Acct.last).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Signed in';
   return `<details class="sset" id="st-ac"><summary><span class="si" aria-hidden="true">☁️</span><span class="grow"><b>${esc(a.email || 'Your account')}</b><span class="faint small"${Acct.syncErr ? ' style="color:var(--miss)"' : ''}>${line}</span></span></summary><div class="sset-b">
-    <p class="muted small" style="margin:0 0 10px">Everything you log is saved to your account and kept in step across your devices. Progress photos stay on this phone for now.</p>
+    <p class="muted small" style="margin:0 0 10px">Everything you log is saved to your account and kept in step across your devices. ${Acct.photosOK ? 'Progress photos are included.' : 'Progress photos stay on this phone for now.'}</p>
     <div class="fields"><button class="btn" data-act="acSync">Sync now</button><button class="btn ghost" data-act="acSignOut">Sign out</button></div>
     <button class="linkbtn" data-act="acDelete" style="color:var(--miss);margin-top:10px;font-size:13px">Delete my account</button></div></details>`;
 }
