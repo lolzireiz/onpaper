@@ -45,6 +45,10 @@ async function acPull(token, since) {
 async function acPush(token, rows) { for (let i = 0; i < rows.length; i += 150) await sbCall('/rest/v1/docs?on_conflict=user_id,coll,id', { method: 'POST', token, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: rows.slice(i, i + 150) }); }
 function acApply(c, id, data) { if (c === '_settings') Store.settings = { ...DEFAULTS, ...clone(data || {}) }; else if (acColls().includes(c)) Store.docs[c] = { ...Store.docs[c], [id]: clone(data) }; }
 function acRemove(c, id) { if (c === '_settings' || !acColls().includes(c)) return; const m = { ...Store.docs[c] }; delete m[id]; Store.docs[c] = m; }
+/* Photos are irreplaceable, so they are only ever deleted from the account when YOU delete one on a device.
+   A photo entry that is merely missing on a device (old app version, half-finished restore, anything else) is never treated as a delete. */
+const acDelGet = () => { try { return JSON.parse(localStorage.getItem('lp.photoDel') || '{}'); } catch (e) { return {}; } };
+{ const rawDel = del; del = function (c, id) { if (c === 'photos') { try { const p = (Store.docs.photos || {})[id], m = acDelGet(); m[id] = (p && (p.assetId || p.local)) || 1; localStorage.setItem('lp.photoDel', JSON.stringify(m)); } catch (e) {} } return rawDel(c, id); }; }
 const acHasData = () => ['workouts', 'food', 'weighins'].some(c => Object.keys(Store.docs[c] || {}).length);
 
 async function syncNow(opt = {}) {
@@ -62,6 +66,13 @@ async function syncNow(opt = {}) {
       const live = remote.filter(r => !r.deleted && r.coll !== '_settings').length;
       mode = !live ? 'merge' : !acHasData() ? 'cloud' : opt.choice;
       if (!mode) { Acct.busy = false; Acct.pending = { live }; acChoose(live); acRowDraw(); return null; }
+    }
+    if (mode !== 'cloud') {   // safety net: a large batch of deletes coming from the account is confirmed first, and never applied silently
+      const dels = remote.filter(r => r.deleted && (r.coll === '_settings' || colls.includes(r.coll)) && local.get(r.coll + '/' + r.id) && local.get(r.coll + '/' + r.id).h === shadow[r.coll + '/' + r.id]);
+      const nPh = dels.filter(r => r.coll === 'photos').length;
+      if (dels.length > 15 || nPh) { Acct.busy = false; const yes = await ask(nPh === dels.length ? `${plural(nPh, 'progress photo')} ${nPh === 1 ? 'was' : 'were'} deleted on another device. Remove ${nPh === 1 ? 'it' : 'them'} from this device too?` : `Your account says ${dels.length} entries were deleted on another device (${[...new Set(dels.map(r => r.coll))].join(', ')}). Remove them from this device too?`, { ok: 'Remove', danger: true }); Acct.busy = true;
+        if (!yes) for (const r of dels) delete shadow[r.coll + '/' + r.id];   // keep them: they are sent back to the account below
+      }
     }
     if (mode === 'cloud') {   // take the account's copy wholesale
       for (const c of colls) Store.docs[c] = {};
@@ -81,7 +92,9 @@ async function syncNow(opt = {}) {
     if (touched) { Store.rev++; changed(); acPersistRaw(); }
     const now = touched ? acLocal() : local, rows = [];
     for (const [k, L] of now) if (shadow[k] !== L.h) rows.push({ coll: L.c, id: L.id, data: canon(L.data), deleted: false });
-    for (const k of Object.keys(shadow)) if (k.slice(0, 2) !== '__' && !now.has(k)) { const i = k.indexOf('/'); if (k.slice(0, i) !== '_settings' && !colls.includes(k.slice(0, i))) continue; rows.push({ coll: k.slice(0, i), id: k.slice(i + 1), data: null, deleted: true }); }
+    for (const k of Object.keys(shadow)) if (k.slice(0, 2) !== '__' && !now.has(k)) { const i = k.indexOf('/'); if (k.slice(0, i) !== '_settings' && !colls.includes(k.slice(0, i))) continue;
+      if (k.slice(0, i) === 'photos' && !acDelGet()[k.slice(i + 1)]) { delete shadow[k]; continue; }   // not deleted by the user here: leave the account's copy alone
+      rows.push({ coll: k.slice(0, i), id: k.slice(i + 1), data: null, deleted: true }); }
     if (rows.length) { await acPush(token, rows); for (const r of rows) { const k = r.coll + '/' + r.id; if (r.deleted) delete shadow[k]; else shadow[k] = now.get(k).h; } res.up = rows.length; }
     await IDB.set('kv', AC_SHADOW, shadow); if (cursor) localStorage.setItem(AC_CUR, cursor);
     Acct.last = Date.now(); Acct.pending = null;
@@ -111,9 +124,9 @@ async function acPhotoSync(token, uid) {
         const blob = await r.blob(); await IDB.set('photos', id, blob); if (Store.blobs[id]) URL.revokeObjectURL(Store.blobs[id]); Store.blobs[id] = URL.createObjectURL(blob); st.ids[id] = 1; got++; stat.down++; stat.here++;
       }
     }
-    for (const id of Object.keys(st.ids)) if (!want.has(id)) {   // photo deleted (here or on another device): drop the file everywhere
-      try { await fetch(`${base}/photos/${uid}/${id}`, { method: 'DELETE', headers: hdr }); } catch (e) {}
-      if (have.has(id)) { try { await IDB.del('photos', id); } catch (e) {} if (Store.blobs[id]) { URL.revokeObjectURL(Store.blobs[id]); delete Store.blobs[id]; } }
+    const gone = new Set(Object.values(acDelGet()).filter(v => typeof v === 'string'));
+    for (const id of Object.keys(st.ids)) if (!want.has(id)) {   // only a photo the user deleted on this device is removed from the account's storage
+      if (gone.has(id)) { try { await fetch(`${base}/photos/${uid}/${id}`, { method: 'DELETE', headers: hdr }); } catch (e) {} }
       delete st.ids[id];
     }
     await IDB.set('kv', 'syncPhotos', st);
@@ -182,6 +195,23 @@ A.acDelete = async () => {
   acSet(null); try { await IDB.del('kv', AC_SHADOW); localStorage.removeItem(AC_CUR); } catch (e) {} acRowDraw(); toast('Account deleted');
 };
 
+/* bring back progress photos (entries + pictures) from a backup file, touching nothing else */
+A.photoRescue = () => {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json,text/plain'; inp.style.display = 'none'; document.body.appendChild(inp);
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0]; inp.remove(); if (!f) return;
+    let data; try { data = JSON.parse(await f.text()); } catch (e) { return toast("That file isn't a Liftprint backup.", { bad: true }); }
+    const v = data && data.photos, rows = Array.isArray(v) ? v.filter(d => d && d.id) : v && typeof v === 'object' ? Object.entries(v).map(([id, d]) => ({ ...d, id })) : [], files = data && data.photoFiles && typeof data.photoFiles === 'object' ? data.photoFiles : {};
+    if (!rows.length) return toast('That backup has no progress photos in it.', { bad: true });
+    let n = 0, pics = 0; const m = { ...(Store.docs.photos || {}) }, dl = acDelGet();
+    for (const d of rows) { const { id, ...rest } = d; if (!m[id]) n++; m[id] = rest; delete dl[id]; }
+    for (const [k, u] of Object.entries(files)) { try { const bl = dataURLToBlob(u); await IDB.set('photos', k, bl); if (Store.blobs[k]) URL.revokeObjectURL(Store.blobs[k]); Store.blobs[k] = URL.createObjectURL(bl); pics++; } catch (e) {} }
+    try { localStorage.setItem('lp.photoDel', JSON.stringify(dl)); } catch (e) {}
+    Store.docs.photos = m; Store.rev++; changed(); persist(); toast(`Brought back ${plural(n, 'photo')} (${pics} pictures in the file)`);
+  };
+  inp.click();
+};
+
 /* ---------- Settings row ---------- */
 function acRowHTML() {
   const a = acGet();
@@ -191,7 +221,8 @@ function acRowHTML() {
     <p class="muted small" style="margin:0 0 10px">Everything you log is saved to your account and kept in step across your devices. ${Acct.photosOK ? 'Progress photos are included.' : 'Progress photos stay on this phone for now.'}</p>
     <p class="faint tiny" style="margin:-4px 0 10px">Status: ${Store.list('photos').length} photo entries here, ${Acct.srvPhotos == null ? '?' : Acct.srvPhotos} in account · ${Acct.photoStat ? `${Acct.photoStat.here} of ${Acct.photoStat.want} pictures on this device · sent ${Acct.photoStat.up}, received ${Acct.photoStat.down}${Acct.photoStat.err ? ' · ' + esc(Acct.photoStat.err) : ''}` : 'pictures not checked yet'} · photo storage ${Acct.photosOK ? 'on' : 'off'}</p>
     <div class="fields"><button class="btn" data-act="acSync">Sync now</button><button class="btn ghost" data-act="acSignOut">Sign out</button></div>
-    <button class="linkbtn" data-act="acDelete" style="color:var(--miss);margin-top:10px;font-size:13px">Delete my account</button></div></details>`;
+    <button class="linkbtn" data-act="photoRescue" style="margin-top:10px;font-size:13px">Restore photos from a backup file</button>
+    <button class="linkbtn" data-act="acDelete" style="color:var(--miss);margin-top:6px;font-size:13px">Delete my account</button></div></details>`;
 }
 function acRowDraw() { const el = $('#st-ac'); if (el) { const open = el.tagName === 'DETAILS' && el.open; el.outerHTML = acRowHTML(); const n = $('#st-ac'); if (open && n && n.tagName === 'DETAILS') n.open = true; } }
 { const os = A.openSettings; A.openSettings = d => { os(d); const b = $('#sheet .sheet-b'); if (b && !$('#st-ac')) b.insertAdjacentHTML('afterbegin', acRowHTML()); }; }
