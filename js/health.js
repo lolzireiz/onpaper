@@ -9,7 +9,9 @@ const HK_READ = ['steps', 'calories', 'heartRate', 'restingHeartRate', 'heartRat
 const HK_STRENGTH = /strength|weightlifting|coretraining|crosstraining/i;
 const hkPlugin = () => (window.Capacitor && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform() && Capacitor.Plugins && Capacitor.Plugins.Health) || null;
 const hkAvail = () => !!hkPlugin();
-const hkCfg = () => S().health || {};
+const HK_LS = 'lp.health';
+const hkCfg = () => { try { const v = JSON.parse(localStorage.getItem(HK_LS) || 'null'); if (v) return v; } catch (e) {} return S().health || {}; };   // falls back to the old synced copy once, then lives on this phone only
+const hkSave = v => { try { localStorage.setItem(HK_LS, JSON.stringify(v)); } catch (e) {} };
 const hkOn = () => hkAvail() && !!hkCfg().on;
 const hkDay = iso => { const d = new Date(iso); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 const hkWords = t => String(t || '').replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
@@ -74,7 +76,7 @@ function hkImport(raw) {
   const hv = {}; for (const s of raw.hrv || []) { const d = hkDay(s.startDate); (hv[d] = hv[d] || []).push(+s.value || 0); }
   for (const [d, a] of Object.entries(hv)) set(d, 'hrv', Math.round(a.reduce((x, y) => x + y, 0) / a.length));
   for (const [d, v] of Object.entries(byDay)) { const old = dailyOf(d).hk || {}; if (JSON.stringify({ ...old, ...v }) !== JSON.stringify(old)) { putDaily(d, { hk: { ...old, ...v } }); res.days++; } }
-  saveSettings({ health: { ...cfg, on: true, seen: [...seen].slice(-600), last: Date.now() } });
+  hkSave({ ...cfg, on: true, seen: [...seen].slice(-600), last: Date.now() });
   return res;
 }
 let hkBusy = false;
@@ -89,11 +91,11 @@ function hkPairedNote(p) {
   const el = document.getElementById('wt-wait-' + p.gym); if (el && typeof watchSectionHTML === 'function') el.outerHTML = watchSectionHTML(g, p.gym);
   toastUndo(`⌚ Paired with your watch workout: ${line}`, () => {   // wrong one? one tap separates them and it is never paired again
     const cur = Store.docs.workouts[p.gym]; if (cur && cur.watch && cur.watch.hk === p.hk) { const nw = clone(cur); delete nw.watch; put('workouts', p.gym, nw); }
-    saveSettings({ health: { ...hkCfg(), nope: [...(hkCfg().nope || []), p.hk].slice(-60) } }); render();
+    hkSave({ ...hkCfg(), nope: [...(hkCfg().nope || []), p.hk].slice(-60) }); render();
   }, 9000);
 }
 async function hkSync(manual, force) {
-  if (!hkOn() || hkBusy) return null; if (!manual && !force && !hkNeedsWatch() && Date.now() - (hkCfg().last || 0) < 10 * 6e4) return null;
+  if (!hkOn() || hkBusy) return null; if (!manual && !force && !hkNeedsWatch() && Date.now() - (hkCfg().last || 0) < 45000) return null;
   hkBusy = true; let res = null;
   try {
     res = hkImport(await hkFetch(hkCfg().last ? 7 : 14));
@@ -129,10 +131,10 @@ A.hkConnect = async () => {
     const av = await H.isAvailable(); if (av && av.available === false) return toast('Health data is not available on this device.', { bad: true });
     await H.requestAuthorization({ read: HK_READ, write: [] });
   } catch (e) { return toast("Couldn't open the Health permissions.", { bad: true }); }
-  saveSettings({ health: { ...hkCfg(), on: true } }); hkSync(true);
+  hkSave({ ...hkCfg(), on: true }); hkSync(true);
 };
 A.hkSyncNow = () => hkSync(true);
-A.hkOff = async () => { if (!await ask('Stop reading Health data? What was already imported stays.', { ok: 'Turn off' })) return; saveSettings({ health: { ...hkCfg(), on: false } }); hkRowDraw(); };
+A.hkOff = async () => { if (!await ask('Stop reading Health data? What was already imported stays.', { ok: 'Turn off' })) return; hkSave({ ...hkCfg(), on: false }); hkRowDraw(); };
 
 function hkRowHTML() {
   if (!hkAvail()) return ''; const c = hkCfg();
@@ -148,5 +150,10 @@ function hkRowDraw() { const el = $('#st-hk'); if (el) el.outerHTML = hkRowHTML(
   let s = ctx(); const rows = []; for (let i = 0; i < 7; i++) { const d = addDays(todayStr(), -i), h = dailyOf(d).hk; if (h) rows.push(`${d}: ${[h.steps ? `${h.steps} steps` : '', h.sleep ? `${h.sleep} h asleep` : '', h.rhr ? `resting HR ${h.rhr}` : '', h.hrv ? `HRV ${h.hrv} ms` : ''].filter(Boolean).join(', ')}`); }
   return rows.length ? `${s}\nFROM THEIR WATCH / HEALTH APP (last 7 days, newest first):\n${rows.join('\n')}` : s;
 }; }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(() => hkSync(false), 1200); });
+/* Look for new watch data whenever the app comes back to the front (several signals, because the phone does not always send the same one),
+   and every two minutes while it stays open. */
+const hkWake = () => setTimeout(() => hkSync(false), 900);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') hkWake(); });
+document.addEventListener('resume', hkWake); window.addEventListener('focus', hkWake); window.addEventListener('pageshow', hkWake);
+setInterval(() => { if (document.visibilityState !== 'hidden') hkSync(false); }, 120000);
 setTimeout(() => hkSync(false), 2500);

@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '12.1';
+const APP_VERSION = '12.2';
 const CHANGELOG = [
+  ['12.2', ['⌚ iPhone app: new watch workouts now show up when you come back to the app, and every couple of minutes while it is open. Before, they only appeared after fully closing and reopening it.']],
   ['12.1', ['⌚ iPhone app: sports and cardio tracked on your watch now come in with average and max heart rate, and a notice tells you what was added (with Undo).']],
   ['12.0', ['⌚ iPhone app: your watch workout now pairs with your gym workout on its own. Finish in Liftprint, end the workout on your watch, and within about a minute the time, calories and heart rate appear on the workout. No screenshot needed.', 'It matches by time, so it picks the watch workout you did during that session. You get a confirmation with an Undo in case it paired the wrong one.', 'Fix: a watch workout that reached the phone before you finished logging was skipped for good. It now keeps looking.']],
   ['11.9', ['Signed in? No more backup reminders: your data is saved to your account on its own. Settings now says so, and the manual file is offered as “Export a copy”.', 'Not signed in: the reminder now offers to sign in, which keeps your data safe automatically, instead of asking you to save a file.']],

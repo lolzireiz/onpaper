@@ -1,6 +1,6 @@
 {
- "version": "12.1",
+ "version": "12.2",
  "notes": [
-  "\u231a iPhone app: sports and cardio tracked on your watch now come in with average and max heart rate, and a notice tells you what was added (with Undo)."
+  "\u231a iPhone app: new watch workouts now show up when you come back to the app, and every couple of minutes while it is open. Before, they only appeared after fully closing and reopening it."
  ]
 }
