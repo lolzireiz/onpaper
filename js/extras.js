@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '11.1';
+const APP_VERSION = '11.2';
 const CHANGELOG = [
+  ['11.2', ['Sync problems now show the exact reason.']],
   ['11.1', ['Sign-in now uses an email and password.']],
   ['11.0', ['☁️ Accounts and sync. Create an account with your email and a password, and everything you log is saved to your account and loaded on any device you sign in on. Find it at the top of Settings, or tap “Have an account? Sign in” on a fresh install.', 'Changes sync on their own a few seconds after you make them, and the app still works offline.', 'Progress photos stay on the phone for now. Backup files still work as before.', 'Privacy policy updated to cover accounts and Health data.']],
   ['10.25', ['Privacy policy and terms now list a support email.']],

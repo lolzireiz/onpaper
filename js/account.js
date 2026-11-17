@@ -82,7 +82,7 @@ async function syncNow(opt = {}) {
     await IDB.set('kv', AC_SHADOW, shadow); if (cursor) localStorage.setItem(AC_CUR, cursor);
     Acct.last = Date.now(); Acct.pending = null;
     if (touched && S().onboarded && typeof obClose === 'function' && !$('#onboard').hidden) obClose();
-  } catch (e) { res = null; if (e && e.code !== 'signed_out') Acct.syncErr = e.code === 'offline' ? 'Offline. Will sync when you are back online.' : (e.code === 404 || /relation|docs/.test(e.message || '') ? 'Cloud storage is not set up yet.' : `Sync problem: ${e.message || e.code}`); }
+  } catch (e) { res = null; if (e && e.code !== 'signed_out') Acct.syncErr = e.code === 'offline' ? 'Offline. Will sync when you are back online.' : `Sync problem (${e.code}): ${String(e.message || '').slice(0, 140)}`; }
   Acct.busy = false; acRowDraw(); return res;
 }
 /* saving to the phone also queues a sync a few seconds later */

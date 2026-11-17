@@ -1,6 +1,6 @@
 {
- "version": "11.1",
+ "version": "11.2",
  "notes": [
-  "Sign-in now uses an email and password."
+  "Sync problems now show the exact reason."
  ]
 }
