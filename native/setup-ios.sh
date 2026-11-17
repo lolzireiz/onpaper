@@ -17,4 +17,15 @@ $PB -c "Delete :UISupportedInterfaceOrientations" "$PLIST" 2>/dev/null || true
 $PB -c "Add :UISupportedInterfaceOrientations array" "$PLIST"
 $PB -c "Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationPortrait" "$PLIST"
 setkey CFBundleDisplayName "Liftprint"
-echo "Info.plist updated. Now add the HealthKit capability in Xcode."
+# App icon and launch screen: replace the placeholder artwork with Liftprint's
+ASSETS=ios/App/App/Assets.xcassets
+if [ -d "$ASSETS/AppIcon.appiconset" ]; then
+  for f in "$ASSETS"/AppIcon.appiconset/*.png; do [ -f "$f" ] && cp native/AppIcon-1024.png "$f"; done
+  [ -f "$ASSETS/AppIcon.appiconset/AppIcon-512@2x.png" ] || cp native/AppIcon-1024.png "$ASSETS/AppIcon.appiconset/AppIcon-512@2x.png"
+  echo "App icon replaced."
+fi
+if [ -d "$ASSETS/Splash.imageset" ]; then
+  for f in "$ASSETS"/Splash.imageset/*.png; do [ -f "$f" ] && cp native/Splash-2732.png "$f"; done
+  echo "Launch screen replaced."
+fi
+echo "Setup done. (First time only: add the HealthKit capability in Xcode.)"
