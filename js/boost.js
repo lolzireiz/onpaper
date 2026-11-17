@@ -145,7 +145,7 @@ async function bcStart() {
   let Z; try { Z = await loadZXing(); } catch (e) { return msg("Couldn't load the scanner. Check your connection, or type the number."); }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return msg('Live camera isn\'t available here. Use a photo instead.');
   try { BC.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }); }
-  catch (e) { return msg('Camera access was blocked. Allow it in Settings → Safari → Camera, or use a photo instead.'); }
+  catch (e) { const m = $('#bc-msg'); if (m) m.innerHTML = camBlockedHTML(); return; }
   const v = $('#bc-v'); if (!v) return bcStop(); v.srcObject = BC.stream; try { await v.play(); } catch (e) {}
   msg('Line up the barcode inside the box'); const reader = bcReader(Z); let last = 0;
   const tick = now => {

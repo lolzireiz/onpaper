@@ -40,7 +40,7 @@ async function initStore() {
     Store.mode = 'local'; Store.note = '';
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   } catch (e) {
-    Store.mode = 'memory'; Store.note = "This browser won't let the app save data (private browsing?). Entries will be lost when you close it.";
+    Store.mode = 'memory'; Store.note = "The app can't save data on this device right now (private browsing, or storage is full?). Entries will be lost when you close it.";
   }
   Store.loaded = true; changed();
 }

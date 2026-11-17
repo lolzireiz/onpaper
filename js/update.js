@@ -18,6 +18,7 @@ function updStatusHTML() {
   const t = Upd.checkedAt ? fmtClock(Upd.checkedAt) : '';
   const line = { idle: 'Not checked yet', checking: '<span class="thinking">Checking for updates…</span>', current: `<span style="color:var(--ok)">✓ Up to date</span> <span class="faint">· checked ${t}</span>`, ready: `<b style="color:var(--accent)">v${esc(Upd.latest?.version)} is ready to install</b>`, error: `<span class="faint">Couldn't check (offline?) · ${t ? 'last checked ' + t : 'try again'}</span>`, applying: '<span class="thinking">Updating…</span>' }[Upd.state];
   const notes = Upd.state === 'ready' && Upd.latest?.notes?.length ? `<ul class="muted small" style="margin:6px 0 0;padding-left:18px">${Upd.latest.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : '';
+  if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) return `<div class="field"><span class="lbl">App version · v${APP_VERSION}</span><p class="small muted">Updates arrive with new versions of the app.</p><button class="btn ghost" data-act="whatsNewAll" style="align-self:flex-start">What's new</button></div>`;
   return `<div class="field"><span class="lbl">App updates · you're on v${APP_VERSION}</span><p class="small" id="upd-line">${line}</p>${notes}
     <div class="btnrow">${Upd.state === 'ready' ? `<button class="btn" data-act="applyUpdate">Update now</button>` : `<button class="btn ghost" data-act="checkUpdate">Check now</button>`}<span class="faint tiny" style="align-self:center">Checks on its own every minute while the app is open.</span></div></div>`;
 }

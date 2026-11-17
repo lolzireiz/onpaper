@@ -110,7 +110,7 @@ function startMemory(note) {
   changed();
 }
 function dbError(e) {
-  if (e?.code === 'revoked') Store.note = 'This app lost access to your saved data. Reload the page to reconnect.';
+  if (e?.code === 'revoked') Store.note = 'This app lost access to your saved data. Close it fully and open it again to reconnect.';
   else Store.note = "Can't reach your saved data right now. What you see may be out of date.";
   changed();
 }
