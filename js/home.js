@@ -23,7 +23,7 @@ function alertsHTML(lw) {
   if (todo.length && (!hasAny || !gyms().length || !splitDays().length)) out.push(['🧰', `<b>Setup ${steps.length - todo.length} of ${steps.length}</b> · ${todo[0][1]}`, todo[0][2], todo[0][3]]);
   const since = lw ? daysBetween(lw.date, todayStr()) : null;
   if (lw && since >= (s.nudgeDays || 3)) out.push(['⚖️', `<b>${since} days</b> since your last weigh-in`, 'logWeighin', 'Weigh in']);
-  if (backupDue()) out.push(['💾', lastBackup() ? `Last backup <b>${daysBetween(lastBackup(), todayStr())} days ago</b>` : 'No backup yet. Save one to iCloud.', 'backupNow', 'Back up']);
+  if (backupDue()) out.push(['☁️', 'Your data is <b>only on this phone</b>. Sign in to keep it safe.', 'acOpen', 'Sign in']);
   return out.length ? `<div class="alerts">${out.map(([ic, t, act, btn]) => `<div class="alert"><span class="ai" aria-hidden="true">${ic}</span><p>${t}</p><button class="btn sm" data-act="${act}">${btn}</button></div>`).join('')}</div>` : '';
 }
 function setupHTML(lw) {
@@ -108,9 +108,9 @@ A.openSettings = () => {
     
     ${siriSettingsHTML()}</div></details>
     <button class="btn block" data-act="saveSettings">Save settings</button>
-    <details class="sset"><summary><span class="si" aria-hidden="true">💾</span><span class="grow"><b>Backup &amp; updates</b><span class="faint small">${lastBackup() ? `Last backup ${fmtDate(lastBackup())}` : 'No backup yet'} · v${APP_VERSION}</span></span></summary><div class="sset-b">
-    <div class="field"><span class="lbl">Your data</span><p class="muted small">Everything is saved on this phone only. Back up now and then, and restore it if you switch phones. Progress photos are included.</p></div>
-    <button class="btn block" data-act="backupNow">Back up now</button><p class="faint small" style="margin-top:-6px">Then tap <b>Save to Files → iCloud Drive</b>. ${lastBackup() ? `Last backup: ${fmtDate(lastBackup())}.` : 'No backups yet.'}</p><button class="btn ghost block" data-act="importData">Restore from a backup</button>
+    <details class="sset"><summary><span class="si" aria-hidden="true">💾</span><span class="grow"><b>Backup &amp; updates</b><span class="faint small">${cloudOn() ? 'Saved to your account' : lastBackup() ? `Last backup file ${fmtDate(lastBackup())}` : 'Saved on this phone only'} · v${APP_VERSION}</span></span></summary><div class="sset-b">
+    <div class="field"><span class="lbl">Your data</span><p class="muted small">${cloudOn() ? 'Everything you log is saved to your account automatically and loads on any device you sign in on. You can also keep your own copy as a file.' : 'Everything is saved on this phone only. Sign in at the top of Settings and it is backed up automatically. Or save a backup file now and then.'}</p></div>
+    ${cloudOn() ? '' : '<button class="btn block" data-act="acOpen">Sign in for automatic backup</button>'}<button class="btn ghost block" data-act="backupNow">${cloudOn() ? 'Export a copy' : 'Save a backup file'}</button><p class="faint small" style="margin-top:-6px">Saves one file with everything in it, photos included. ${lastBackup() ? `Last file: ${fmtDate(lastBackup())}.` : ''}</p><button class="btn ghost block" data-act="importData">Restore from a backup</button>
     <div class="field"><span class="lbl">Coming from another app?</span><p class="muted small">Bring your workout history from Strong or Hevy. In that app, export your data as a CSV file, then pick it here.</p></div><button class="btn ghost block" data-act="importHistory">Import from Strong or Hevy</button>${S().lastImport ? '<button class="linkbtn" data-act="impUndoLast" style="align-self:center">Undo my last import</button>' : ''}
     <div class="field"><span class="lbl">Spreadsheets</span><p class="muted small">Export your sets, weigh-ins, food and activities as CSV files for Excel, Numbers or Google Sheets.</p></div><button class="btn ghost block" data-act="csvExport">Export CSV files</button>
     <div id="upd-box">${updStatusHTML()}</div>
@@ -132,7 +132,7 @@ A.exportData = json => {
   const data = { app: 'liftprint', exported: new Date().toISOString(), settings: S(), push: { topic: lsGet(PUSH_TOPIC) || '', on: pushOn() }, local: { code: lsGet('onpaper.code') || '' }, ...Object.fromEntries(COLLS.map(c => [c, Store.list(c)])) };
   const blob = new Blob([typeof json === 'string' && json ? json : JSON.stringify(data)], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
   a.href = url; a.download = `liftprint-backup-${todayStr()}.json`; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Backup downloaded. Save it to Files or iCloud.');
+  setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Backup file downloaded. Keep it somewhere safe.');
 };
 A.importData = () => { const i = $('#file-backup'); i.value = ''; i.click(); };
 /* Restore. The picker is a permanent <input> in index.html: iOS home-screen apps drop the

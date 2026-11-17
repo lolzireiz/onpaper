@@ -276,7 +276,7 @@ function showSummary(id) {
     <div class="field"><span class="lbl">Muscles worked</span><div class="heatfig"><div style="--fig-h:210px">${bodySVG('front', sex, { p: new Set(), s: new Set(), heat: st.heat })}</div><div style="--fig-h:210px">${bodySVG('back', sex, { p: new Set(), s: new Set(), heat: st.heat })}</div></div></div>
     ${typeof watchSectionHTML === 'function' ? watchSectionHTML(w0, id) : ''}
     <p class="center small" style="margin:0">📅 <b>${wk.cur} of ${wk.goal}</b> gym days this week${wk.streak > 1 ? ` · ${wk.streak}-week streak` : ''}</p>
-    ${lastBackup() !== todayStr() ? `<div class="alert bk-row"><span class="ai" aria-hidden="true">💾</span><p>Keep this workout safe</p><button class="btn sm" data-act="backupNow">Back up</button></div>` : ''}
+    ${!cloudOn() && lastBackup() !== todayStr() ? `<div class="alert bk-row"><span class="ai" aria-hidden="true">☁️</span><p>Keep this workout safe</p><button class="btn sm" data-act="acOpen">Sign in</button></div>` : ''}
     <div class="fields"><button class="btn ghost" data-act="sumShare" data-id="${id}">Share</button><button class="btn ghost" data-act="showWorkout" data-id="${id}">Details</button></div>
     <button class="btn block" data-act="closeSheet">Done</button>`);
 }

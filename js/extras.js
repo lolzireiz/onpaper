@@ -1,8 +1,10 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '11.7';
+const APP_VERSION = '11.9';
 const CHANGELOG = [
+  ['11.9', ['Signed in? No more backup reminders: your data is saved to your account on its own. Settings now says so, and the manual file is offered as “Export a copy”.', 'Not signed in: the reminder now offers to sign in, which keeps your data safe automatically, instead of asking you to save a file.']],
+  ['11.8', ['iPhone app: rest alerts now come straight from the app to your lock screen and watch. No extra app, no setup. They are on by default; allow notifications the first time you are asked.', 'iPhone app: if the camera is blocked, the message now has an “Open Settings” button that takes you to Liftprint in your phone\'s Settings. Browser wording removed from the app.']],
   ['11.7', ['🔒 Sync safety: an out-of-date copy of the app can no longer change or delete anything in your account. It is told to update instead.']],
   ['11.6', ['🛟 Fix: syncing with a device still on an older app version could remove progress photos from the account and other devices. Photos are now only ever deleted when you delete one yourself, and any large batch of deletes from the account asks you first.', 'Settings → your account → “Restore photos from a backup file” brings back photos (and only photos) from a backup.']],
   ['11.5', ['“Sync now” re-reads your whole account, and the status line shows how many photo entries the account holds.']],
@@ -128,7 +130,9 @@ function checkVersion() {
 /* ---------- backups ---------- */
 const lastBackup = () => { try { return localStorage.getItem('onpaper.lastBackup'); } catch (e) { return null; } };
 const hasData = () => COLLS.some(c => Store.list(c).length);
-function backupDue() { const lb = lastBackup(); return hasData() && (!lb || daysBetween(lb, todayStr()) >= 7); }
+/* signed in = everything is already saved to the account, so no backup reminders */
+const cloudOn = () => typeof acOn === 'function' && acOn();
+function backupDue() { const lb = lastBackup(); return !cloudOn() && hasData() && (!lb || daysBetween(lb, todayStr()) >= 7); }
 const blobToDataURL = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
 const dataURLToBlob = u => { const [h, b] = String(u).split(','), bin = atob(b || ''), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new Blob([a], { type: (h.match(/:(.*?);/) || [])[1] || 'image/jpeg' }); };
 /* Full backup, progress photos included. Built ahead of time (prepBackup) so the share sheet can open straight from the tap. */
