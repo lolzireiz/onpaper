@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '11.4';
+const APP_VERSION = '11.5';
 const CHANGELOG = [
+  ['11.5', ['“Sync now” re-reads your whole account, and the status line shows how many photo entries the account holds.']],
   ['11.4', ['Account section in Settings now shows a photo sync status line.']],
   ['11.3', ['📸 Progress photos now sync with your account too, once photo storage is switched on for the app. Delete a photo on one device and it is removed everywhere.']],
   ['11.2', ['Sync problems now show the exact reason.']],

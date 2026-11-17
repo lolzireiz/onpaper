@@ -1,6 +1,6 @@
 {
- "version": "11.4",
+ "version": "11.5",
  "notes": [
-  "Account section in Settings now shows a photo sync status line."
+  "\u201cSync now\u201d re-reads your whole account, and the status line shows how many photo entries the account holds."
  ]
 }

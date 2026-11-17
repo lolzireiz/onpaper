@@ -54,7 +54,7 @@ async function syncNow(opt = {}) {
     const token = await acToken(); await acPhotoProbe(token, a.uid);
     let shadow = await IDB.get('kv', AC_SHADOW); const first = !shadow || shadow.__uid !== a.uid; if (first) shadow = { __uid: a.uid };
     if (shadow.__photos) Acct.photosOK = true;   // once photos have synced on this device they always do, so none are ever skipped
-    const full = first || (Acct.photosOK && !shadow.__photos); if (Acct.photosOK) shadow.__photos = '1'; const colls = acColls();
+    const full = first || !!opt.full || (Acct.photosOK && !shadow.__photos); if (Acct.photosOK) shadow.__photos = '1'; const colls = acColls();
     const remote = await acPull(token, full ? null : localStorage.getItem(AC_CUR)), local = acLocal(); let touched = false, cursor = first ? null : localStorage.getItem(AC_CUR);
     for (const r of remote) if (!cursor || r.updated_at > cursor) cursor = r.updated_at;
     let mode = 'normal';
@@ -168,7 +168,9 @@ A.acGo = async d => {
   acStore(j); Acct.open = false; closeSheet(); toast(make ? 'Account created' : 'Signed in'); acRowDraw();
   const r = await syncNow(); if (r) toast(r.down ? `Loaded your account (${plural(r.down, 'record')})` : 'Your data is now backed up to your account'); else if (Acct.syncErr) toast(Acct.syncErr, { bad: true });
 };
-A.acSync = async () => { const r = await syncNow(); if (r) toast('Synced'); else if (Acct.syncErr) toast(Acct.syncErr, { bad: true }); };
+A.acSync = async () => { const r = await syncNow({ full: true });   /* the button re-reads the whole account, so nothing can be missed */
+  try { const rows = await sbCall('/rest/v1/docs?select=id&coll=eq.photos&deleted=eq.false', { token: await acToken() }); Acct.srvPhotos = (rows || []).length; } catch (e) { Acct.srvPhotos = '?'; }
+  acRowDraw(); if (r) toast('Synced'); else if (Acct.syncErr) toast(Acct.syncErr, { bad: true }); };
 A.acSignOut = async () => {
   if (!await ask('Sign out? Your data stays on this phone but stops syncing.', { ok: 'Sign out' })) return;
   const a = acGet(); try { if (a) await sbCall('/auth/v1/logout', { method: 'POST', token: a.access }); } catch (e) {}
@@ -187,7 +189,7 @@ function acRowHTML() {
   const line = Acct.busy ? 'Syncing…' : Acct.syncErr ? esc(Acct.syncErr) : Acct.last ? `Synced ${new Date(Acct.last).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Signed in';
   return `<details class="sset" id="st-ac"><summary><span class="si" aria-hidden="true">☁️</span><span class="grow"><b>${esc(a.email || 'Your account')}</b><span class="faint small"${Acct.syncErr ? ' style="color:var(--miss)"' : ''}>${line}</span></span></summary><div class="sset-b">
     <p class="muted small" style="margin:0 0 10px">Everything you log is saved to your account and kept in step across your devices. ${Acct.photosOK ? 'Progress photos are included.' : 'Progress photos stay on this phone for now.'}</p>
-    <p class="faint tiny" style="margin:-4px 0 10px">Status: ${Store.list('photos').length} photo entries · ${Acct.photoStat ? `${Acct.photoStat.here} of ${Acct.photoStat.want} pictures on this device · sent ${Acct.photoStat.up}, received ${Acct.photoStat.down}${Acct.photoStat.err ? ' · ' + esc(Acct.photoStat.err) : ''}` : 'pictures not checked yet'} · photo storage ${Acct.photosOK ? 'on' : 'off'}</p>
+    <p class="faint tiny" style="margin:-4px 0 10px">Status: ${Store.list('photos').length} photo entries here, ${Acct.srvPhotos == null ? '?' : Acct.srvPhotos} in account · ${Acct.photoStat ? `${Acct.photoStat.here} of ${Acct.photoStat.want} pictures on this device · sent ${Acct.photoStat.up}, received ${Acct.photoStat.down}${Acct.photoStat.err ? ' · ' + esc(Acct.photoStat.err) : ''}` : 'pictures not checked yet'} · photo storage ${Acct.photosOK ? 'on' : 'off'}</p>
     <div class="fields"><button class="btn" data-act="acSync">Sync now</button><button class="btn ghost" data-act="acSignOut">Sign out</button></div>
     <button class="linkbtn" data-act="acDelete" style="color:var(--miss);margin-top:10px;font-size:13px">Delete my account</button></div></details>`;
 }
