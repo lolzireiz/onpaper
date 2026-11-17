@@ -45,7 +45,7 @@ const OB_VIEWS = {
     const back = hasData();
     return { t: back ? 'Make Liftprint <span class="gtxt">yours</span>' : 'Welcome to <span class="gtxt">Liftprint</span>', next: "Let's go", alt: true,
       sub: back ? "New: tell the app what you're training for, and it'll point out every exercise that gets you there. All your data stays exactly as it is." : "Every set, PR and weigh-in, and what's actually moving you forward. First, a few quick taps so the app fits you.",
-      body: `<div class="ob-hero ob-in">${obLogo()}</div><p class="faint small ob-in" style="text-align:center;margin:0">About 30 seconds · skip anytime</p>${back ? '' : '<button class="linkbtn ob-in" data-act="obRestore" style="align-self:center;font-size:14px">Reinstalling? Restore a backup</button>'}` };
+      body: `<div class="ob-hero ob-in">${obLogo()}</div><p class="faint small ob-in" style="text-align:center;margin:0">About 30 seconds · skip anytime</p>${back ? '' : '<button class="linkbtn ob-in" data-act="acOpen" style="align-self:center;font-size:15px;font-weight:600">Have an account? Sign in</button><button class="linkbtn ob-in" data-act="obRestore" style="align-self:center;font-size:14px">Restore a backup file</button>'}` };
   },
   you() {
     const lw = latestWeighin(), wu = OB.a.unit === 'metric' ? 'kg' : 'lb';

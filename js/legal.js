@@ -1,7 +1,7 @@
 'use strict';
 /* ---------- Terms, privacy policy and health notices. One source for the in-app screens and the standalone terms.html / privacy.html pages.
    NOTE: these are plain-language starting documents. Have a lawyer review them before the App Store launch. ---------- */
-const LEGAL_VER = 1, LEGAL_DATE = 'November 16, 2026', LEGAL_MIN_AGE = 16;
+const LEGAL_VER = 2, LEGAL_DATE = 'November 16, 2026', LEGAL_MIN_AGE = 16;
 const LEGAL_EMAIL = 'liftprintapp@gmail.com';   // becomes support@liftprint.app once the domain forwards
 const LEGAL_CONTACT = 'mailto:' + LEGAL_EMAIL;
 const LEGAL = {
@@ -25,25 +25,30 @@ const LEGAL = {
 <p class="lg-meta">Last updated ${LEGAL_DATE}</p>
 <p><b>The short version: your data stays on your phone. We don't have accounts or servers, we don't see your data, and we don't sell anything, show ads or track you.</b></p>
 <h3>What the app stores, and where</h3>
-<p>Everything you log is saved in this app's storage on your own device: workouts, lifts, bodyweight and measurements, food, calories burned, sleep, naps, soreness and readiness check-ins, habits, jump tests, progress photos, your goals and settings, your Assistant chat, and a count of AI requests. We (the makers of Liftprint) do not receive any of it.</p>
+<p>Everything you log is saved in this app's storage on your own device: workouts, lifts, bodyweight and measurements, food, calories burned, sleep, naps, soreness and readiness check-ins, habits, jump tests, progress photos, your goals and settings, your Assistant chat, and a count of AI requests. Unless you sign in to an account (see below), we (the makers of Liftprint) do not receive any of it.</p>
+<h3>Accounts and sync (optional)</h3>
+<p>You can use Liftprint without an account. If you choose to sign in, we store your email address and a copy of what you log (everything listed above except progress photos, which stay on your device) so it can be backed up and loaded on your other devices. This data is stored with our hosting provider, Supabase, on servers in the United States, and each account can only read its own data. We use it only to provide sync. We don't sell it, share it for advertising, or use it to train AI. Signing out stops syncing; data already on your device stays there.</p>
 <h3>When data leaves your device</h3>
 <p>Only when you use a feature that needs the internet:</p>
 <ul><li><b>AI features</b> (food photos, label and description scans, watch-stat scans, the Assistant). The photo or text you submit is sent from your device straight to Google's Gemini API, using the API key you entered. For the Assistant, a summary of your logged data (training, food, bodyweight, readiness, habits, jump log, gym equipment and goals) is sent with each message so answers are about you. Google handles that data under its own terms and privacy policy, and depending on the kind of key you use, Google may use it to improve its services. Don't use AI features if you're not comfortable with that. Your key is stored only on your device.</li>
 <li><b>Barcode lookups.</b> The barcode number is sent to Open Food Facts to find the product.</li>
 <li><b>Rest-timer alerts</b> (only if you turn them on). The alert text and a random channel name go through the ntfy.sh notification service.</li>
 <li><b>Loading the app.</b> The app's files are served by GitHub Pages and fonts by Google Fonts. Like any website, those hosts see your IP address and browser type.</li>
+<li><b>Account sync</b> (only if you sign in). Your logged data and settings are sent to our Supabase database as described above, and your email address is used to send sign-in codes.</li>
+<li><b>Health app data</b> (only in the iPhone app, and only if you connect it). Workouts, steps, sleep and heart-rate figures are read from your phone's Health app into Liftprint. Liftprint does not write to Health. This data is not used for advertising and is not shared with third parties; if you are signed in it is included in your account sync.</li>
 <li><b>Backups and sharing.</b> Backup files, CSV exports and share images are created on your device and go only where you choose to save or send them.</li></ul>
 <h3>What we don't do</h3>
 <ul><li>No analytics, advertising or tracking tools.</li><li>No selling or renting of personal data.</li><li>No access to your contacts, location or microphone. The camera and photo library are used only when you choose to take or pick a photo.</li></ul>
 <h3>Health information</h3>
-<p>Much of what you log is health and fitness information. It stays on your device as described above. Liftprint is not a healthcare provider and is not covered by HIPAA.</p>
+<p>Much of what you log is health and fitness information. It stays on your device unless you sign in to an account, in which case it is included in your account sync as described above. Liftprint is not a healthcare provider and is not covered by HIPAA.</p>
 <h3>Your choices</h3>
 <ul><li><b>Export:</b> Settings → Backup &amp; updates gives you a full backup file and CSV exports.</li>
-<li><b>Delete:</b> You → About &amp; legal → Erase all data wipes everything from this device. Deleting the app (or clearing its website data) does the same. We can't recover it, because we never had it.</li>
+<li><b>Delete:</b> You → About &amp; legal → Erase all data wipes everything from this device. Deleting the app (or clearing its website data) does the same. If you never signed in, we can't recover it, because we never had it.</li>
+<li><b>Delete your account:</b> Settings → your account → Delete my account removes your account and everything stored in it from our servers. You can also email us to ask for this.</li>
 <li><b>AI:</b> the AI features do nothing unless you add a key and use them.</li></ul>
 <h3>Security</h3><p>Your data is protected by your phone's own lock and storage protections. Anyone who can unlock your phone can open the app. Backup files are not encrypted, so store them somewhere you trust.</p>
 <h3>Children</h3><p>Liftprint is not for anyone under ${LEGAL_MIN_AGE}, and we don't knowingly collect data from children.</p>
-<h3>Changes</h3><p>If the app adds accounts, cloud sync, subscriptions or our own AI service, this policy will be updated before those features collect anything, and the app will tell you. The date at the top shows the latest version.</p>
+<h3>Changes</h3><p>If the app adds subscriptions, our own AI service or other new uses of data, this policy will be updated before those features collect anything, and the app will tell you. The date at the top shows the latest version.</p>
 <h3>Contact</h3><p>Questions or requests: <a href="${LEGAL_CONTACT}">${LEGAL_EMAIL}</a>.</p>` },
 
   terms: { t: 'Terms of Use', h: `

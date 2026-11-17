@@ -291,6 +291,7 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--tx2) 50%),li
 
 /* layers */
 .layer{position:fixed;inset:0;z-index:50}
+body.sheet-top #sheet{z-index:70}
 .layer[hidden]{display:none}
 .scrim{position:absolute;inset:0;background:rgba(0,0,0,.62);opacity:0;transition:opacity .2s}
 #sheet.open .scrim,#dialog .scrim{opacity:1}
@@ -1072,6 +1073,7 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 <script src="js/homeui.js"></script>
 <script src="js/aiworkout.js"></script>
 <script src="js/health.js"></script>
+<script src="js/account.js"></script>
 <script src="js/app.js"></script>
 <script>if ('serviceWorker' in navigator && !(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform())) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
