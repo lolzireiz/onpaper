@@ -1,8 +1,6 @@
 {
- "version": "12.0",
+ "version": "12.1",
  "notes": [
-  "\u231a iPhone app: your watch workout now pairs with your gym workout on its own. Finish in Liftprint, end the workout on your watch, and within about a minute the time, calories and heart rate appear on the workout. No screenshot needed.",
-  "It matches by time, so it picks the watch workout you did during that session. You get a confirmation with an Undo in case it paired the wrong one.",
-  "Fix: a watch workout that reached the phone before you finished logging was skipped for good. It now keeps looking."
+  "\u231a iPhone app: sports and cardio tracked on your watch now come in with average and max heart rate, and a notice tells you what was added (with Undo)."
  ]
 }

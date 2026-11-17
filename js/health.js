@@ -39,8 +39,8 @@ function hkSleepByDay(samples) {   // hours asleep, keyed by the day you woke up
   for (const d in out) out[d] = Math.min(16, Math.round(out[d] * 4) / 4); return out;
 }
 function hkImport(raw) {
-  if (!raw) return { acts: 0, watch: 0, days: 0, paired: [] };
-  const cfg = hkCfg(), seen = new Set(cfg.seen || []), res = { acts: 0, watch: 0, days: 0, paired: [] }, t0 = todayStr();
+  if (!raw) return { acts: 0, watch: 0, days: 0, paired: [], newActs: [] };
+  const cfg = hkCfg(), seen = new Set(cfg.seen || []), res = { acts: 0, watch: 0, days: 0, paired: [], newActs: [] }, t0 = todayStr();
   for (const w of raw.workouts || []) {
     const id = w.platformId || `${w.workoutType}@${w.startDate}`; if (seen.has(id) || !w.startDate) continue;
     const date = hkDay(w.startDate), dur = Math.round(+w.duration || 0); if (dur < 300 || date > t0) { seen.add(id); continue; }
@@ -63,7 +63,8 @@ function hkImport(raw) {
     seen.add(id); const type = hkActType(w.workoutType);
     if (Store.list('acts').some(a => a.date === date && a.type === type && Math.abs((a.duration || 0) - dur) < 600)) continue;   // already logged by hand
     const mi = w.totalDistance > 0 ? w.totalDistance / 1609.344 : null;
-    put('acts', newId(), { type, name: type === 'other' ? hkWords(w.workoutType).replace(/\b\w/g, c => c.toUpperCase()) : '', date, duration: dur, dist: mi && ACT[type] && ACT[type].dist ? +mi.toFixed(2) : null, activeCal: kcal, totalCal: null, avgHr: null, maxHr: null, effort: null, note: '', src: 'health', hk: id, ts: new Date(w.startDate).getTime() || Date.now() });
+    const aid = newId(); put('acts', aid, { type, name: type === 'other' ? hkWords(w.workoutType).replace(/\b\w/g, c => c.toUpperCase()) : '', date, duration: dur, dist: mi && ACT[type] && ACT[type].dist ? +mi.toFixed(2) : null, activeCal: kcal, totalCal: null, avgHr: null, maxHr: null, effort: null, note: '', src: 'health', hk: id, ts: new Date(w.startDate).getTime() || Date.now() });
+    res.newActs.push({ id: aid, start: w.startDate, end: w.endDate || new Date(new Date(w.startDate).getTime() + dur * 1000).toISOString() });
     res.acts++;
   }
   const byDay = {}, set = (d, k, v) => { if (v > 0 && d <= t0) (byDay[d] = byDay[d] || {})[k] = v; };
@@ -96,12 +97,18 @@ async function hkSync(manual, force) {
   hkBusy = true; let res = null;
   try {
     res = hkImport(await hkFetch(hkCfg().last ? 7 : 14));
+    for (const n of res.newActs.slice(-4)) { const hr = await hkHeart(n.start, n.end); const cur = Store.docs.acts[n.id]; if (cur && (hr.avgHr || hr.maxHr)) put('acts', n.id, { ...clone(cur), ...hr }); }   // heart rate for sports and cardio too
     for (const p of res.paired) { const hr = await hkHeart(p.start, p.end); const cur = Store.docs.workouts[p.gym]; if (cur && cur.watch && (hr.avgHr || hr.maxHr)) put('workouts', p.gym, { ...clone(cur), watch: { ...cur.watch, ...hr } }); }
   } catch (e) { if (manual) toast("Couldn't read Health data. Check the permissions in the Health app.", { bad: true }); }
   hkBusy = false;
   if (res && (res.acts || res.watch || res.days)) { Store.rev++; changed(); render(); }
   if (res && res.paired.length) hkPairedNote(res.paired[res.paired.length - 1]);
-  else if (res && manual) toast(res.acts ? `Synced: ${res.acts === 1 ? '1 activity' : `${res.acts} activities`}` : 'Health data is up to date');
+  else if (res && res.newActs.length === 1) {   // one new activity from the watch: say what came in, with an undo
+    const id = res.newActs[0].id, a = Store.docs.acts[id];
+    if (a) toastUndo(`⌚ From your watch: ${actName(a)} · ${[fmtDur(a.duration), a.activeCal ? `${trim(a.activeCal, 0)} kcal` : '', a.avgHr ? `♥ ${a.avgHr}` : ''].filter(Boolean).join(' · ')}`, () => { del('acts', id); render(); }, 9000);
+  }
+  else if (res && res.newActs.length > 1) toast(`⌚ ${res.newActs.length} activities added from your watch`);
+  else if (res && manual) toast('Health data is up to date');
   hkRowDraw(); return res;
 }
 /* After a gym workout is finished, keep checking for the watch workout: the watch takes a little while to hand it to the phone. */
