@@ -1,9 +1,10 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '11.0';
+const APP_VERSION = '11.1';
 const CHANGELOG = [
-  ['11.0', ['☁️ Accounts and sync. Sign in with your email (we send a code, no password) and everything you log is saved to your account and loaded on any device you sign in on. Find it at the top of Settings, or tap “Have an account? Sign in” on a fresh install.', 'Changes sync on their own a few seconds after you make them, and the app still works offline.', 'Progress photos stay on the phone for now. Backup files still work as before.', 'Privacy policy updated to cover accounts and Health data.']],
+  ['11.1', ['Sign-in now uses an email and password.']],
+  ['11.0', ['☁️ Accounts and sync. Create an account with your email and a password, and everything you log is saved to your account and loaded on any device you sign in on. Find it at the top of Settings, or tap “Have an account? Sign in” on a fresh install.', 'Changes sync on their own a few seconds after you make them, and the app still works offline.', 'Progress photos stay on the phone for now. Backup files still work as before.', 'Privacy policy updated to cover accounts and Health data.']],
   ['10.25', ['Privacy policy and terms now list a support email.']],
   ['10.24', ['Under the hood: groundwork for the iPhone app version. Nothing changes in how you use it today.']],
   ['10.23', ['🧰 Work shifts now tire your muscles too. After a hard shift your forearms, back and legs show as less recovered for about two days, so today\'s smart pick, the recovery map and the workout builder go easier on them.']],

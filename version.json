@@ -1,9 +1,6 @@
 {
- "version": "11.0",
+ "version": "11.1",
  "notes": [
-  "\u2601\ufe0f Accounts and sync. Sign in with your email (we send a code, no password) and everything you log is saved to your account and loaded on any device you sign in on. Find it at the top of Settings, or tap \u201cHave an account? Sign in\u201d on a fresh install.",
-  "Changes sync on their own a few seconds after you make them, and the app still works offline.",
-  "Progress photos stay on the phone for now. Backup files still work as before.",
-  "Privacy policy updated to cover accounts and Health data."
+  "Sign-in now uses an email and password."
  ]
 }

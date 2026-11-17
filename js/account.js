@@ -1,5 +1,5 @@
 'use strict';
-/* Accounts and cloud sync (optional). Sign in with an emailed code; after that everything except progress photos
+/* Accounts and cloud sync (optional). Sign in with email and password; after that everything except progress photos
    is copied to the account and kept in step across devices. The app still works fully offline and signed out.
    Server: Supabase. One table, `docs` (user_id, coll, id, data, deleted, updated_at), each row readable only by its owner.
    Sync is state-based: a "shadow" remembers what was last synced for every record, so any change made by any part
@@ -99,35 +99,34 @@ function acChoose(n) {
 }
 A.acChoice = async d => { if (d.c === 'cloud' && !await ask("Replace this phone's data with your account's? This can't be undone.", { ok: 'Replace', danger: true })) return; closeSheet(); const r = await syncNow({ choice: d.c }); if (r) toast('Synced with your account'); };
 
-/* ---------- sign in ---------- */
+/* ---------- sign in: email + password (one form signs in, or creates the account if the email is new) ---------- */
 function acSheetHTML() {
   const err = Acct.err ? `<p class="small" style="color:var(--miss);margin:0 0 10px">${esc(Acct.err)}</p>` : '';
-  if (Acct.step === 'code') return `<p class="muted small" style="margin:0 0 12px">We emailed a code to <b>${esc(Acct.email)}</b>. It can take a minute. Check spam too.</p>
-    <div class="field"><label class="lbl" for="ac-code">Code</label><input id="ac-code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" style="font-size:22px;letter-spacing:.2em;text-align:center"></div>${err}
-    <button class="btn block" data-act="acVerify"${Acct.sending ? ' disabled' : ''}>${Acct.sending ? 'Checking…' : 'Sign in'}</button>
-    <button class="linkbtn" data-act="acBack" style="align-self:center;margin-top:10px">Use a different email</button>`;
-  return `<p class="muted small" style="margin:0 0 12px">Sign in to keep your data safe in your account and load it on any device. No password: we email you a code.</p>
-    <div class="field"><label class="lbl" for="ac-email">Email</label><input id="ac-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="you@example.com" value="${esc(Acct.email)}"></div>${err}
-    <button class="btn block" data-act="acSend"${Acct.sending ? ' disabled' : ''}>${Acct.sending ? 'Sending…' : 'Email me a code'}</button>
-    <p class="faint tiny" style="text-align:center;margin:12px 0 0">New here? The same button creates your account. By continuing you agree to the <button class="linkbtn" data-act="legalOpen" data-doc="terms" style="padding:0;font-size:inherit">Terms</button> and <button class="linkbtn" data-act="legalOpen" data-doc="privacy" style="padding:0;font-size:inherit">Privacy Policy</button>.</p>`;
+  return `<p class="muted small" style="margin:0 0 12px">Sign in to keep your data safe in your account and load it on any device.</p>
+    <div class="field"><label class="lbl" for="ac-email">Email</label><input id="ac-email" type="email" inputmode="email" autocomplete="username" autocapitalize="off" placeholder="you@example.com" value="${esc(Acct.email)}"></div>
+    <div class="field"><label class="lbl" for="ac-pass">Password</label><input id="ac-pass" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div>${err}
+    <button class="btn block" data-act="acGo" data-m="in"${Acct.sending ? ' disabled' : ''}>${Acct.sending === 'in' ? 'Signing in…' : 'Sign in'}</button>
+    <button class="btn ghost block" data-act="acGo" data-m="new" style="margin-top:8px"${Acct.sending ? ' disabled' : ''}>${Acct.sending === 'new' ? 'Creating…' : 'Create account'}</button>
+    <p class="faint tiny" style="text-align:center;margin:12px 0 0">By continuing you agree to the <button class="linkbtn" data-act="legalOpen" data-doc="terms" style="padding:0;font-size:inherit">Terms</button> and <button class="linkbtn" data-act="legalOpen" data-doc="privacy" style="padding:0;font-size:inherit">Privacy Policy</button>. Forgot your password? Email ${typeof LEGAL_EMAIL === 'string' ? esc(LEGAL_EMAIL) : 'support'}.</p>`;
 }
-const acSheetDraw = () => { if ($('#ac-email') || $('#ac-code') || Acct.open) sheetBody(acSheetHTML()); };
-A.acOpen = () => { Acct.step = 'email'; Acct.err = ''; Acct.sending = false; Acct.open = true; const ob = $('#onboard'); document.body.classList.toggle('sheet-top', !!ob && !ob.hidden); openSheet('Sign in', acSheetHTML(), { onClose: () => { Acct.open = false; document.body.classList.remove('sheet-top'); } }); setTimeout(() => $('#ac-email')?.focus(), 150); };
-A.acBack = () => { Acct.step = 'email'; Acct.err = ''; acSheetDraw(); };
-A.acSend = async () => {
-  const email = ($('#ac-email')?.value || '').trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { Acct.err = 'Enter a valid email address.'; return acSheetDraw(); }
-  Acct.email = email; Acct.err = ''; Acct.sending = true; acSheetDraw();
-  try { await sbCall('/auth/v1/otp', { method: 'POST', body: { email, create_user: true } }); Acct.step = 'code'; }
-  catch (e) { Acct.err = e.code === 'offline' ? 'No connection. Try again when you are online.' : e.code === 429 ? 'Too many tries. Wait a minute and try again.' : `Couldn't send the code. ${e.message || ''}`; }
-  Acct.sending = false; acSheetDraw(); if (Acct.step === 'code') setTimeout(() => $('#ac-code')?.focus(), 100);
-};
-A.acVerify = async () => {
-  const token = ($('#ac-code')?.value || '').replace(/\D/g, ''); if (token.length < 6) { Acct.err = 'Enter the code from the email.'; return acSheetDraw(); }
-  Acct.err = ''; Acct.sending = true; acSheetDraw(); let j = null, last = null;
-  for (const type of ['email', 'signup', 'magiclink']) { try { j = await sbCall('/auth/v1/verify', { method: 'POST', body: { type, email: Acct.email, token } }); if (j && j.access_token) break; j = null; } catch (e) { last = e; if (e.code === 'offline') break; } }
-  Acct.sending = false;
-  if (!j) { Acct.err = last && last.code === 'offline' ? 'No connection. Try again.' : "That code didn't work. Check it, or send a new one."; return acSheetDraw(); }
-  acStore(j); Acct.open = false; closeSheet(); toast('Signed in'); acRowDraw();
+const acSheetDraw = () => { if ($('#ac-email') || Acct.open) { const pw = $('#ac-pass')?.value || ''; sheetBody(acSheetHTML()); const el = $('#ac-pass'); if (el) el.value = pw; } };
+A.acOpen = () => { Acct.err = ''; Acct.sending = false; Acct.open = true; const ob = $('#onboard'); document.body.classList.toggle('sheet-top', !!ob && !ob.hidden); openSheet('Sign in', acSheetHTML(), { onClose: () => { Acct.open = false; document.body.classList.remove('sheet-top'); } }); setTimeout(() => $('#ac-email')?.focus(), 150); };
+A.acGo = async d => {
+  const email = ($('#ac-email')?.value || '').trim().toLowerCase(), password = $('#ac-pass')?.value || '', make = d.m === 'new'; Acct.email = email;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { Acct.err = 'Enter a valid email address.'; return acSheetDraw(); }
+  if (password.length < 8) { Acct.err = 'Use a password with at least 8 characters.'; return acSheetDraw(); }
+  Acct.err = ''; Acct.sending = d.m; acSheetDraw(); let j = null;
+  try {
+    j = make ? await sbCall('/auth/v1/signup', { method: 'POST', body: { email, password } }) : await sbCall('/auth/v1/token?grant_type=password', { method: 'POST', body: { email, password } });
+    if (!j || !j.access_token) { j = null; Acct.err = make ? 'Account created. Check your email to confirm it, then sign in.' : "Couldn't sign in. Try again."; }
+  } catch (e) {
+    const m = String(e.message || '');
+    Acct.err = e.code === 'offline' ? 'No connection. Try again when you are online.' : e.code === 429 ? 'Too many tries. Wait a minute and try again.'
+      : make ? (/already|registered|exists/i.test(m) ? 'That email already has an account. Tap Sign in instead.' : `Couldn't create the account. ${m}`)
+      : (/invalid|credentials/i.test(m) ? 'Wrong email or password. New here? Tap Create account.' : /confirm/i.test(m) ? 'Confirm your email first (check your inbox), then sign in.' : `Couldn't sign in. ${m}`);
+  }
+  Acct.sending = false; if (!j) return acSheetDraw();
+  acStore(j); Acct.open = false; closeSheet(); toast(make ? 'Account created' : 'Signed in'); acRowDraw();
   const r = await syncNow(); if (r) toast(r.down ? `Loaded your account (${plural(r.down, 'record')})` : 'Your data is now backed up to your account'); else if (Acct.syncErr) toast(Acct.syncErr, { bad: true });
 };
 A.acSync = async () => { const r = await syncNow(); if (r) toast('Synced'); else if (Acct.syncErr) toast(Acct.syncErr, { bad: true }); };
