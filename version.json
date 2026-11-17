@@ -1,7 +1,6 @@
 {
- "version": "11.6",
+ "version": "11.7",
  "notes": [
-  "\ud83d\udedf Fix: syncing with a device still on an older app version could remove progress photos from the account and other devices. Photos are now only ever deleted when you delete one yourself, and any large batch of deletes from the account asks you first.",
-  "Settings \u2192 your account \u2192 \u201cRestore photos from a backup file\u201d brings back photos (and only photos) from a backup."
+  "\ud83d\udd12 Sync safety: an out-of-date copy of the app can no longer change or delete anything in your account. It is told to update instead."
  ]
 }

@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '11.6';
+const APP_VERSION = '11.7';
 const CHANGELOG = [
+  ['11.7', ['🔒 Sync safety: an out-of-date copy of the app can no longer change or delete anything in your account. It is told to update instead.']],
   ['11.6', ['🛟 Fix: syncing with a device still on an older app version could remove progress photos from the account and other devices. Photos are now only ever deleted when you delete one yourself, and any large batch of deletes from the account asks you first.', 'Settings → your account → “Restore photos from a backup file” brings back photos (and only photos) from a backup.']],
   ['11.5', ['“Sync now” re-reads your whole account, and the status line shows how many photo entries the account holds.']],
   ['11.4', ['Account section in Settings now shows a photo sync status line.']],

@@ -42,7 +42,14 @@ async function acPull(token, since) {
     out.push(...(rows || [])); if (!rows || rows.length < 1000) break;
   } return out;
 }
-async function acPush(token, rows) { for (let i = 0; i < rows.length; i += 150) await sbCall('/rest/v1/docs?on_conflict=user_id,coll,id', { method: 'POST', token, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: rows.slice(i, i + 150) }); }
+/* Every write carries the sync version this app speaks. The server refuses writes from versions older than it requires,
+   so an out-of-date copy of the app can read but can never change or delete anything in the account. */
+const SYNC_V = 2;
+async function acPush(token, rows) {
+  const send = (batch, withV) => sbCall('/rest/v1/docs?on_conflict=user_id,coll,id', { method: 'POST', token, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: withV ? batch.map(r => ({ ...r, v: SYNC_V })) : batch });
+  for (let i = 0; i < rows.length; i += 150) { const b = rows.slice(i, i + 150);
+    try { await send(b, true); } catch (e) { if (/'v' column|column.*\bv\b/i.test(e.message || '')) await send(b, false); /* server not upgraded yet */ else throw e; } }
+}
 function acApply(c, id, data) { if (c === '_settings') Store.settings = { ...DEFAULTS, ...clone(data || {}) }; else if (acColls().includes(c)) Store.docs[c] = { ...Store.docs[c], [id]: clone(data) }; }
 function acRemove(c, id) { if (c === '_settings' || !acColls().includes(c)) return; const m = { ...Store.docs[c] }; delete m[id]; Store.docs[c] = m; }
 /* Photos are irreplaceable, so they are only ever deleted from the account when YOU delete one on a device.
@@ -100,7 +107,7 @@ async function syncNow(opt = {}) {
     Acct.last = Date.now(); Acct.pending = null;
     if (Acct.photosOK) acPhotoSync(token, a.uid);   // pictures follow in the background
     if (touched && S().onboarded && typeof obClose === 'function' && !$('#onboard').hidden) obClose();
-  } catch (e) { res = null; if (e && e.code !== 'signed_out') Acct.syncErr = e.code === 'offline' ? 'Offline. Will sync when you are back online.' : `Sync problem (${e.code}): ${String(e.message || '').slice(0, 140)}`; }
+  } catch (e) { res = null; if (e && e.code !== 'signed_out') Acct.syncErr = e.code === 'offline' ? 'Offline. Will sync when you are back online.' : (/app_too_old/.test(e.message || '') ? 'Update the app to keep syncing.' : `Sync problem (${e.code}): ${String(e.message || '').slice(0, 140)}`); }
   Acct.busy = false; acRowDraw(); return res;
 }
 /* ---------- progress photo files (Supabase Storage, private bucket "photos", one folder per account) ---------- */
