@@ -39,18 +39,28 @@ function hkSleepByDay(samples) {   // hours asleep, keyed by the day you woke up
   for (const d in out) out[d] = Math.min(16, Math.round(out[d] * 4) / 4); return out;
 }
 function hkImport(raw) {
-  if (!raw) return { acts: 0, watch: 0, days: 0 };
-  const cfg = hkCfg(), seen = new Set(cfg.seen || []), res = { acts: 0, watch: 0, days: 0 }, t0 = todayStr();
+  if (!raw) return { acts: 0, watch: 0, days: 0, paired: [] };
+  const cfg = hkCfg(), seen = new Set(cfg.seen || []), res = { acts: 0, watch: 0, days: 0, paired: [] }, t0 = todayStr();
   for (const w of raw.workouts || []) {
-    const id = w.platformId || `${w.workoutType}@${w.startDate}`; if (seen.has(id) || !w.startDate) continue; seen.add(id);
-    const date = hkDay(w.startDate), dur = Math.round(+w.duration || 0); if (dur < 300 || date > t0) continue;
+    const id = w.platformId || `${w.workoutType}@${w.startDate}`; if (seen.has(id) || !w.startDate) continue;
+    const date = hkDay(w.startDate), dur = Math.round(+w.duration || 0); if (dur < 300 || date > t0) { seen.add(id); continue; }
     const kcal = w.totalEnergyBurned > 0 ? Math.round(w.totalEnergyBurned) : null;
-    if (HK_STRENGTH.test(w.workoutType || '')) {   // lifting: attach to the gym workout logged that day, never create a duplicate
-      const hit = Store.list('workouts').find(x => x.date === date && x.endTs && !x.watch && (x.sets || []).length);
-      if (hit) { const nw = clone(Store.docs.workouts[hit.id]); nw.watch = { type: hkWords(w.workoutType).replace(/\b\w/g, c => c.toUpperCase()), duration: dur, ...(kcal ? { activeCal: kcal } : {}), src: 'health' }; put('workouts', hit.id, nw); res.watch++; }
+    if (HK_STRENGTH.test(w.workoutType || '')) {   // lifting: pair with the gym workout logged at the same time, never create a duplicate
+      if ((cfg.nope || []).includes(id)) { seen.add(id); continue; }
+      const ws = new Date(w.startDate).getTime(), we = w.endDate ? new Date(w.endDate).getTime() : ws + dur * 1000;
+      let best = null, bestScore = -Infinity;
+      for (const g of Store.list('workouts')) {
+        if (!g.endTs || g.watch || !(g.sets || []).length) continue;
+        const timed = g.startTs && !g.noTime && !g.past, score = timed ? Math.min(g.endTs, we) - Math.max(g.startTs, ws) : (g.date === date ? 0 : -Infinity);   // overlap in ms; a gap of up to 30 min still counts
+        if (score > bestScore && score > -30 * 6e4) { best = g; bestScore = score; }
+      }
+      if (best) {
+        const nw = clone(Store.docs.workouts[best.id]); nw.watch = { type: hkWords(w.workoutType).replace(/\b\w/g, c => c.toUpperCase()), duration: dur, ...(kcal ? { activeCal: kcal } : {}), src: 'health', hk: id };
+        put('workouts', best.id, nw); seen.add(id); res.watch++; res.paired.push({ gym: best.id, hk: id, start: w.startDate, end: w.endDate || new Date(we).toISOString(), dur, kcal });
+      } else if (Date.now() - we > 36 * 36e5) seen.add(id);   // nothing to pair it with after a day and a half: stop looking
       continue;
     }
-    const type = hkActType(w.workoutType);
+    seen.add(id); const type = hkActType(w.workoutType);
     if (Store.list('acts').some(a => a.date === date && a.type === type && Math.abs((a.duration || 0) - dur) < 600)) continue;   // already logged by hand
     const mi = w.totalDistance > 0 ? w.totalDistance / 1609.344 : null;
     put('acts', newId(), { type, name: type === 'other' ? hkWords(w.workoutType).replace(/\b\w/g, c => c.toUpperCase()) : '', date, duration: dur, dist: mi && ACT[type] && ACT[type].dist ? +mi.toFixed(2) : null, activeCal: kcal, totalCal: null, avgHr: null, maxHr: null, effort: null, note: '', src: 'health', hk: id, ts: new Date(w.startDate).getTime() || Date.now() });
@@ -67,15 +77,45 @@ function hkImport(raw) {
   return res;
 }
 let hkBusy = false;
-async function hkSync(manual) {
-  if (!hkOn() || hkBusy) return null; if (!manual && Date.now() - (hkCfg().last || 0) < 20 * 6e4) return null;
+const hkNeedsWatch = () => Store.list('workouts').some(g => g.endTs && !g.watch && (g.sets || []).length && Date.now() - g.endTs < 6 * 36e5);   // a recent gym workout still waiting for its watch stats
+async function hkHeart(start, end) {   // average and peak heart rate across the workout
+  try { const r = await hkPlugin().readSamples({ dataType: 'heartRate', startDate: start, endDate: end, limit: 5000 }); const v = (r && r.samples || []).map(x => +x.value).filter(x => x > 30 && x < 240);
+    return v.length ? { avgHr: Math.round(v.reduce((a, b) => a + b, 0) / v.length), maxHr: Math.round(Math.max(...v)) } : {}; } catch (e) { return {}; }
+}
+function hkPairedNote(p) {
+  const g = Store.docs.workouts[p.gym]; if (!g || !g.watch) return; const x = g.watch;
+  const line = [fmtDur(x.duration), x.activeCal ? `${trim(x.activeCal, 0)} kcal` : '', x.avgHr ? `♥ ${x.avgHr}` : ''].filter(Boolean).join(' · ');
+  const el = document.getElementById('wt-wait-' + p.gym); if (el && typeof watchSectionHTML === 'function') el.outerHTML = watchSectionHTML(g, p.gym);
+  toastUndo(`⌚ Paired with your watch workout: ${line}`, () => {   // wrong one? one tap separates them and it is never paired again
+    const cur = Store.docs.workouts[p.gym]; if (cur && cur.watch && cur.watch.hk === p.hk) { const nw = clone(cur); delete nw.watch; put('workouts', p.gym, nw); }
+    saveSettings({ health: { ...hkCfg(), nope: [...(hkCfg().nope || []), p.hk].slice(-60) } }); render();
+  }, 9000);
+}
+async function hkSync(manual, force) {
+  if (!hkOn() || hkBusy) return null; if (!manual && !force && !hkNeedsWatch() && Date.now() - (hkCfg().last || 0) < 10 * 6e4) return null;
   hkBusy = true; let res = null;
-  try { res = hkImport(await hkFetch(hkCfg().last ? 7 : 14)); } catch (e) { if (manual) toast("Couldn't read Health data. Check the permissions in the Health app.", { bad: true }); }
+  try {
+    res = hkImport(await hkFetch(hkCfg().last ? 7 : 14));
+    for (const p of res.paired) { const hr = await hkHeart(p.start, p.end); const cur = Store.docs.workouts[p.gym]; if (cur && cur.watch && (hr.avgHr || hr.maxHr)) put('workouts', p.gym, { ...clone(cur), watch: { ...cur.watch, ...hr } }); }
+  } catch (e) { if (manual) toast("Couldn't read Health data. Check the permissions in the Health app.", { bad: true }); }
   hkBusy = false;
   if (res && (res.acts || res.watch || res.days)) { Store.rev++; changed(); render(); }
-  if (res && manual) toast(res.acts || res.watch ? `Synced: ${[res.acts ? (res.acts === 1 ? '1 activity' : `${res.acts} activities`) : '', res.watch ? plural(res.watch, 'workout') + ' with watch stats' : ''].filter(Boolean).join(', ')}` : 'Health data is up to date');
+  if (res && res.paired.length) hkPairedNote(res.paired[res.paired.length - 1]);
+  else if (res && manual) toast(res.acts ? `Synced: ${res.acts === 1 ? '1 activity' : `${res.acts} activities`}` : 'Health data is up to date');
   hkRowDraw(); return res;
 }
+/* After a gym workout is finished, keep checking for the watch workout: the watch takes a little while to hand it to the phone. */
+let hkHuntT = [];
+function hkHunt(id) {
+  hkHuntT.forEach(clearTimeout); hkHuntT = [];
+  for (const s of [4, 20, 45, 90, 180, 300, 600]) hkHuntT.push(setTimeout(() => { const g = Store.docs.workouts[id]; if (g && !g.watch && hkOn()) hkSync(false, true); }, s * 1000));
+}
+{ const fin = A.finishWorkout; A.finishWorkout = async d => { const w = activeWorkout(), id = w && w.id; await fin(d); const g = id && Store.docs.workouts[id]; if (g && g.endTs && hkOn()) hkHunt(id); }; }
+/* the "add your watch stats" card: with Health connected there is nothing to scan */
+{ const ws = watchSectionHTML; watchSectionHTML = function (w, id) {
+  if (!w.watch && hkOn() && w.endTs && Date.now() - w.endTs < 6 * 36e5) return `<section class="card" id="wt-wait-${id}" style="background:var(--s2);gap:8px"><div><b>⌚ Looking for your watch workout…</b><p class="muted small">End the workout on your watch and it is paired with this one automatically, usually within a minute. Nothing to scan.</p></div><button class="linkbtn" data-act="watchForm" data-id="${id}" style="align-self:flex-start;padding:0;font-size:13px">Type the numbers in instead</button></section>`;
+  return ws(w, id);
+}; }
 A.hkConnect = async () => {
   const H = hkPlugin(); if (!H) return;
   try {

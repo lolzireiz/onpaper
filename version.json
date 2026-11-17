@@ -1,7 +1,8 @@
 {
- "version": "11.9",
+ "version": "12.0",
  "notes": [
-  "Signed in? No more backup reminders: your data is saved to your account on its own. Settings now says so, and the manual file is offered as \u201cExport a copy\u201d.",
-  "Not signed in: the reminder now offers to sign in, which keeps your data safe automatically, instead of asking you to save a file."
+  "\u231a iPhone app: your watch workout now pairs with your gym workout on its own. Finish in Liftprint, end the workout on your watch, and within about a minute the time, calories and heart rate appear on the workout. No screenshot needed.",
+  "It matches by time, so it picks the watch workout you did during that session. You get a confirmation with an Undo in case it paired the wrong one.",
+  "Fix: a watch workout that reached the phone before you finished logging was skipped for good. It now keeps looking."
  ]
 }

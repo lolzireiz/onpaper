@@ -260,7 +260,7 @@ A.startWorkout = () => {
   const id = newId();
   put('workouts', id, { date: todayStr(), startTs: Date.now(), gymId: gym?.id || null, gymName: gym?.name || '', dayId: day?.id || null, dayName: day?.name || 'Workout', plan, sets: [] });
   UI.session = true; UI.tab = 'train'; UI.planDay = null; $('#view').scrollTop = 0; audioCtx(); wakeLock(); render();
-  if (S().watchReminder !== false) toast('⌚ Start a strength workout on your watch too', { ms: 4000 });
+  if (S().watchReminder !== false) toast(typeof hkOn === 'function' && hkOn() ? '⌚ Start a strength workout on your watch. It pairs with this one automatically when you finish.' : '⌚ Start a strength workout on your watch too', { ms: 4500 });
 };
 A.logSet = d => {
   const w = activeWorkout(); if (!w) return;
