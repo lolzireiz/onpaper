@@ -705,6 +705,10 @@ body.ob-open .tabs{visibility:hidden}
 .toast button{pointer-events:auto}
 
 /* ===== light theme fixes ===== */
+.src-tag{font-size:12px;opacity:.75;font-weight:400}
+.pw-wrap{position:relative}.pw-wrap input{padding-right:64px;text-align:left}.pw-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:8px 10px;font-size:13px;font-weight:650;color:var(--accent)}
+.lt-btn.new{color:var(--accent);animation:ltPulse 1.6s ease-in-out 3}@keyframes ltPulse{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 22%,transparent)}}
+@media (prefers-reduced-motion:reduce){.lt-btn.new{animation:none}}
 .lt-btn{color:var(--tx2)}.lt-btn[aria-pressed=true]{color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}.lt-btn svg{width:20px;height:20px}
 .lt{border-radius:14px;background:var(--s2);padding:10px 12px;margin:2px 0 4px;font-variant-numeric:tabular-nums;animation:ltIn .22s cubic-bezier(.2,.8,.2,1)}
 @keyframes ltIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}

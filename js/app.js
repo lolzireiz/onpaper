@@ -18,6 +18,8 @@ $('#file-watch').addEventListener('change', e => onWatchPhoto(e.target.files && 
 $('#file-photo').addEventListener('change', e => onPhotoChosen(e.target.files && e.target.files[0]));
 $('#file-import').addEventListener('change', e => onImportChosen(e.target.files && e.target.files[0]));
 $('#file-backup').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; onBackupChosen(f).finally(() => { e.target.value = ''; }); });
+/* Tapping a number box selects what is in it, so typing replaces the old number in place of adding to it. */
+document.addEventListener('focusin', e => { const i = e.target; if (!i || i.tagName !== 'INPUT' || !/^(decimal|numeric)$/.test(i.inputMode || i.getAttribute('inputmode') || '') || !i.value) return; setTimeout(() => { try { if (document.activeElement === i) i.setSelectionRange(0, i.value.length); } catch (err) { try { i.select(); } catch (e2) {} } }, 0); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('#dialog').hidden) return; closeSheet(); } });
 setInterval(() => { if (UI.tab === 'train' && UI.session && $('#sheet').hidden) scheduleRender(); }, 60000);
 

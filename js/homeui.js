@@ -2,7 +2,7 @@
 /* ---------- Today screen: a calmer layout you can rearrange. Each block is a card you can hide or move (You → Customize Home). ---------- */
 const HOME_CARDS = [
   ['today', 'Today', 'Your checklist: weigh-in, workout, protein'],
-  ['coach', 'Assistant', 'Quick questions for your coach'],
+  ['coach', 'Coach', 'Quick questions for your coach'],
   ['ready', 'Readiness', 'Your score, plus nap buttons'],
   ['habits', 'Habits', 'Tap them off for today'],
   ['tiles', 'Stats', 'Bodyweight, this week, goals, Big 3'],

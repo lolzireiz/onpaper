@@ -162,14 +162,16 @@ A.acChoice = async d => { if (d.c === 'cloud' && !await ask("Replace this phone'
 function acSheetHTML() {
   const err = Acct.err ? `<p class="small" style="color:var(--miss);margin:0 0 10px">${esc(Acct.err)}</p>` : '';
   return `<p class="muted small" style="margin:0 0 12px">Sign in to keep your data safe in your account and load it on any device.</p>
-    <div class="field"><label class="lbl" for="ac-email">Email</label><input id="ac-email" type="email" inputmode="email" autocomplete="username" autocapitalize="off" placeholder="you@example.com" value="${esc(Acct.email)}"></div>
-    <div class="field"><label class="lbl" for="ac-pass">Password</label><input id="ac-pass" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div>${err}
+    <div class="field"><label class="lbl" for="ac-email">Email</label><input id="ac-email" type="email" inputmode="email" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="you@example.com" value="${esc(Acct.email)}"></div>
+    <div class="field"><label class="lbl" for="ac-pass">Password</label><div class="pw-wrap"><input id="ac-pass" type="password" autocomplete="current-password" enterkeyhint="go" placeholder="At least 8 characters"><button type="button" class="pw-eye" data-act="acEye" aria-label="Show password" aria-pressed="false">Show</button></div></div>${err}
     <button class="btn block" data-act="acGo" data-m="in"${Acct.sending ? ' disabled' : ''}>${Acct.sending === 'in' ? 'Signing in…' : 'Sign in'}</button>
     <button class="btn ghost block" data-act="acGo" data-m="new" style="margin-top:8px"${Acct.sending ? ' disabled' : ''}>${Acct.sending === 'new' ? 'Creating…' : 'Create account'}</button>
     <p class="faint tiny" style="text-align:center;margin:12px 0 0">By continuing you agree to the <button class="linkbtn" data-act="legalOpen" data-doc="terms" style="padding:0;font-size:inherit">Terms</button> and <button class="linkbtn" data-act="legalOpen" data-doc="privacy" style="padding:0;font-size:inherit">Privacy Policy</button>. Forgot your password? Email ${typeof LEGAL_EMAIL === 'string' ? esc(LEGAL_EMAIL) : 'support'}.</p>`;
 }
-const acSheetDraw = () => { if ($('#ac-email') || Acct.open) { const pw = $('#ac-pass')?.value || ''; sheetBody(acSheetHTML()); const el = $('#ac-pass'); if (el) el.value = pw; } };
+const acSheetDraw = () => { if ($('#ac-email') || Acct.open) { const pw = $('#ac-pass')?.value || '', shown = $('#ac-pass')?.type === 'text'; sheetBody(acSheetHTML()); const el = $('#ac-pass'); if (el) { el.value = pw; if (shown) A.acEye({}, $('.pw-eye')); el.blur(); } } };
 A.acOpen = () => { Acct.err = ''; Acct.sending = false; Acct.open = true; const ob = $('#onboard'); document.body.classList.toggle('sheet-top', !!ob && !ob.hidden); openSheet('Sign in', acSheetHTML(), { onClose: () => { Acct.open = false; document.body.classList.remove('sheet-top'); } }); setTimeout(() => $('#ac-email')?.focus(), 150); };
+A.acEye = (d, el) => { const i = $('#ac-pass'); if (!i) return; const show = i.type === 'password'; i.type = show ? 'text' : 'password'; el.textContent = show ? 'Hide' : 'Show'; el.setAttribute('aria-pressed', show); el.setAttribute('aria-label', show ? 'Hide password' : 'Show password'); i.focus(); };
+document.addEventListener('keydown', e => { if (e.key !== 'Enter' || !e.target || !e.target.id) return; if (e.target.id === 'ac-email') { e.preventDefault(); $('#ac-pass')?.focus(); } else if (e.target.id === 'ac-pass') { e.preventDefault(); e.target.blur(); A.acGo({ m: 'in' }); } });
 A.acGo = async d => {
   const email = ($('#ac-email')?.value || '').trim().toLowerCase(), password = $('#ac-pass')?.value || '', make = d.m === 'new'; Acct.email = email;
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { Acct.err = 'Enter a valid email address.'; return acSheetDraw(); }

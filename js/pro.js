@@ -5,7 +5,7 @@ const PRO_PRICE = { mo: 5.99, yr: 39.99 }, PRO_TRIAL_DAYS = 7;
 const PRO_CODE_HASH = 'f56f58c7ece971f68bcfb2cceba98fc921bcf40b485539e97c1817855f7e9c19';
 /* [emoji, name, what you get, key] — the order shown on the paywall */
 const PRO_FEATURES = [
-  ['✨', 'AI Assistant', 'A coach that knows your training, food and recovery', 'ai'],
+  ['✨', 'AI coach', 'Knows your training, food and recovery, and answers in seconds', 'ai'],
   ['📸', 'Snap your meal', 'Log food from a photo or a quick description', 'snap'],
   ['🏦', 'Smart calorie budget', 'Over one day? It balances the next few for you', 'budget'],
   ['🔮', 'PR predictions', 'See which lifts are about to hit a new best', 'forecast'],
@@ -103,7 +103,7 @@ function proCardHTML() {
   const st = proState();
   if (st.pro && st.kind !== 'trial') return '';
   if (st.kind === 'trial') return `<button class="pro-card on" data-act="pwOpen"><span class="pro-ic">✨</span><span class="grow"><b>Pro trial · ${st.daysLeft} day${st.daysLeft === 1 ? '' : 's'} left</b><span>See what you keep with Pro</span></span>${ICON.chevR}</button>`;
-  return `<button class="pro-card" data-act="pwOpen"><span class="pro-ic">✨</span><span class="grow"><b>${st.ended ? 'Get Pro back' : `Try Liftprint Pro free`}</b><span>${st.ended ? 'Assistant, photo logging, smart budget and more' : `${PRO_TRIAL_DAYS} days of the Assistant, photo logging and more`}</span></span>${ICON.chevR}</button>`;
+  return `<button class="pro-card" data-act="pwOpen"><span class="pro-ic">✨</span><span class="grow"><b>${st.ended ? 'Get Pro back' : `Try Liftprint Pro free`}</b><span>${st.ended ? 'Assistant, photo logging, smart budget and more' : `${PRO_TRIAL_DAYS} days of the AI coach, photo logging and more`}</span></span>${ICON.chevR}</button>`;
 }
 { const yr = Views.you.render; Views.you.render = function () {
   const st = proState(), rows = [['🎨', 'Appearance', 'Theme, colour, sounds, tips', 'openLook'], ['🧩', 'Customize Home', 'Choose what shows on Today', 'homeEdit'], ['✨', 'Liftprint Pro', st.pro ? (st.kind === 'trial' ? `Trial · ${st.daysLeft} days left` : st.kind === 'founder' ? 'Founder access · everything unlocked' : 'Active') : 'See plans', 'pwOpen'], ['📜', 'About & legal', 'Health & safety, privacy, terms, erase data', 'aboutOpen']];

@@ -102,7 +102,7 @@ A.openSettings = () => {
     <details><summary class="faint small">Advanced: model</summary><input id="st-gm" name="gmodel" autocomplete="off" autocapitalize="off" value="${esc(geminiModel())}" placeholder="Automatic (fastest available)" style="margin-top:6px"></details>
     <p class="faint small" style="margin-top:-6px">Your key is saved only on this phone and only sent to Google.</p>
     </div></details>
-    <details class="sset"><summary><span class="si" aria-hidden="true">🔔</span><span class="grow"><b>Alerts</b><span class="faint small">Rest alerts, weigh-in reminder, Siri</span></span></summary><div class="sset-b">
+    <details class="sset"><summary><span class="si" aria-hidden="true">🔔</span><span class="grow"><b>Alerts</b><span class="faint small">${typeof isNativeApp === 'function' && isNativeApp() ? 'Rest alerts, weigh-in reminder' : 'Rest alerts, weigh-in reminder, Siri'}</span></span></summary><div class="sset-b">
     ${pushSettingsHTML()}
     <div class="field"><span class="lbl">Remind me to weigh in after</span><div class="seg">${chipSeg('nudge', [[1, '1 day'], [2, '2'], [3, '3'], [5, '5'], [7, '7']], s.nudgeDays)}</div></div>
     

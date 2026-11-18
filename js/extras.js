@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '12.4';
+const APP_VERSION = '12.5';
 const CHANGELOG = [
+  ['12.5', ['A round of small refinements:', 'Number boxes: tap one and the old number is selected, so typing replaces it. No more deleting first.', 'Sign in: Show / Hide for your password, and the keyboard\'s Next and Go keys move you through the form.', 'The AI is called “Coach” everywhere now. It used to be “Assistant” in some places and “coach” in others.', 'Sports and cardio that came from your watch are marked with a small ⌚.', 'The new Last time button glows the first time you see it, so you know it is there.', 'iPhone app: the clock and battery at the top now match the app\'s theme, and the old Siri weigh-in shortcut (a web-version workaround) is hidden.']],
   ['12.4', ['⏪ Last time, one tap away. During a workout, tap the rewind-clock button on any exercise to see exactly what you did on it last session, set by set, right next to today.', 'Each set you log is marked ▲ better, = same or ▼ lower than the same set last time, the next set shows the number to beat, and total weight moved is compared at the bottom.']],
   ['12.3', ['Fix: asking the Assistant to log a meal now really logs it, straight away, with an Undo. Before, it could say “logged” while the food was still waiting on a button tap.', 'If the Assistant ever says something was logged when it was not, the reply now says so plainly.']],
   ['12.2', ['⌚ iPhone app: new watch workouts now show up when you come back to the app, and every couple of minutes while it is open. Before, they only appeared after fully closing and reopening it.']],

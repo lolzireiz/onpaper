@@ -39,5 +39,11 @@ if (isNativeApp()) {
     catch (e) { out.innerHTML = `<span style="color:var(--miss)">Notifications are off for Liftprint.</span> <button class="linkbtn" data-act="openAppSettings" style="padding:0;font-size:inherit">Open Settings</button>`; }
     el.disabled = false;
   };
+  /* status bar text (clock, battery) follows the app's theme, not the phone's light/dark setting, so it never ends up dark-on-dark */
+  const sbSync = () => { try { const SB = Capacitor.Plugins && Capacitor.Plugins.StatusBar; if (SB) SB.setStyle({ style: document.documentElement.dataset.theme === 'light' ? 'LIGHT' : 'DARK' }).catch(() => {}); } catch (e) {} };
+  if (typeof applyTheme === 'function') { const at = applyTheme; applyTheme = function (...a) { const r = at(...a); sbSync(); return r; }; }
+  setTimeout(sbSync, 400);
+  siriSettingsHTML = function () { return ''; };   // the Siri weigh-in shortcut was a web-version workaround that went through an outside service
+  siriPoll = async function () {};
   if (localStorage.getItem(PUSH_ON) == null) lsSet(PUSH_ON, '1');   // on by default in the app: nothing to set up
 }

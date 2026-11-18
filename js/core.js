@@ -260,7 +260,7 @@ function render() {
   view.innerHTML = ready ? v.render() + (typeof APP_VERSION !== 'undefined' ? `<footer class="ver-foot">Liftprint v${APP_VERSION}</footer>` : '') : `<div class="loading"><div class="thinking">Loading your data…</div></div>`;
   for (const [id, val] of Object.entries(keep)) { const el = document.getElementById(id); if (el && el.dataset.keep !== undefined) el.value = val; }
   if (focusId) { const el = document.getElementById(focusId); if (el) { el.focus({ preventScroll: true }); try { if (sel) el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } }
-  const topH = `<div class="top-l">${v.title()}</div><div class="top-r">${ready && v.actions ? v.actions() : ''}<button class="iconbtn ai-hbtn" data-act="aiOpen" aria-label="Assistant">${ICON.ai}</button><button class="iconbtn" data-act="search" aria-label="Search">${ICON.search}</button></div>`;
+  const topH = `<div class="top-l">${v.title()}</div><div class="top-r">${ready && v.actions ? v.actions() : ''}<button class="iconbtn ai-hbtn" data-act="aiOpen" aria-label="Ask your coach">${ICON.ai}</button><button class="iconbtn" data-act="search" aria-label="Search">${ICON.search}</button></div>`;
   if (topH !== render.top || !$('#top').firstChild) { $('#top').innerHTML = topH; render.top = topH; }   // leave the header alone when nothing changed (keeps its animations)
   $$('.tab').forEach(t => t.setAttribute('aria-current', t.dataset.tab === tabOf(UI.tab) ? 'page' : 'false'));
   $('#banner').innerHTML = (typeof updBannerHTML === 'function' ? updBannerHTML() : '') + (Store.note ? `<div class="banner">${esc(Store.note)}</div>` : '');

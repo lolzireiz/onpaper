@@ -1,7 +1,12 @@
 {
- "version": "12.4",
+ "version": "12.5",
  "notes": [
-  "\u23ea Last time, one tap away. During a workout, tap the rewind-clock button on any exercise to see exactly what you did on it last session, set by set, right next to today.",
-  "Each set you log is marked \u25b2 better, = same or \u25bc lower than the same set last time, the next set shows the number to beat, and total weight moved is compared at the bottom."
+  "A round of small refinements:",
+  "Number boxes: tap one and the old number is selected, so typing replaces it. No more deleting first.",
+  "Sign in: Show / Hide for your password, and the keyboard's Next and Go keys move you through the form.",
+  "The AI is called \u201cCoach\u201d everywhere now. It used to be \u201cAssistant\u201d in some places and \u201ccoach\u201d in others.",
+  "Sports and cardio that came from your watch are marked with a small \u231a.",
+  "The new Last time button glows the first time you see it, so you know it is there.",
+  "iPhone app: the clock and battery at the top now match the app's theme, and the old Siri weigh-in shortcut (a web-version workaround) is hidden."
  ]
 }
