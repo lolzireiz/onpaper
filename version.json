@@ -1,7 +1,7 @@
 {
- "version": "12.3",
+ "version": "12.4",
  "notes": [
-  "Fix: asking the Assistant to log a meal now really logs it, straight away, with an Undo. Before, it could say \u201clogged\u201d while the food was still waiting on a button tap.",
-  "If the Assistant ever says something was logged when it was not, the reply now says so plainly."
+  "\u23ea Last time, one tap away. During a workout, tap the rewind-clock button on any exercise to see exactly what you did on it last session, set by set, right next to today.",
+  "Each set you log is marked \u25b2 better, = same or \u25bc lower than the same set last time, the next set shows the number to beat, and total weight moved is compared at the bottom."
  ]
 }

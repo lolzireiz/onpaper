@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '12.3';
+const APP_VERSION = '12.4';
 const CHANGELOG = [
+  ['12.4', ['⏪ Last time, one tap away. During a workout, tap the rewind-clock button on any exercise to see exactly what you did on it last session, set by set, right next to today.', 'Each set you log is marked ▲ better, = same or ▼ lower than the same set last time, the next set shows the number to beat, and total weight moved is compared at the bottom.']],
   ['12.3', ['Fix: asking the Assistant to log a meal now really logs it, straight away, with an Undo. Before, it could say “logged” while the food was still waiting on a button tap.', 'If the Assistant ever says something was logged when it was not, the reply now says so plainly.']],
   ['12.2', ['⌚ iPhone app: new watch workouts now show up when you come back to the app, and every couple of minutes while it is open. Before, they only appeared after fully closing and reopening it.']],
   ['12.1', ['⌚ iPhone app: sports and cardio tracked on your watch now come in with average and max heart rate, and a notice tells you what was added (with Undo).']],
