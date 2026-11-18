@@ -709,6 +709,13 @@ body.ob-open .tabs{visibility:hidden}
 .pw-wrap{position:relative}.pw-wrap input{padding-right:64px;text-align:left}.pw-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:8px 10px;font-size:13px;font-weight:650;color:var(--accent)}
 .lt-btn.new{color:var(--accent);animation:ltPulse 1.6s ease-in-out 3}@keyframes ltPulse{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 22%,transparent)}}
 @media (prefers-reduced-motion:reduce){.lt-btn.new{animation:none}}
+.aic{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.72);display:grid;place-items:center;padding:16px;padding-top:calc(16px + var(--sat,0px));overflow:auto}
+.aic-card{width:100%;max-width:440px;background:var(--s1);border-radius:22px;padding:20px 18px 16px;display:flex;flex-direction:column;gap:10px}
+.aic-card h2{font-size:21px;margin:0}.aic-card p{margin:0;font-size:14.5px;line-height:1.45;color:var(--tx2)}.aic-card p b,.aic-card li b{color:var(--tx)}
+.aic-k{font-size:11.5px!important;letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:var(--tx)!important;margin-top:4px!important}
+.aic-card ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.4;color:var(--tx2)}
+.aic-sw{display:flex;gap:10px;align-items:flex-start;background:var(--s2);border-radius:14px;padding:12px}.aic-sw input{width:22px;height:22px;min-height:0;flex:none;margin-top:2px;-webkit-appearance:auto;appearance:auto;accent-color:var(--accent)}
+.aic-sw span span{display:block;font-size:13px;color:var(--tx2);margin-top:2px}.aic-sw b{font-size:14.5px}
 .lt-btn{color:var(--tx2)}.lt-btn[aria-pressed=true]{color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}.lt-btn svg{width:20px;height:20px}
 .lt{border-radius:14px;background:var(--s2);padding:10px 12px;margin:2px 0 4px;font-variant-numeric:tabular-nums;animation:ltIn .22s cubic-bezier(.2,.8,.2,1)}
 @keyframes ltIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
@@ -1092,6 +1099,7 @@ input[type=checkbox]:not(#_):focus-visible{outline:2px solid var(--accent);outli
 <script src="js/health.js"></script>
 <script src="js/account.js"></script>
 <script src="js/native.js"></script>
+<script src="js/aiconsent.js"></script>
 <script src="js/app.js"></script>
 <script>if ('serviceWorker' in navigator && !(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform())) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>

@@ -148,6 +148,7 @@ function hkRowDraw() { const el = $('#st-hk'); if (el) el.outerHTML = hkRowHTML(
 /* the coach sees it too */
 { const ctx = aiContext; aiContext = function () {
   let s = ctx(); const rows = []; for (let i = 0; i < 7; i++) { const d = addDays(todayStr(), -i), h = dailyOf(d).hk; if (h) rows.push(`${d}: ${[h.steps ? `${h.steps} steps` : '', h.sleep ? `${h.sleep} h asleep` : '', h.rhr ? `resting HR ${h.rhr}` : '', h.hrv ? `HRV ${h.hrv} ms` : ''].filter(Boolean).join(', ')}`); }
+  if (!(typeof aiHealthOk === 'function' && aiHealthOk())) return s;   // Health data only goes to the AI service with its own explicit opt-in
   return rows.length ? `${s}\nFROM THEIR WATCH / HEALTH APP (last 7 days, newest first):\n${rows.join('\n')}` : s;
 }; }
 /* Look for new watch data whenever the app comes back to the front (several signals, because the phone does not always send the same one),
