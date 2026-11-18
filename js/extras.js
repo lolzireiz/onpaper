@@ -1,8 +1,9 @@
 'use strict';
 /* Version + what's new, iCloud/Files backups, watch reminder, muscle diagrams. */
 
-const APP_VERSION = '12.2';
+const APP_VERSION = '12.3';
 const CHANGELOG = [
+  ['12.3', ['Fix: asking the Assistant to log a meal now really logs it, straight away, with an Undo. Before, it could say “logged” while the food was still waiting on a button tap.', 'If the Assistant ever says something was logged when it was not, the reply now says so plainly.']],
   ['12.2', ['⌚ iPhone app: new watch workouts now show up when you come back to the app, and every couple of minutes while it is open. Before, they only appeared after fully closing and reopening it.']],
   ['12.1', ['⌚ iPhone app: sports and cardio tracked on your watch now come in with average and max heart rate, and a notice tells you what was added (with Undo).']],
   ['12.0', ['⌚ iPhone app: your watch workout now pairs with your gym workout on its own. Finish in Liftprint, end the workout on your watch, and within about a minute the time, calories and heart rate appear on the workout. No screenshot needed.', 'It matches by time, so it picks the watch workout you did during that session. You get a confirmation with an Undo in case it paired the wrong one.', 'Fix: a watch workout that reached the phone before you finished logging was skipped for good. It now keeps looking.']],

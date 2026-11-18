@@ -1,6 +1,7 @@
 {
- "version": "12.2",
+ "version": "12.3",
  "notes": [
-  "\u231a iPhone app: new watch workouts now show up when you come back to the app, and every couple of minutes while it is open. Before, they only appeared after fully closing and reopening it."
+  "Fix: asking the Assistant to log a meal now really logs it, straight away, with an Undo. Before, it could say \u201clogged\u201d while the food was still waiting on a button tap.",
+  "If the Assistant ever says something was logged when it was not, the reply now says so plainly."
  ]
 }

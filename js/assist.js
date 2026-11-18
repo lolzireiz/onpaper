@@ -114,7 +114,12 @@ Reply ONLY with JSON: {"reply": "markdown text", "follow": {"q": "...", "yes": "
 - {"type":"add_ex","day":"<day id>","name":"<exact known exercise name>"} to add an exercise to a split day.
 - {"type":"open","screen":"home|train|food|lifts|body|you"} to jump to a screen.
 - {"type":"build","goal":"what the workout should do, one sentence in the user's words plus anything useful you know (sore areas, time, focus)"} to open the workout builder with that request filled in. Offer this whenever they ask you for a workout, a session or what to train today. Give a short outline in the reply, then let the builder write the full session, since it matches their gym's equipment and lets them start it with one tap.
-At most 4 actions. The user always confirms before anything changes, so describe in the reply what each action would do.
+At most 4 actions.
+HOW ACTIONS ARE APPLIED, and what you may say about them:
+- When the user's latest message clearly asks you to log a food or meal, or to mark a habit ("log this", "add my lunch", "mark creatine done"), put "now": true on that log_food or habit action. The app then applies it immediately and shows an Undo. Only in that case may the reply say it is logged or marked, and it must give the numbers you used.
+- For a meal with several foods, either send one log_food per food (up to 4), or one combined entry with summed numbers and a clear name. Use realistic estimates and say they are estimates.
+- Everything else (changing targets, changing their split, a food you are only suggesting) is NOT applied until the user taps the button. For those, never say it is done. Say what the button will do, e.g. "Tap below to log it."
+- Never say something was logged, added, saved, marked or changed unless the matching action is in "actions". If you cannot produce a valid action (for example you are missing the calories), ask for what you need instead of claiming it is done.
 
 THEIR DATA:
 ${aiContext()}`;
@@ -154,7 +159,7 @@ function aiMd(txt) {
 function aiActCheck(a) {
   const lib = library(), days = splitDays(), dayOf = id => days.find(d => d.id === id || keyOf(d.name) === keyOf(id || ''));
   if (!a || !a.type) return null;
-  if (a.type === 'log_food') { const cal = +a.cal; if (!a.name || !(cal >= 0) || cal > 5000) return null; return { ...a, label: `🍽️ Log ${a.name} · ${Math.round(cal)} kcal${+a.p ? `, ${Math.round(+a.p)} g protein` : ''}` }; }
+  if (a.type === 'log_food') { const cal = +a.cal; if (!a.name || !(cal >= 0) || cal > 5000) return null; return { ...a, now: a.now === true, label: `🍽️ Log ${a.name} · ${Math.round(cal)} kcal${+a.p ? `, ${Math.round(+a.p)} g protein` : ''}` }; }
   if (a.type === 'habit') { const h = myHabits().find(x => x.id === a.id); const d = /^\d{4}-\d\d-\d\d$/.test(a.date || '') && a.date <= todayStr() && a.date >= addDays(todayStr(), -13) ? a.date : todayStr(); if (!h) return null; return { ...a, date: d, label: `${h.e} Mark ${h.n} done ${d === todayStr() ? 'today' : habDayWord(d)}` }; }
   if (a.type === 'targets') { const c = +a.cal, p = +a.protein; if (!(c >= 1200 && c <= 6000) && !(p >= 40 && p <= 400)) return null; return { ...a, label: `🎯 Set targets${c >= 1200 && c <= 6000 ? ` · ${Math.round(c)} kcal` : ''}${p >= 40 && p <= 400 ? ` · ${Math.round(p)} g protein` : ''}` }; }
   if (a.type === 'swap') { const d = dayOf(a.day), to = lib.get(keyOf(a.to || '')); if (!d || !to) return null; const from = (d.exercises || []).find(n => keyOf(n) === keyOf(a.from || '')); if (!from) return null; return { ...a, day: d.id, from, to: to.name, label: `🔁 ${d.name}: swap ${from} → ${to.name}` }; }
@@ -168,7 +173,7 @@ A.aiAct = d => {
   const t = todayStr();
   if (a.type === 'log_food') {
     const it = { id: newId(), name: String(a.name).slice(0, 80), serving: a.serving || '1 serving', servingSize: 1, servingUnit: 'serving', qty: 1, mode: 'servings', cal: Math.round(+a.cal), p: +(+a.p || 0).toFixed(1), c: +(+a.c || 0).toFixed(1), f: +(+a.f || 0).toFixed(1), src: 'ai', est: 'ai', ts: Date.now() };
-    const was = UI.foodDate; UI.foodDate = t; addFoodItem(it); UI.foodDate = was; if (typeof sfx === 'function') sfx('pop');
+    const was = UI.foodDate; UI.foodDate = t; addFoodItem(it); UI.foodDate = was; a.item = it.id; a.day = t;
   } else if (a.type === 'habit') A.habitTap({ id: a.id, date: a.date });
   else if (a.type === 'targets') saveSettings({ ...(+a.cal >= 1200 && +a.cal <= 6000 ? { calTarget: Math.round(+a.cal) } : {}), ...(+a.protein >= 40 && +a.protein <= 400 ? { proteinTarget: Math.round(+a.protein) } : {}) });
   else if (a.type === 'swap' || a.type === 'add_ex') {
@@ -177,7 +182,13 @@ A.aiAct = d => {
     saveSettings({ split });
   } else if (a.type === 'open') { aiClose(); UI.tab = a.screen; render(); return; }
   else if (a.type === 'build') { aiClose(); UI.tab = 'train'; render(); if (typeof WB !== 'undefined') { WB.goal = a.goal; WB.out = null; } setTimeout(() => A.wbOpen && A.wbOpen(), 120); return; }
-  a.done = 1; aiChatSave(m); aiDraw(); toast(a.label.replace(/^\S+\s/, '') + ' ✓');
+  a.done = 1; aiChatSave(m); aiDraw(); if (!d.quiet) toast(a.label.replace(/^\S+\s/, '') + ' ✓');
+};
+/* take back a food the coach logged */
+A.aiUndo = d => {
+  const m = aiChat(), msg = m[+d.m], a = msg && msg.actions && msg.actions[+d.a]; if (!a || !a.done || a.type !== 'log_food' || !a.item) return;
+  const day = clone(foodDay(a.day)); if (day && day.items) { day.items = day.items.filter(x => x.id !== a.item); put('food', a.day, day); }
+  a.done = 0; a.now = false; delete a.item; aiChatSave(m); aiDraw(); toast('Removed from your food log');
 };
 
 /* ===== the panel ===== */
@@ -215,7 +226,7 @@ function aiDraw(scroll) {
   const body = $('#ai-body'); if (!body) return; const m = aiChat();
   const near = body.scrollHeight - body.scrollTop - body.clientHeight < 80;
   body.innerHTML = (m.length ? m.map((x, i) => x.role === 'user' ? `<div class="ai-msg me"><div>${esc(x.text).replace(/\n/g, '<br>')}</div></div>`
-    : `<div class="ai-msg bot${x.err ? ' err' : ''}"><div>${x.err ? `<p>${esc(x.text)}</p>${i === m.length - 1 ? '<button class="btn ghost sm" data-act="aiRetry">Try again</button>' : ''}` : aiMd(x.text)}${(x.actions || []).length ? `<div class="ai-acts">${x.actions.map((a, j) => `<button class="ai-act${a.done ? ' done' : ''}" data-act="aiAct" data-m="${i}" data-a="${j}"${a.done ? ' disabled' : ''}>${a.done ? '✓ ' : ''}${esc(a.label)}</button>`).join('')}</div>` : ''}${x.follow ? `<p class="ai-fq">${esc(x.follow.q)}</p>${i === m.length - 1 && !x.follow.off && !AI.busy ? `<div class="ai-fb"><button class="ai-yes" data-act="aiFollow" data-m="${i}" data-k="yes">${esc(x.follow.yes)}</button>${x.follow.alt ? `<button class="ai-alt" data-act="aiFollow" data-m="${i}" data-k="alt">${esc(x.follow.alt)}</button>` : ''}<button class="ai-no" data-act="aiFollow" data-m="${i}" data-k="no">No thanks</button></div>` : ''}` : ''}</div></div>`).join('') : aiWelcomeHTML())
+    : `<div class="ai-msg bot${x.err ? ' err' : ''}"><div>${x.err ? `<p>${esc(x.text)}</p>${i === m.length - 1 ? '<button class="btn ghost sm" data-act="aiRetry">Try again</button>' : ''}` : aiMd(x.text)}${(x.actions || []).length ? `<div class="ai-acts">${x.actions.map((a, j) => `<button class="ai-act${a.done ? ' done' : ''}" data-act="aiAct" data-m="${i}" data-a="${j}"${a.done ? ' disabled' : ''}>${a.done ? '✓ ' : ''}${esc(a.done && a.type === 'log_food' ? a.label.replace(/^(\S+\s)Log /, '$1Logged ') : a.label)}</button>${a.done && a.type === 'log_food' && a.item ? `<button class="linkbtn ai-undo" data-act="aiUndo" data-m="${i}" data-a="${j}">Undo</button>` : ''}`).join('')}</div>` : ''}${x.follow ? `<p class="ai-fq">${esc(x.follow.q)}</p>${i === m.length - 1 && !x.follow.off && !AI.busy ? `<div class="ai-fb"><button class="ai-yes" data-act="aiFollow" data-m="${i}" data-k="yes">${esc(x.follow.yes)}</button>${x.follow.alt ? `<button class="ai-alt" data-act="aiFollow" data-m="${i}" data-k="alt">${esc(x.follow.alt)}</button>` : ''}<button class="ai-no" data-act="aiFollow" data-m="${i}" data-k="no">No thanks</button></div>` : ''}` : ''}</div></div>`).join('') : aiWelcomeHTML())
     + (AI.busy ? `<div class="ai-msg bot"><div><span class="ai-dots"><i></i><i></i><i></i></span>${AI.status ? `<span class="faint small"> ${esc(AI.status)}</span>` : ''} <button class="linkbtn small" data-act="aiStop">Stop</button></div></div>` : '');
   $('#ai-cmds').innerHTML = m.length && aiReady() ? AI_CMDS.map((c, i) => `<button class="chip" data-act="aiCmd" data-i="${i}">${c[0]} ${esc(c[1])}</button>`).join('') : '';
   $('#ai-cmds').hidden = !m.length || !UI.aiCmds;
@@ -248,7 +259,15 @@ async function aiSend(text, shown) {
     const reply = typeof out === 'string' ? out : (out && (out.reply || out.text || out.answer)) || '';
     const acts = (Array.isArray(out && out.actions) ? out.actions : []).map(aiActCheck).filter(Boolean).slice(0, 4);
     const f = out && out.follow, follow = f && f.q && f.yes ? { q: String(f.q).slice(0, 140), yes: String(f.yes).slice(0, 70), alt: f.alt ? String(f.alt).slice(0, 70) : '' } : null;
-    m2.push({ role: 'bot', text: reply || "I couldn't come up with an answer. Try asking another way.", actions: acts, follow, ts: Date.now() });
+    let text = reply || "I couldn't come up with an answer. Try asking another way.";
+    const claims = /\b(i(['’]ve| have)? (just )?(logged|added|marked|saved|recorded)|(logged|added|recorded) (it|that|this|your)\b|(it|that)(['’]s| is| has been) (now )?(logged|added|saved|recorded)|has been (logged|added|recorded))/i.test(text);
+    const willApply = acts.some(a => a.now && (a.type === 'log_food' || a.type === 'habit')), pending = acts.some(a => !a.now && (a.type === 'log_food' || a.type === 'habit'));
+    if (claims && !willApply) text += pending ? '\n\n**Not logged yet.** Tap the button below to add it.' : "\n\n**Heads up: nothing was actually added to your log.** Tell me the food and roughly how much and I'll log it, or add it in the Food tab.";
+    m2.push({ role: 'bot', text, actions: acts, follow, ts: Date.now() });
+    aiChatSave(m2);
+    const mi = m2.length - 1; acts.forEach((a, j) => { if (a.now && (a.type === 'log_food' || a.type === 'habit')) { try { A.aiAct({ m: mi, a: j, quiet: 1 }); } catch (e) {} } });
+    const n = ((aiChat()[mi] || {}).actions || []).filter(a => a.done && a.type === 'log_food').length; if (n) toast(n === 1 ? 'Logged to today ✓' : `${n} foods logged to today ✓`);
+    return aiDraw(true), aiMeterRefresh();
   }
   aiChatSave(m2); aiDraw(true); aiMeterRefresh();
 }
