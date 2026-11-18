@@ -124,7 +124,7 @@ function photosHTML() {
   };
   return `<section class="card"><div class="card-h"><h2 class="sec-t">Compare</h2><div class="chips">${POSES.map(p => `<button class="chip" data-act="photoPose" data-p="${p}" aria-pressed="${pose === p}">${p}</button>`).join('')}</div></div>
     ${photoCompareHTML(a, b, fig)}
-    ${a && b && a.id !== b.id ? `<p class="faint small center">${daysBetween(a.date, b.date)} days apart${bwOn(a.date) && bwOn(b.date) ? ` · ${signed(U.w(bwOn(b.date).weight - bwOn(a.date).weight))} ${U.wu}` : ''}</p>` : ''}</section>
+    ${a && b && a.id !== b.id ? `<p class="faint small center">${daysBetween(a.date, b.date)} ${daysBetween(a.date, b.date) === 1 ? 'day' : 'days'} apart${bwOn(a.date) && bwOn(b.date) ? ` · ${signed(U.w(bwOn(b.date).weight - bwOn(a.date).weight))} ${U.wu}` : ''}</p>` : ''}</section>
     <div class="photos">${list.map(p => `<button data-act="viewPhoto" data-id="${p.id}"><img loading="lazy" src="${photoSrc(p)}" alt="${esc(p.pose)} photo, ${fmtDate(p.date, { rel: false })}"><span class="cap">${fmtDate(p.date)}${p.time ? ' · ' + fmtTime(p.time) : ''} · ${esc(p.pose)}</span></button>`).join('')}</div>
     <p class="faint small">Photos are saved only on this phone. They aren't uploaded anywhere and aren't included in backups.</p>`;
 }

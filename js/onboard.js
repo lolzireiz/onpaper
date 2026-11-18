@@ -44,8 +44,8 @@ const OB_VIEWS = {
   welcome() {
     const back = hasData();
     return { t: back ? 'Make Liftprint <span class="gtxt">yours</span>' : 'Welcome to <span class="gtxt">Liftprint</span>', next: "Let's go", alt: true,
-      sub: back ? "New: tell the app what you're training for, and it'll point out every exercise that gets you there. All your data stays exactly as it is." : "Every set, PR and weigh-in, and what's actually moving you forward. First, a few quick taps so the app fits you.",
-      body: `<div class="ob-hero ob-in">${obLogo()}</div><p class="faint small ob-in" style="text-align:center;margin:0">About 30 seconds · skip anytime</p>${back ? '' : '<button class="linkbtn ob-in" data-act="acOpen" style="align-self:center;font-size:15px;font-weight:600">Have an account? Sign in</button><button class="linkbtn ob-in" data-act="obRestore" style="align-self:center;font-size:14px">Restore a backup file</button>'}` };
+      sub: back ? "New: tell the app what you're training for, and it'll point out every exercise that gets you there. All your data stays exactly as it is." : "Your lifting, food and recovery in one place, with a coach that knows your numbers. First, a few quick taps so the app fits you.",
+      body: `<div class="ob-hero ob-in">${obLogo()}</div><p class="faint small ob-in" style="text-align:center;margin:0">About a minute · skip anytime</p>${back ? '' : '<button class="linkbtn ob-in" data-act="acOpen" style="align-self:center;font-size:15px;font-weight:600">Have an account? Sign in</button><button class="linkbtn ob-in" data-act="obRestore" style="align-self:center;font-size:14px">Restore a backup file</button>'}` };
   },
   you() {
     const lw = latestWeighin(), wu = OB.a.unit === 'metric' ? 'kg' : 'lb';
@@ -54,7 +54,7 @@ const OB_VIEWS = {
       <div class="field ob-in"><span class="lbl">Muscle diagrams</span>${obSeg('bodyModel', [['male', 'Male body'], ['female', 'Female body']])}</div>
       <div class="field ob-in"><span class="lbl">Weights in</span>${obSeg('unit', [['imperial', 'Pounds (lb)'], ['metric', 'Kilograms (kg)']])}</div>
       ${lw ? `<p class="muted small ob-in" style="margin:0">Latest weigh-in: <b>${fw(lw.weight)} ${U.wu}</b> ✓</p>` : `<label class="field ob-in"><span class="lbl">Your weight today <span class="faint">(optional)</span></span><div class="inunit"><input id="ob-weight" inputmode="decimal" value="${esc(OB.a.weight)}" placeholder="0"><span id="ob-wu">${wu}</span></div></label>`}
-      <div class="field ob-in"><span class="lbl">Your height <span class="faint">(optional, sizes the dunk simulator)</span></span><div class="fields"><select id="ob-hf"><option value="">ft</option>${[4, 5, 6, 7].map(f => `<option value="${f}" ${OB.a.hf == f ? 'selected' : ''}>${f} ft</option>`).join('')}</select><select id="ob-hi"><option value="">in</option>${[...Array(12)].map((_, i) => `<option value="${i}" ${OB.a.hi === String(i) ? 'selected' : ''}>${i} in</option>`).join('')}</select></div></div>` };
+      <div class="field ob-in"><span class="lbl">Your height <span class="faint">(optional)</span></span><div class="fields"><select id="ob-hf"><option value="">ft</option>${[4, 5, 6, 7].map(f => `<option value="${f}" ${OB.a.hf == f ? 'selected' : ''}>${f} ft</option>`).join('')}</select><select id="ob-hi"><option value="">in</option>${[...Array(12)].map((_, i) => `<option value="${i}" ${OB.a.hi === String(i) ? 'selected' : ''}>${i} in</option>`).join('')}</select></div></div>` };
   },
   main() {
     return { t: "What's your main goal?", sub: 'Pick the one that matters most right now.', body: `

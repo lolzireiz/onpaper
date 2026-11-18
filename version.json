@@ -1,12 +1,10 @@
 {
- "version": "12.5",
+ "version": "12.6",
  "notes": [
-  "A round of small refinements:",
-  "Number boxes: tap one and the old number is selected, so typing replaces it. No more deleting first.",
-  "Sign in: Show / Hide for your password, and the keyboard's Next and Go keys move you through the form.",
-  "The AI is called \u201cCoach\u201d everywhere now. It used to be \u201cAssistant\u201d in some places and \u201ccoach\u201d in others.",
-  "Sports and cardio that came from your watch are marked with a small \u231a.",
-  "The new Last time button glows the first time you see it, so you know it is there.",
-  "iPhone app: the clock and battery at the top now match the app's theme, and the old Siri weigh-in shortcut (a web-version workaround) is hidden."
+  "Second refinement pass, this time through a brand-new user's eyes:",
+  "Setup: the \u201cContinue with Free\u201d choice on the Pro screen is always visible now (it could sit off-screen under the feature list).",
+  "Setup: clearer welcome line, an honest time estimate, and the height question no longer mentions the dunk simulator.",
+  "A new user no longer sees a Monthly wrap for a month with nothing in it.",
+  "Wording: \u201c1 serving\u201d, \u201c1 day\u201d, \u201c1 set\u201d where the app used to say \u201c1 servings\u201d, \u201c1 days\u201d, \u201c1 sets\u201d."
  ]
 }

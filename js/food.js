@@ -49,7 +49,7 @@ function recentFoods() {
 }
 const myFoods = () => Store.list('myfoods').sort((a, b) => (b.lastUsed || b.ts || 0) - (a.lastUsed || a.ts || 0));
 const servingLabel = it => it.serving || (it.servingSize ? `${fracTxt(it.servingSize)} ${it.servingUnit || 'g'}` : '1 serving');
-const eatenLabel = it => it.mode === 'amount' && it.amount ? `${fracTxt(it.amount)} ${it.amountUnit || it.servingUnit} · ${trim(it.qty, 2)} servings` : `${fracTxt(it.qty || 1)} × ${servingLabel(it)}`;
+const eatenLabel = it => it.mode === 'amount' && it.amount ? `${fracTxt(it.amount)} ${it.amountUnit || it.servingUnit} · ${trim(it.qty, 2)} ${Math.abs(it.qty - 1) < 0.005 ? 'serving' : 'servings'}` : `${fracTxt(it.qty || 1)} × ${servingLabel(it)}`;
 const macroBar = (label, val, target, unit, cls = '') => {
   const pct = target ? clamp(val / target * 100, 0, 100) : 0;
   return `<div class="macro"><div class="t"><span class="muted">${label}</span><span><b>${trim(val, 0)}</b> <span class="faint">/ ${trim(target, 0)} ${unit}</span></span></div><div class="bar ${cls} ${val >= target ? 'over' : ''}" role="progressbar" aria-label="${label}" aria-valuenow="${Math.round(val)}" aria-valuemax="${target}"><i style="width:${pct}%"></i></div></div>`;
@@ -132,7 +132,7 @@ function readFoodForm() {
 function updateFoodSum() {
   const v = readFoodForm(), el = $('#fd-sum'); if (!el) return;
   if (v.cal == null || v.qty == null) { el.textContent = v.mode === 'amount' && v.amount != null ? `Add the serving size in ${unitFam(v.amountUnit) === U_WT ? 'g, oz or lb' : unitFam(v.amountUnit) === U_VOL ? 'cups, spoons or ml' : v.amountUnit} so the app can scale it.` : 'Fill in calories and how much you ate.'; return; }
-  el.innerHTML = `${v.mode === 'amount' ? `${fracTxt(v.amount)} ${v.amountUnit} = <b>${trim(v.qty, 2)} servings</b> → ` : ''}<b>${trim(v.cal * v.qty, 0)} kcal</b> · ${trim(v.p * v.qty, 1)} g protein · ${trim(v.c * v.qty, 0)} g carbs · ${trim(v.f * v.qty, 0)} g fat`;
+  el.innerHTML = `${v.mode === 'amount' ? `${fracTxt(v.amount)} ${v.amountUnit} = <b>${trim(v.qty, 2)} ${Math.abs(v.qty - 1) < 0.005 ? 'serving' : 'servings'}</b> → ` : ''}<b>${trim(v.cal * v.qty, 0)} kcal</b> · ${trim(v.p * v.qty, 1)} g protein · ${trim(v.c * v.qty, 0)} g carbs · ${trim(v.f * v.qty, 0)} g fat`;
 }
 A.foodMode = d => { Sheet.foodMode = d.m; drawEat(); updateFoodSum(); if (d.m === 'amount') $('#fd-amt')?.focus(); };
 A.foodQty = (d, el) => { $$('#sheet [data-act="foodQty"]').forEach(b => b.setAttribute('aria-pressed', String(b === el))); const q = $('#fd-q'); if (q) q.value = d.q; updateFoodSum(); };

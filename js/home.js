@@ -22,7 +22,7 @@ function alertsHTML(lw) {
   const todo = steps.filter(x => !x[0]);
   if (todo.length && (!hasAny || !gyms().length || !splitDays().length)) out.push(['🧰', `<b>Setup ${steps.length - todo.length} of ${steps.length}</b> · ${todo[0][1]}`, todo[0][2], todo[0][3]]);
   const since = lw ? daysBetween(lw.date, todayStr()) : null;
-  if (lw && since >= (s.nudgeDays || 3)) out.push(['⚖️', `<b>${since} days</b> since your last weigh-in`, 'logWeighin', 'Weigh in']);
+  if (lw && since >= (s.nudgeDays || 3)) out.push(['⚖️', `<b>${since} ${since === 1 ? 'day' : 'days'}</b> since your last weigh-in`, 'logWeighin', 'Weigh in']);
   if (backupDue()) out.push(['☁️', 'Your data is <b>only on this phone</b>. Sign in to keep it safe.', 'acOpen', 'Sign in']);
   return out.length ? `<div class="alerts">${out.map(([ic, t, act, btn]) => `<div class="alert"><span class="ai" aria-hidden="true">${ic}</span><p>${t}</p><button class="btn sm" data-act="${act}">${btn}</button></div>`).join('')}</div>` : '';
 }

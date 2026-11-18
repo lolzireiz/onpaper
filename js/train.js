@@ -220,7 +220,7 @@ function lastTimeHTML(name, prev, all) {
     rows += `<div class="lt-r${next ? ' next' : ''}"><span class="lt-n">${i + 1}</span><span class="lt-a">${a ? ltTxt(name, a) : '—'}</span><span class="lt-b ${cls}">${b ? `${ltTxt(name, b)} <i>${mark}</i>` : next && a ? '<em>beat this</em>' : next ? '<em>bonus set</em>' : ''}</span></div>`;
   }
   const vol = xs => xs.filter(s => s.hit !== false).reduce((t, s) => t + (s.w || 0) * s.r, 0), va = vol(was), vb = vol(now), done = now.length >= was.length && now.length > 0;
-  const head = !now.length ? 'Here is what to beat.' : done ? (beat === was.length ? 'Every set beaten. 🔥' : `${beat} of ${was.length} sets beaten.`) : `${beat} beaten so far.`;
+  const head = !now.length ? 'Here is what to beat.' : done ? (beat === was.length ? 'Every set beaten. 🔥' : `${beat} of ${was.length} ${was.length === 1 ? 'set' : 'sets'} beaten.`) : `${beat} beaten so far.`;
   return `<div class="lt" role="region" aria-label="Last time on ${esc(name)}"><div class="lt-h"><b>Last time</b><span>${fmtDate(prev.date)} · ${days <= 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`}</span><span class="lt-s">${head}</span></div>
     <div class="lt-r lt-k"><span class="lt-n"></span><span class="lt-a">Last time</span><span class="lt-b">Today</span></div>${rows}
     ${va > 0 && !isTimed(name) ? `<div class="lt-r lt-t"><span class="lt-n">Σ</span><span class="lt-a">${Math.round(U.w(va)).toLocaleString()} ${U.wu}</span><span class="lt-b ${vb > va ? 'up' : ''}">${vb ? `${Math.round(U.w(vb)).toLocaleString()} ${U.wu}${vb > va ? ' <i>▲</i>' : ''}` : ''}</span></div>` : ''}</div>`;
